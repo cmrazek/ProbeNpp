@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{011E14C9-84DF-4F8B-A17B-94F43326953E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ProbeNpp</RootNamespace>
+    <AssemblyName>ProbeNpp</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NppSharpInterface">
+      <HintPath>C:\Program Files (x86)\Notepad++\NppSharpInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CompilePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CompilePanel.designer.cs">
+      <DependentUpon>CompilePanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CompileRef.cs" />
+    <Compile Include="Errors.cs" />
+    <Compile Include="FileDetails.cs" />
+    <Compile Include="Function Parser\Function.cs" />
+    <Compile Include="Function Parser\FunctionCollection.cs" />
+    <Compile Include="Function Parser\FunctionParser.cs" />
+    <Compile Include="IniFile.cs" />
+    <Compile Include="Output.cs" />
+    <Compile Include="ProbeNppPlugin.cs" />
+    <Compile Include="ProbeEnvironment.cs" />
+    <Compile Include="ProbeException.cs" />
+    <Compile Include="ProbeLexer.cs" />
+    <Compile Include="ProbeTable.cs" />
+    <Compile Include="ProcessRunner.cs" />
+    <Compile Include="PromptForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PromptForm.designer.cs">
+      <DependentUpon>PromptForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RunForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RunForm.designer.cs">
+      <DependentUpon>RunForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsForm.designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SettingsValues.cs" />
+    <Compile Include="ShortcutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ShortcutForm.Designer.cs">
+      <DependentUpon>ShortcutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SidebarForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SidebarForm.designer.cs">
+      <DependentUpon>SidebarForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TagString.cs" />
+    <Compile Include="TempManager.cs" />
+    <Compile Include="TextFilter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ProbeNppLexer.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CompilePanel.resx">
+      <DependentUpon>CompilePanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PromptForm.resx">
+      <DependentUpon>PromptForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RunForm.resx">
+      <DependentUpon>RunForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ShortcutForm.resx">
+      <DependentUpon>ShortcutForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SidebarForm.resx">
+      <DependentUpon>SidebarForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)Notepad++\"
+copy "$(TargetDir)ProbeNppLexer.xml" "$(SolutionDir)Notepad++\"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
