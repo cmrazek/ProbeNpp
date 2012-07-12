@@ -31,6 +31,7 @@ namespace ProbeNpp
 		LexerStyle _constantStyle = new LexerStyle("Constants", Color.Navy);
 		LexerStyle _dataTypeStyle = new LexerStyle("Data Types", Color.Teal);
 		LexerStyle _preprocessorStyle = new LexerStyle("Preprocessor", Color.Gray);
+		LexerStyle _tableStyle = new LexerStyle("Tables", Color.DarkOrange);
 
 		private HashSet<string> _keywords  = new HashSet<string>();
 		private HashSet<string> _functions = new HashSet<string>();
@@ -79,7 +80,8 @@ namespace ProbeNpp
 			get
 			{
 				return new LexerStyle[] { _defaultStyle, _commentStyle, _numberStyle, _stringStyle,
-					_keywordStyle, _functionStyle, _constantStyle, _dataTypeStyle, _preprocessorStyle };
+					_keywordStyle, _functionStyle, _constantStyle, _dataTypeStyle, _preprocessorStyle,
+					_tableStyle };
 			}
 		}
 
@@ -128,6 +130,7 @@ namespace ProbeNpp
 					else if (_functions.Contains(token)) line.Style(_functionStyle, token.Length);
 					else if (_constants.Contains(token)) line.Style(_constantStyle, token.Length);
 					else if (_dataTypes.Contains(token)) line.Style(_dataTypeStyle, token.Length);
+					else if (ProbeNppPlugin.Instance.Environment.IsProbeTable(token)) line.Style(_tableStyle, token.Length);
 					else line.Style(_defaultStyle, token.Length);
 					tokenCount++;
 				}

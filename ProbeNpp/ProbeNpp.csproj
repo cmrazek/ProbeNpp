@@ -105,6 +105,7 @@
   <ItemGroup>
     <Content Include="ProbeNppLexer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <ItemGroup>

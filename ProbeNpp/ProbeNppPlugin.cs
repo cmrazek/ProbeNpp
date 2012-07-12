@@ -13,6 +13,15 @@ namespace ProbeNpp
 {
 	public class ProbeNppPlugin : NppScript
 	{
+		#region Static Instance
+		private static ProbeNppPlugin _instance;
+
+		public static ProbeNppPlugin Instance
+		{
+			get { return _instance; }
+		}
+		#endregion
+
 		#region Notepad++ Integration
 		private NativeWindow _nppWindow = null;
 		private Dictionary<uint, FileDetails> _fileDetails = new Dictionary<uint, FileDetails>();
@@ -48,6 +57,7 @@ namespace ProbeNpp
 		{
 			try
 			{
+				_instance = this;
 				_nppWindow = nppWindow;
 
 				_settings = new Settings(this);
@@ -175,6 +185,7 @@ namespace ProbeNpp
 
 		#region Sidebar
 		SidebarForm _sidebar = null;
+		IDockWindow _sidebarDock = null;
 
 		private const int k_dockWindowId = 6481891;
 
@@ -184,15 +195,15 @@ namespace ProbeNpp
 		{
 			try
 			{
-				if (_sidebar == null)
+				if (_sidebarDock != null)
+				{
+					_sidebarDock.Show();
+				}
+				else if (_sidebar == null)
 				{
 					_sidebar = new SidebarForm(this);
-					DockWindow(_sidebar, "Probe Sidebar", DockWindowAlignment.Left, k_dockWindowId);
+					_sidebarDock = DockWindow(_sidebar, "Probe Sidebar", DockWindowAlignment.Left, k_dockWindowId);
 					_sidebar.OnSidebarLoad(_currentFile);
-				}
-				else
-				{
-					DockWindow(_sidebar, "Probe Sidebar", DockWindowAlignment.Left, k_dockWindowId);
 				}
 			}
 			catch (Exception ex)
@@ -234,6 +245,7 @@ namespace ProbeNpp
 
 		#region Compile Panel
 		CompilePanel _compilePanel = null;
+		IDockWindow _compilePanelDock = null;
 
 		private const int k_compilePanelId = 564489;
 
@@ -242,15 +254,15 @@ namespace ProbeNpp
 		{
 			try
 			{
-				if (_compilePanel == null)
+				if (_compilePanelDock != null)
+				{
+					_compilePanelDock.Show();
+				}
+				else if (_compilePanel == null)
 				{
 					_compilePanel = new CompilePanel(this);
-					DockWindow(_compilePanel, "Probe Compile", DockWindowAlignment.Bottom, k_compilePanelId);
+					_compilePanelDock = DockWindow(_compilePanel, "Probe Compile", DockWindowAlignment.Bottom, k_compilePanelId);
 					_compilePanel.OnPanelLoad();
-				}
-				else
-				{
-					DockWindow(_compilePanel, "Probe Compile", DockWindowAlignment.Bottom, k_compilePanelId);
 				}
 			}
 			catch (Exception ex)
