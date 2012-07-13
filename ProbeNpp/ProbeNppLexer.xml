@@ -82,4 +82,7 @@
 		notebuf_t noterow_t noyes_t numeric recalc_t string time
 		unsigned void yesno_t
 	</DataTypes>
+	<Operators>
+		( ) { } | + - * / % ? : &lt; &gt; = ! . , &amp;
+	</Operators>
 </ProbeNpp>
