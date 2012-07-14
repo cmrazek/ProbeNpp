@@ -95,6 +95,8 @@ namespace ProbeNpp
 		{
 			if (_compileThread != null) KillCompile(k_killCompileTimeout);
 
+			_plugin.SaveFilesInApp();
+
 			Clear();
 			Kill = false;
 

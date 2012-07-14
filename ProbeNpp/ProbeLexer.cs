@@ -33,7 +33,9 @@ namespace ProbeNpp
 		LexerStyle _dataTypeStyle = new LexerStyle("Data Types", Color.Teal);
 		LexerStyle _preprocessorStyle = new LexerStyle("Preprocessor", Color.Gray);
 		LexerStyle _tableStyle = new LexerStyle("Tables", Color.DarkOrange);
-        LexerStyle _fieldStyle = new LexerStyle("Fields", Color.DarkGray);
+		LexerStyle _fieldStyle = new LexerStyle("Fields", Color.DarkGray);
+		LexerStyle _replacedStyle = new LexerStyle("Replaced", Color.DarkGray);
+		LexerStyle _errorStyle = new LexerStyle("Error", Color.Red, "", FontStyle.Bold);
 
 		private HashSet<string> _keywords  = new HashSet<string>();
 		private HashSet<string> _functions = new HashSet<string>();
@@ -89,12 +91,15 @@ namespace ProbeNpp
 			{
 				return new LexerStyle[] { _defaultStyle, _commentStyle, _numberStyle, _stringStyle,
 					_operatorStyle, _keywordStyle, _functionStyle, _constantStyle, _dataTypeStyle,
-					_preprocessorStyle, _tableStyle, _fieldStyle };
+					_preprocessorStyle, _tableStyle, _fieldStyle, _replacedStyle, _errorStyle };
 			}
 		}
 
 		// State bits
-		private const int State_InsideComment = 1;
+		private const int State_InsideComment = 0x01;
+		private const int State_InsideReplace = 0x02;
+		private const int State_InsideReplaceWith = 0x04;
+		private const int State_InsideInsert = 0x08;
 
 		private const int State_TokenMask = 0xff00;
 		private const int State_Token_None = 0;
@@ -114,54 +119,79 @@ namespace ProbeNpp
 		private const int State_Token_Operator = 13;
 		private const int State_Token_Preprocessor = 14;
 
-		private int GetLastToken(int state)
+		private ILexerLine _line = null;
+		private int _state = 0;
+		private int _tokenCount = 0;
+
+		private int GetLastToken()
 		{
-			return (state & State_TokenMask) >> 8;
+			return (_state & State_TokenMask) >> 8;
 		}
 
-		private void SetLastToken(ref int state, int token)
+		private void SetLastToken(int token)
 		{
-			state &= ~State_TokenMask;
-			state |= (token << 8) & State_TokenMask;
+			_state &= ~State_TokenMask;
+			_state |= (token << 8) & State_TokenMask;
+
+			switch (token)
+			{
+				case State_Token_None:
+					break;
+				default:
+					_tokenCount++;
+					break;
+			}
 		}
 
 		public int StyleLine(ILexerLine line, int state)
 		{
-			// This function is called by NppSharp to get the lexer to perform styling and code
-			// folding on a line of text.
+			_line = line;
+			_state = state;
+			_tokenCount = 0;
 
-			int tokenCount = 0;
 			char nextCh;
+			int lastPos = -1;
 
 			while (!line.EOL)
 			{
 				nextCh = line.NextChar;
 
-				if ((state & State_InsideComment) != 0)
+				if (line.Position == lastPos) throw new LexerException(string.Format(
+					"The lexer did not advance the line position when styling line [{0}] at position [{1}]",
+					line.Text, lastPos));
+				lastPos = line.Position;
+
+				if ((_state & State_InsideComment) != 0)
 				{
 					// Currently inside block comment.
 					if (line.Peek(2) == "*/")
 					{
 						line.Style(_commentStyle, 2);
-						state &= ~State_InsideComment;
+						_state &= ~State_InsideComment;
 					}
 					else
 					{
 						line.Style(_commentStyle);
 					}
-					SetLastToken(ref state, State_Token_BlockComment);
+					SetLastToken(State_Token_BlockComment);
+				}
+				else if ((_state & State_InsideReplace) != 0 && line.Peek(5) != "#with")
+				{
+					_line.Style(_replacedStyle);
+					SetLastToken(State_Token_None);
 				}
 				else if (line.Peek(2) == "//")
 				{
 					// Start of line comment; rest of line is forfeit.
 					line.StyleRemainder(_commentStyle);
-					SetLastToken(ref state, State_Token_StreamComment);
+					SetLastToken(State_Token_StreamComment);
 				}
 				else if (line.Peek(2) == "/*")
 				{
 					// Start of block comment. Switch the state on so it passes down to other lines.
-					state |= State_InsideComment;
-					SetLastToken(ref state, State_Token_BlockComment);
+					_line.Style(_commentStyle, 2);
+					_state |= State_InsideComment;
+					SetLastToken(State_Token_BlockComment);
 				}
 				else if (Char.IsLetter(nextCh) || nextCh == '_')
 				{
@@ -170,46 +200,44 @@ namespace ProbeNpp
 					if (_keywords.Contains(token))
 					{
 						line.Style(_keywordStyle, token.Length);
-						SetLastToken(ref state, State_Token_Keyword);
+						SetLastToken(State_Token_Keyword);
 					}
 					else if (_functions.Contains(token))
 					{
 						line.Style(_functionStyle, token.Length);
-						SetLastToken(ref state, State_Token_Function);
+						SetLastToken(State_Token_Function);
 					}
 					else if (_constants.Contains(token))
 					{
 						line.Style(_constantStyle, token.Length);
-						SetLastToken(ref state, State_Token_Constant);
+						SetLastToken(State_Token_Constant);
 					}
 					else if (_dataTypes.Contains(token))
 					{
 						line.Style(_dataTypeStyle, token.Length);
-						SetLastToken(ref state, State_Token_DataType);
+						SetLastToken(State_Token_DataType);
 					}
 					else if (ProbeNppPlugin.Instance.Environment.IsProbeTable(token))
 					{
 						line.Style(_tableStyle, token.Length);
-						SetLastToken(ref state, State_Token_Table);
+						SetLastToken(State_Token_Table);
 					}
-					else if (GetLastToken(state) == State_Token_TableDelim)
+					else if (GetLastToken() == State_Token_TableDelim)
 					{
 						line.Style(_fieldStyle, token.Length);
-						SetLastToken(ref state, State_Token_Field);
+						SetLastToken(State_Token_Field);
 					}
 					else
 					{
 						line.Style(_defaultStyle, token.Length);
-						SetLastToken(ref state, State_Token_UnknownIdent);
+						SetLastToken(State_Token_UnknownIdent);
 					}
-					tokenCount++;
 				}
 				else if (Char.IsDigit(nextCh))
 				{
 					// Token beginning with number.
 					line.Style(_numberStyle, (ch) => Char.IsDigit(ch) || ch == '.');
-					tokenCount++;
-					SetLastToken(ref state, State_Token_Number);
+					SetLastToken(State_Token_Number);
 				}
 				else if (nextCh == '\"' || nextCh == '\'')
 				{
@@ -223,64 +251,48 @@ namespace ProbeNpp
 							lastCh = ch;
 							return true;
 						});
-					tokenCount++;
-					SetLastToken(ref state, State_Token_String);
+					SetLastToken(State_Token_String);
 				}
 				else if (nextCh == '{')
 				{
 					// Opening braces are the start of a code folding section.
 					line.FoldStart();
 					line.Style(_operatorStyle);
-					tokenCount++;
-					SetLastToken(ref state, State_Token_Operator);
+					SetLastToken(State_Token_Operator);
 				}
 				else if (nextCh == '}')
 				{
 					// Closing braces are the end of a code folding section.
 					line.FoldEnd();
 					line.Style(_operatorStyle);
-					tokenCount++;
-					SetLastToken(ref state, State_Token_Operator);
+					SetLastToken(State_Token_Operator);
 				}
 				else if (nextCh == '#')
 				{
-					if (tokenCount == 0)
-					{
-						line.StyleRemainder(_preprocessorStyle);
-						tokenCount++;
-						SetLastToken(ref state, State_Token_Preprocessor);
-					}
-					else
-					{
-						line.Style(_defaultStyle);
-						SetLastToken(ref state, State_Token_Operator);
-					}
+					StylePreprocessor();
 				}
 				else if (nextCh == '.')
 				{
 					line.Style(_operatorStyle);
-					tokenCount++;
 
-					if (GetLastToken(state) == State_Token_Table)
+					if (GetLastToken() == State_Token_Table)
 					{
-						SetLastToken(ref state, State_Token_TableDelim);
+						SetLastToken(State_Token_TableDelim);
 					}
 					else
 					{
-						SetLastToken(ref state, State_Token_Operator);
+						SetLastToken(State_Token_Operator);
 					}
 				}
 				else if (_operators.Contains(nextCh.ToString()))
 				{
 					line.Style(_operatorStyle);
-					tokenCount++;
-					SetLastToken(ref state, State_Token_Operator);
+					SetLastToken(State_Token_Operator);
 				}
 				else if (!Char.IsWhiteSpace(nextCh))
 				{
 					line.Style(_defaultStyle);
-					tokenCount++;
-					SetLastToken(ref state, State_Token_Unknown);
+					SetLastToken(State_Token_Unknown);
 				}
 				else
 				{
@@ -288,7 +300,186 @@ namespace ProbeNpp
 				}
 			}
 
-			return state;
+			return _state;
+		}
+
+		private void StylePreprocessor()
+		{
+			if (_tokenCount == 0)
+			{
+				string cmd = _line.Peek(ch => Char.IsLetter(ch) || ch == '#');
+				switch (cmd)
+				{
+					case "#define":
+					case "#ifdef":
+					case "#ifndef":
+						_line.Style(_preprocessorStyle, cmd.Length);
+						if (StyleWhiteSpace() && IsIdentChar(_line.NextChar, true))
+						{
+							_line.Style(_constantStyle, ch => IsIdentChar(ch, false));
+						}
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#replace":
+						if ((_state & (State_InsideReplace | State_InsideReplaceWith)) != 0)
+						{
+							// #replace's cannot be nested.
+							_line.Style(_errorStyle, cmd.Length);
+						}
+						else
+						{
+							_line.Style(_preprocessorStyle, cmd.Length);
+							_line.FoldStart();
+						}
+						_state |= State_InsideReplace;
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#with":
+						if (((_state & State_InsideReplace) == 0) || ((_state & State_InsideReplaceWith) != 0))
+						{
+							// #with must always occur after #replace.
+							_line.Style(_errorStyle, cmd.Length);
+						}
+						else
+						{
+							_line.FoldEnd();
+							_line.Style(_preprocessorStyle, cmd.Length);
+							_line.FoldStart();
+						}
+						_state = (_state & ~State_InsideReplace) | State_InsideReplaceWith;
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#endreplace":
+						if ((_state & State_InsideReplaceWith) == 0)
+						{
+							// #endreplace must always occur after #with.
+							_line.Style(_errorStyle, cmd.Length);
+						}
+						else
+						{
+							_line.FoldEnd();
+							_line.Style(_preprocessorStyle, cmd.Length);
+						}
+						_state &= ~State_InsideReplaceWith;
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#insert":
+						if ((_state & State_InsideInsert) != 0)
+						{
+							// #insert cannot be inside another #insert.
+							_line.Style(_errorStyle, cmd.Length);
+						}
+						else
+						{
+							_line.FoldStart();
+							_line.Style(_preprocessorStyle, cmd.Length);
+							if (StyleWhiteSpace() && IsIdentChar(_line.NextChar, true))
+							{
+								_line.Style(_constantStyle, ch => IsIdentChar(ch, false));
+							}
+						}
+						_state |= State_InsideInsert;
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#endinsert":
+						if ((_state & State_InsideInsert) == 0)
+						{
+							// #endinsert must occur after #insert.
+							_line.Style(_errorStyle, cmd.Length);
+						}
+						else
+						{
+							_line.FoldEnd();
+							_line.Style(_preprocessorStyle, cmd.Length);
+						}
+						_state &= ~State_InsideInsert;
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#label":
+						_line.Style(_preprocessorStyle, cmd.Length);
+						if (StyleWhiteSpace() && IsIdentChar(_line.NextChar, true))
+						{
+							_line.Style(_constantStyle, ch => IsIdentChar(ch, false));
+						}
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					case "#include":
+						_line.Style(_preprocessorStyle, cmd.Length);
+						if (StyleWhiteSpace())
+						{
+							char nextCh = _line.NextChar;
+							switch (nextCh)
+							{
+								case '\"':
+									{
+										char lastCh = '\\';
+										bool done = false;
+										_line.Style(_stringStyle, (ch) =>
+										{
+											if (done) return false;
+											if (ch == nextCh && lastCh != '\\') done = true;
+											lastCh = ch;
+											return true;
+										});
+									}
+									break;
+
+								case '<':
+									{
+										bool done = false;
+										_line.Style(_stringStyle, (ch) =>
+										{
+											if (done) return false;
+											if (ch == '>') done = true;
+											return true;
+										});
+									}
+									break;
+							}
+						}
+						SetLastToken(State_Token_Preprocessor);
+						break;
+
+					default:
+						_line.Style(_preprocessorStyle, cmd.Length);
+						SetLastToken(State_Token_Preprocessor);
+						break;
+				}
+			}
+			else
+			{
+				_line.Style(_defaultStyle);
+				SetLastToken(State_Token_Operator);
+			}
+		}
+
+		/// <summary>
+		/// Consumes the next whitespace on the line.
+		/// </summary>
+		/// <returns>True if whitespace was found, otherwise false.</returns>
+		private bool StyleWhiteSpace()
+		{
+			bool foundWhiteSpace = false;
+			while (Char.IsWhiteSpace(_line.NextChar))
+			{
+				_line.Style(_defaultStyle);
+				foundWhiteSpace = true;
+			}
+			return foundWhiteSpace;
+		}
+
+		private static bool IsIdentChar(char ch, bool firstChar)
+		{
+			if (Char.IsLetter(ch) || ch == '_') return true;
+			if (!firstChar && Char.IsDigit(ch)) return true;
+			return false;
 		}
 
 		private void ParseWordList(string text, HashSet<string> wordList)

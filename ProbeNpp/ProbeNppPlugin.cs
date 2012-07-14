@@ -169,6 +169,7 @@ namespace ProbeNpp
 			try
 			{
 				_sidebar.OnAppChanged();
+				RefreshCustomLexers();
 			}
 			catch (Exception ex)
 			{
@@ -302,6 +303,48 @@ namespace ProbeNpp
 			catch (Exception ex)
 			{
 				Errors.Show(_nppWindow, ex);
+			}
+		}
+
+		internal void SaveFilesInApp()
+		{
+			EditorView currentView = CurrentView;
+			int currentFileMain = GetActiveFileIndex(EditorView.Main);
+			int currentFileSub = GetActiveFileIndex(EditorView.Sub);
+
+			SaveFilesInApp(EditorView.Main);
+			SaveFilesInApp(EditorView.Sub);
+
+			SetActiveFileIndex(EditorView.Main, currentFileMain);
+			SetActiveFileIndex(EditorView.Sub, currentFileSub);
+		}
+
+		private void SaveFilesInApp(EditorView view)
+		{
+			int fileIndex = 0;
+			foreach (var fileName in GetFileNames(EditorView.Main))
+			{
+				try
+				{
+					if (_env.FileExistsInApp(fileName))
+					{
+						SetActiveFileIndex(view, fileIndex);
+						if (Modified)
+						{
+							if (!SaveFile())
+							{
+								Output.WriteLine(OutputStyle.Warning, "Could not save file '{0}'.", fileName);
+								Output.Show();
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Output.WriteLine(OutputStyle.Error, "Exception when saving file '{0}':\r\n{1}", fileName, ex);
+					Output.Show();
+				}
+				fileIndex++;
 			}
 		}
 		#endregion
