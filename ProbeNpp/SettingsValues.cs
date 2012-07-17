@@ -16,7 +16,8 @@ namespace ProbeNpp
 		public ProbeGroup Probe = new ProbeGroup();
 		public class ProbeGroup : SettingsGroup
 		{
-			public string Extensions = "ct ct& f f& fec i i& il il& pst sp sp& st st&";
+			public string SourceExtensions = "ct ct& f f& fec i i& il il& sp sp& st st&";
+			public string DictExtensions = "pst t t&";
 		}
 
 		public RunSamCamGroup RunSamCam = new RunSamCamGroup();
@@ -40,6 +41,27 @@ namespace ProbeNpp
 			public string Initials = "";
 			public string WorkOrderNumber = "";
 			public string ProblemNumber = "";
+
+			public bool InitialsInDiags = true;
+			public bool FileNameInDiags = true;
+			public bool TodoAfterDiags = false;
+
+			public int TagStartColumn = 0;
+			public bool TagDate = false;
+			public bool MultiLineTagsOnSeparateLines = true;
+		}
+
+		public FileListViewGroup FileListView = new FileListViewGroup();
+		public class FileListViewGroup : SettingsGroup
+		{
+			public int FileColumnWidth = 0;
+			public int DirColumnWidth = 0;
+		}
+
+		public FunctionListViewGroup FunctionListView = new FunctionListViewGroup();
+		public class FunctionListViewGroup : SettingsGroup
+		{
+			public int FunctionColumnWidth = 0;
 		}
 	}
 }

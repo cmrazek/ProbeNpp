@@ -1,25 +1,40 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ProbeNpp>
-	<Keywords>
+	<SourceKeywords>
 		after all and asc
-		before by break button
-		comment case col colff cols continue create
-		default desc display
+		button
+		comment case col colff cols continue
+		default desc
 		each else extern extract
-		for form format from
+		for format from
 		group
 		header
-		if index
+		if
+		of or order outfile
+		permanent prompt
+		return row rows
+		select static switch
+		where while
+	</SourceKeywords>
+	<DictKeywords>
+		after asc
+		button by
+		comment col create
+		desc display
+		endgroup
+		form
+		group
+		index
 		many
 		nopick
-		of on one or order outfile
-		permanent prompt
-		relationship return row rows
-		select static switch
+		on one order
+		prompt
+		relationship row
+		snapshot
 		table to unique
 		updates
-		where while zoom
-	</Keywords>
+		zoom
+	</DictKeywords>
 	<Functions>
 		abs action asof
 		backsnap beginwork
@@ -66,7 +81,7 @@
 		LAST last LE le LT lt
 		MODAL MODE MODELESS MONTHS months
 		NEXT next NEXTEND NEXT_OFF NEXTEND_OFF no NOAUDIT NOBACKDATE NOCHANGE
-			NODISPLAY NOEDITS NOINPUT NOPICK NORECALC NOTRIGGERS NOUSE NOTRIGGER
+			NODISPLAY NOECHO NOEDITS NOINPUT NOPICK NORECALC NOTRIGGERS NOUSE NOTRIGGER
 			NOWAIT NOWAREHOUSED
 		OUTFILEBRANCH OUTFILECONSOL
 		physical PREVIOUS previous

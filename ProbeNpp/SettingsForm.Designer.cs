@@ -37,13 +37,34 @@ namespace ProbeNpp
 			this.chkCloseCompileAfterWarnings = new System.Windows.Forms.CheckBox();
 			this.chkCloseCompileAfterSuccess = new System.Windows.Forms.CheckBox();
 			this.tabExtensions = new System.Windows.Forms.TabPage();
+			this.label2 = new System.Windows.Forms.Label();
+			this.txtDictExtensions = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.lblProbeExtensions = new System.Windows.Forms.Label();
-			this.txtProbeExtensions = new System.Windows.Forms.TextBox();
+			this.txtSourceExtensions = new System.Windows.Forms.TextBox();
+			this.tabTagging = new System.Windows.Forms.TabPage();
+			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.txtTagStart = new System.Windows.Forms.TextBox();
+			this.lblTagStart = new System.Windows.Forms.Label();
+			this.chkSurroundingTagsOnNewLines = new System.Windows.Forms.CheckBox();
+			this.grpDiags = new System.Windows.Forms.GroupBox();
+			this.chkInitialsInDiags = new System.Windows.Forms.CheckBox();
+			this.chkTodoAfterDiags = new System.Windows.Forms.CheckBox();
+			this.chkFileNameInDiags = new System.Windows.Forms.CheckBox();
+			this.txtProblemNumber = new System.Windows.Forms.TextBox();
+			this.lblProblemNumber = new System.Windows.Forms.Label();
+			this.txtWorkOrderNumber = new System.Windows.Forms.TextBox();
+			this.lblWorkOrderNumber = new System.Windows.Forms.Label();
+			this.lblInitials = new System.Windows.Forms.Label();
+			this.txtInitials = new System.Windows.Forms.TextBox();
+			this.chkTagDate = new System.Windows.Forms.CheckBox();
 			this.panel1.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tabCompile.SuspendLayout();
 			this.tabExtensions.SuspendLayout();
+			this.tabTagging.SuspendLayout();
+			this.groupBox1.SuspendLayout();
+			this.grpDiags.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// panel1
@@ -95,6 +116,7 @@ namespace ProbeNpp
 			// 
 			this.tabControl.Controls.Add(this.tabCompile);
 			this.tabControl.Controls.Add(this.tabExtensions);
+			this.tabControl.Controls.Add(this.tabTagging);
 			this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tabControl.Location = new System.Drawing.Point(0, 0);
 			this.tabControl.Name = "tabControl";
@@ -138,9 +160,11 @@ namespace ProbeNpp
 			// 
 			// tabExtensions
 			// 
+			this.tabExtensions.Controls.Add(this.label2);
+			this.tabExtensions.Controls.Add(this.txtDictExtensions);
 			this.tabExtensions.Controls.Add(this.label1);
 			this.tabExtensions.Controls.Add(this.lblProbeExtensions);
-			this.tabExtensions.Controls.Add(this.txtProbeExtensions);
+			this.tabExtensions.Controls.Add(this.txtSourceExtensions);
 			this.tabExtensions.Location = new System.Drawing.Point(4, 22);
 			this.tabExtensions.Name = "tabExtensions";
 			this.tabExtensions.Padding = new System.Windows.Forms.Padding(3);
@@ -148,6 +172,27 @@ namespace ProbeNpp
 			this.tabExtensions.TabIndex = 1;
 			this.tabExtensions.Text = "Extensions";
 			this.tabExtensions.UseVisualStyleBackColor = true;
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(8, 143);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(263, 13);
+			this.label2.TabIndex = 4;
+			this.label2.Text = "Extensions for files that contain Probe table definitions:";
+			// 
+			// txtDictExtensions
+			// 
+			this.txtDictExtensions.AcceptsReturn = true;
+			this.txtDictExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.txtDictExtensions.Location = new System.Drawing.Point(8, 159);
+			this.txtDictExtensions.Multiline = true;
+			this.txtDictExtensions.Name = "txtDictExtensions";
+			this.txtDictExtensions.Size = new System.Drawing.Size(328, 80);
+			this.txtDictExtensions.TabIndex = 3;
+			this.txtDictExtensions.TextChanged += new System.EventHandler(this.EnableControls);
 			// 
 			// label1
 			// 
@@ -167,17 +212,184 @@ namespace ProbeNpp
 			this.lblProbeExtensions.TabIndex = 1;
 			this.lblProbeExtensions.Text = "Extensions for files that contain Probe code:";
 			// 
-			// txtProbeExtensions
+			// txtSourceExtensions
 			// 
-			this.txtProbeExtensions.AcceptsReturn = true;
-			this.txtProbeExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+			this.txtSourceExtensions.AcceptsReturn = true;
+			this.txtSourceExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
-			this.txtProbeExtensions.Location = new System.Drawing.Point(8, 34);
-			this.txtProbeExtensions.Multiline = true;
-			this.txtProbeExtensions.Name = "txtProbeExtensions";
-			this.txtProbeExtensions.Size = new System.Drawing.Size(328, 205);
-			this.txtProbeExtensions.TabIndex = 0;
+			this.txtSourceExtensions.Location = new System.Drawing.Point(8, 34);
+			this.txtSourceExtensions.Multiline = true;
+			this.txtSourceExtensions.Name = "txtSourceExtensions";
+			this.txtSourceExtensions.Size = new System.Drawing.Size(328, 106);
+			this.txtSourceExtensions.TabIndex = 0;
+			this.txtSourceExtensions.TextChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// tabTagging
+			// 
+			this.tabTagging.Controls.Add(this.groupBox1);
+			this.tabTagging.Controls.Add(this.grpDiags);
+			this.tabTagging.Controls.Add(this.txtProblemNumber);
+			this.tabTagging.Controls.Add(this.lblProblemNumber);
+			this.tabTagging.Controls.Add(this.txtWorkOrderNumber);
+			this.tabTagging.Controls.Add(this.lblWorkOrderNumber);
+			this.tabTagging.Controls.Add(this.lblInitials);
+			this.tabTagging.Controls.Add(this.txtInitials);
+			this.tabTagging.Location = new System.Drawing.Point(4, 22);
+			this.tabTagging.Name = "tabTagging";
+			this.tabTagging.Padding = new System.Windows.Forms.Padding(3);
+			this.tabTagging.Size = new System.Drawing.Size(344, 245);
+			this.tabTagging.TabIndex = 2;
+			this.tabTagging.Text = "Tagging";
+			this.tabTagging.UseVisualStyleBackColor = true;
+			// 
+			// groupBox1
+			// 
+			this.groupBox1.Controls.Add(this.chkTagDate);
+			this.groupBox1.Controls.Add(this.txtTagStart);
+			this.groupBox1.Controls.Add(this.lblTagStart);
+			this.groupBox1.Controls.Add(this.chkSurroundingTagsOnNewLines);
+			this.groupBox1.Location = new System.Drawing.Point(11, 87);
+			this.groupBox1.Name = "groupBox1";
+			this.groupBox1.Size = new System.Drawing.Size(325, 69);
+			this.groupBox1.TabIndex = 10;
+			this.groupBox1.TabStop = false;
+			this.groupBox1.Text = "Tags";
+			// 
+			// txtTagStart
+			// 
+			this.txtTagStart.Location = new System.Drawing.Point(108, 19);
+			this.txtTagStart.Name = "txtTagStart";
+			this.txtTagStart.Size = new System.Drawing.Size(80, 20);
+			this.txtTagStart.TabIndex = 0;
+			this.txtTagStart.TextChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// lblTagStart
+			// 
+			this.lblTagStart.AutoSize = true;
+			this.lblTagStart.Location = new System.Drawing.Point(3, 22);
+			this.lblTagStart.Name = "lblTagStart";
+			this.lblTagStart.Size = new System.Drawing.Size(92, 13);
+			this.lblTagStart.TabIndex = 1;
+			this.lblTagStart.Text = "Tag Start Column:";
+			// 
+			// chkSurroundingTagsOnNewLines
+			// 
+			this.chkSurroundingTagsOnNewLines.AutoSize = true;
+			this.chkSurroundingTagsOnNewLines.Location = new System.Drawing.Point(6, 45);
+			this.chkSurroundingTagsOnNewLines.Name = "chkSurroundingTagsOnNewLines";
+			this.chkSurroundingTagsOnNewLines.Size = new System.Drawing.Size(185, 17);
+			this.chkSurroundingTagsOnNewLines.TabIndex = 1;
+			this.chkSurroundingTagsOnNewLines.Text = "Put surrounding tags on new lines";
+			this.chkSurroundingTagsOnNewLines.UseVisualStyleBackColor = true;
+			this.chkSurroundingTagsOnNewLines.CheckedChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// grpDiags
+			// 
+			this.grpDiags.Controls.Add(this.chkInitialsInDiags);
+			this.grpDiags.Controls.Add(this.chkTodoAfterDiags);
+			this.grpDiags.Controls.Add(this.chkFileNameInDiags);
+			this.grpDiags.Location = new System.Drawing.Point(11, 162);
+			this.grpDiags.Name = "grpDiags";
+			this.grpDiags.Size = new System.Drawing.Size(325, 66);
+			this.grpDiags.TabIndex = 9;
+			this.grpDiags.TabStop = false;
+			this.grpDiags.Text = "Diags";
+			// 
+			// chkInitialsInDiags
+			// 
+			this.chkInitialsInDiags.AutoSize = true;
+			this.chkInitialsInDiags.Location = new System.Drawing.Point(6, 19);
+			this.chkInitialsInDiags.Name = "chkInitialsInDiags";
+			this.chkInitialsInDiags.Size = new System.Drawing.Size(92, 17);
+			this.chkInitialsInDiags.TabIndex = 0;
+			this.chkInitialsInDiags.Text = "Include initials";
+			this.chkInitialsInDiags.UseVisualStyleBackColor = true;
+			this.chkInitialsInDiags.CheckedChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// chkTodoAfterDiags
+			// 
+			this.chkTodoAfterDiags.AutoSize = true;
+			this.chkTodoAfterDiags.Location = new System.Drawing.Point(6, 42);
+			this.chkTodoAfterDiags.Name = "chkTodoAfterDiags";
+			this.chkTodoAfterDiags.Size = new System.Drawing.Size(125, 17);
+			this.chkTodoAfterDiags.TabIndex = 2;
+			this.chkTodoAfterDiags.Text = "Add TODO comment";
+			this.chkTodoAfterDiags.UseVisualStyleBackColor = true;
+			this.chkTodoAfterDiags.CheckedChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// chkFileNameInDiags
+			// 
+			this.chkFileNameInDiags.AutoSize = true;
+			this.chkFileNameInDiags.Location = new System.Drawing.Point(169, 19);
+			this.chkFileNameInDiags.Name = "chkFileNameInDiags";
+			this.chkFileNameInDiags.Size = new System.Drawing.Size(106, 17);
+			this.chkFileNameInDiags.TabIndex = 1;
+			this.chkFileNameInDiags.Text = "Include file name";
+			this.chkFileNameInDiags.UseVisualStyleBackColor = true;
+			this.chkFileNameInDiags.CheckedChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// txtProblemNumber
+			// 
+			this.txtProblemNumber.Location = new System.Drawing.Point(119, 61);
+			this.txtProblemNumber.Name = "txtProblemNumber";
+			this.txtProblemNumber.Size = new System.Drawing.Size(80, 20);
+			this.txtProblemNumber.TabIndex = 2;
+			this.txtProblemNumber.TextChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// lblProblemNumber
+			// 
+			this.lblProblemNumber.AutoSize = true;
+			this.lblProblemNumber.Location = new System.Drawing.Point(8, 64);
+			this.lblProblemNumber.Name = "lblProblemNumber";
+			this.lblProblemNumber.Size = new System.Drawing.Size(88, 13);
+			this.lblProblemNumber.TabIndex = 4;
+			this.lblProblemNumber.Text = "Problem Number:";
+			// 
+			// txtWorkOrderNumber
+			// 
+			this.txtWorkOrderNumber.Location = new System.Drawing.Point(119, 35);
+			this.txtWorkOrderNumber.Name = "txtWorkOrderNumber";
+			this.txtWorkOrderNumber.Size = new System.Drawing.Size(80, 20);
+			this.txtWorkOrderNumber.TabIndex = 1;
+			this.txtWorkOrderNumber.TextChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// lblWorkOrderNumber
+			// 
+			this.lblWorkOrderNumber.AutoSize = true;
+			this.lblWorkOrderNumber.Location = new System.Drawing.Point(8, 38);
+			this.lblWorkOrderNumber.Name = "lblWorkOrderNumber";
+			this.lblWorkOrderNumber.Size = new System.Drawing.Size(105, 13);
+			this.lblWorkOrderNumber.TabIndex = 2;
+			this.lblWorkOrderNumber.Text = "Work Order Number:";
+			// 
+			// lblInitials
+			// 
+			this.lblInitials.AutoSize = true;
+			this.lblInitials.Location = new System.Drawing.Point(8, 12);
+			this.lblInitials.Name = "lblInitials";
+			this.lblInitials.Size = new System.Drawing.Size(39, 13);
+			this.lblInitials.TabIndex = 1;
+			this.lblInitials.Text = "Initials:";
+			// 
+			// txtInitials
+			// 
+			this.txtInitials.Location = new System.Drawing.Point(119, 9);
+			this.txtInitials.Name = "txtInitials";
+			this.txtInitials.Size = new System.Drawing.Size(80, 20);
+			this.txtInitials.TabIndex = 0;
+			this.txtInitials.TextChanged += new System.EventHandler(this.EnableControls);
+			// 
+			// chkTagDate
+			// 
+			this.chkTagDate.AutoSize = true;
+			this.chkTagDate.Location = new System.Drawing.Point(232, 45);
+			this.chkTagDate.Name = "chkTagDate";
+			this.chkTagDate.Size = new System.Drawing.Size(85, 17);
+			this.chkTagDate.TabIndex = 2;
+			this.chkTagDate.Text = "Include date";
+			this.chkTagDate.UseVisualStyleBackColor = true;
+			this.chkTagDate.CheckedChanged += new System.EventHandler(this.EnableControls);
 			// 
 			// SettingsForm
 			// 
@@ -199,6 +411,12 @@ namespace ProbeNpp
 			this.tabCompile.PerformLayout();
 			this.tabExtensions.ResumeLayout(false);
 			this.tabExtensions.PerformLayout();
+			this.tabTagging.ResumeLayout(false);
+			this.tabTagging.PerformLayout();
+			this.groupBox1.ResumeLayout(false);
+			this.groupBox1.PerformLayout();
+			this.grpDiags.ResumeLayout(false);
+			this.grpDiags.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -214,9 +432,27 @@ namespace ProbeNpp
 		private System.Windows.Forms.CheckBox chkCloseCompileAfterSuccess;
 		private System.Windows.Forms.Button btnApply;
 		private System.Windows.Forms.TabPage tabExtensions;
-		private System.Windows.Forms.TextBox txtProbeExtensions;
+		private System.Windows.Forms.TextBox txtSourceExtensions;
 		private System.Windows.Forms.Label lblProbeExtensions;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.TextBox txtDictExtensions;
+		private System.Windows.Forms.TabPage tabTagging;
+		private System.Windows.Forms.CheckBox chkInitialsInDiags;
+		private System.Windows.Forms.TextBox txtProblemNumber;
+		private System.Windows.Forms.Label lblProblemNumber;
+		private System.Windows.Forms.TextBox txtWorkOrderNumber;
+		private System.Windows.Forms.Label lblWorkOrderNumber;
+		private System.Windows.Forms.Label lblInitials;
+		private System.Windows.Forms.TextBox txtInitials;
+		private System.Windows.Forms.CheckBox chkTodoAfterDiags;
+		private System.Windows.Forms.CheckBox chkFileNameInDiags;
+		private System.Windows.Forms.GroupBox grpDiags;
+		private System.Windows.Forms.GroupBox groupBox1;
+		private System.Windows.Forms.CheckBox chkSurroundingTagsOnNewLines;
+		private System.Windows.Forms.TextBox txtTagStart;
+		private System.Windows.Forms.Label lblTagStart;
+		private System.Windows.Forms.CheckBox chkTagDate;
 
 	}
 }

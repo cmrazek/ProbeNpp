@@ -13,29 +13,26 @@ using NppSharp;
 
 namespace ProbeNpp
 {
-	public partial class CompilePanel : Control
+	public partial class CompilePanel : UserControl
 	{
+		#region Constants
 		private const int k_compileKillSleep = 10;
 		private const int k_compileSleep = 100;
 		private const string k_timeStampFormat = "yyyy-MM-dd HH:mm:ss";
 		private const int k_compileWaitToHidePanel = 1000;
 		private const int k_killCompileTimeout = 1000;
+		#endregion
 
+		#region Member Variables
 		private ProbeNppPlugin _plugin;
 		private Thread _compileThread = null;
-		private bool _kill;
+		private volatile bool _kill;
 		private Process _proc = null;
-		private CompileStage _stage = CompileStage.Stopped;
 		private int _numErrors = 0;
 		private int _numWarnings = 0;
+		#endregion
 
-		private enum CompileStage
-		{
-			Stopped,
-			Pc,
-			Dccmp
-		}
-
+		#region Construction
 		public CompilePanel(ProbeNppPlugin plugin)
 		{
 			if (plugin == null) throw new ArgumentNullException("plugin");
@@ -46,13 +43,6 @@ namespace ProbeNpp
 
 		public void OnPanelLoad()
 		{
-			//try
-			//{
-			//}
-			//catch (Exception ex)
-			//{
-			//    Errors.Show(this, ex);
-			//}
 		}
 
 		public void OnShutdown()
@@ -66,7 +56,9 @@ namespace ProbeNpp
 				_plugin.Output.WriteLine(OutputStyle.Error, ex.ToString());
 			}
 		}
+		#endregion
 
+		#region Compilation
 		private void ciCompile_Click(object sender, EventArgs e)
 		{
 			try
@@ -98,7 +90,7 @@ namespace ProbeNpp
 			_plugin.SaveFilesInApp();
 
 			Clear();
-			Kill = false;
+			_kill = false;
 
 			_compileThread = new Thread(new ThreadStart(CompileThread));
 			_compileThread.Name = "CompileThread";
@@ -114,7 +106,7 @@ namespace ProbeNpp
 				DateTime killStartTime = DateTime.Now;
 				while (_compileThread.IsAlive)
 				{
-					Kill = true;
+					_kill = true;
 					if (DateTime.Now.Subtract(killStartTime).TotalMilliseconds >= timeout) break;
 					Thread.Sleep(k_compileKillSleep);
 				}
@@ -130,7 +122,6 @@ namespace ProbeNpp
 				DateTime startTime = DateTime.Now;
 				WriteLine("Starting compile for application '{0}' at {1}.", _plugin.Environment.CurrentApp, startTime.ToString(k_timeStampFormat));
 
-				_stage = CompileStage.Pc;
 				_numErrors = _numWarnings = 0;
 
 				_proc = new Process();
@@ -157,7 +148,7 @@ namespace ProbeNpp
 
 				while (stdOutThread.IsAlive || stdErrThread.IsAlive)
 				{
-					if (Kill)
+					if (_kill)
 					{
 						WriteLine("Compile was stopped before completion.");
 						stdOutThread.Abort();
@@ -177,17 +168,15 @@ namespace ProbeNpp
 					if (_numWarnings == 1) str += "1 warning";
 					else if (_numWarnings > 1) str += string.Concat(_numWarnings, " warnings");
 
-					WriteObject(new CompileRef(str, _numErrors > 0 ? CompileRefType.Error : CompileRefType.Warning));
+					WriteObject(new CompileRef(str, _numErrors > 0 ? CompileRefType.ErrorReport : CompileRefType.WarningReport));
 
 					if (_numErrors > 0) return;
 					else WriteLine("Running dccmp...");
 				}
 				else
 				{
-					WriteObject(new CompileRef("Compile succeeded; running dccmp...", CompileRefType.Success));
+					WriteObject(new CompileRef("Compile succeeded; running dccmp...", CompileRefType.SuccessReport));
 				}
-
-				_stage = CompileStage.Dccmp;
 
 				_proc = new Process();
 				info = new ProcessStartInfo("dccmp.exe", "/z /D");
@@ -213,7 +202,7 @@ namespace ProbeNpp
 
 				while (stdOutThread.IsAlive || stdErrThread.IsAlive)
 				{
-					if (Kill)
+					if (_kill)
 					{
 						WriteLine("Dccmp was stopped before completion.");
 						stdOutThread.Abort();
@@ -230,7 +219,7 @@ namespace ProbeNpp
 				}
 				else
 				{
-					WriteObject(new CompileRef("Dccmp succeeded", CompileRefType.Success));
+					WriteObject(new CompileRef("Dccmp succeeded", CompileRefType.SuccessReport));
 				}
 
 				DateTime endTime = DateTime.Now;
@@ -239,28 +228,22 @@ namespace ProbeNpp
 
 				if (_numErrors == 0 && _numWarnings == 0)
 				{
-					if (_plugin.Settings.Compile.ClosePanelAfterSuccess)
-					{
-						Thread.Sleep(k_compileWaitToHidePanel);
-						HidePanel();
-					}
+					if (_plugin.Settings.Compile.ClosePanelAfterSuccess) HidePanelWhenOk();
 				}
 				else if (_numErrors == 0)
 				{
-					if (_plugin.Settings.Compile.ClosePanelAfterWarnings)
-					{
-						Thread.Sleep(k_compileWaitToHidePanel);
-						HidePanel();
-					}
+					if (_plugin.Settings.Compile.ClosePanelAfterWarnings) HidePanelWhenOk();
 				}
 			}
 			catch (Exception ex)
 			{
-				_plugin.Output.WriteLine(OutputStyle.Error, "Fatal error in compile thread: {0}", ex);
-				WriteLine("Fatal error in compile thread: " + ex.ToString());
+				WriteObject(new CompileRef(string.Concat("Fatal error in compile thread: ", ex.ToString()),
+					CompileRefType.Exception));
 			}
 		}
+		#endregion
 
+		#region Output Watching
 		private void StdOutThread()
 		{
 			try
@@ -339,6 +322,7 @@ namespace ProbeNpp
 
 		private Regex _rxError = new Regex(@"^\s*(.+)\s*\((\d+)\)\s*\:\s*error", RegexOptions.IgnoreCase);
 		private Regex _rxWarning = new Regex(@"^\s*(.+)\s*\((\d+)\)\s*\:\s*warning", RegexOptions.IgnoreCase);
+		private Regex _rxError2 = new Regex(@"^\s*(.+)\s*\((\d+)\)\s*\:");
 
 		private void CompileThreadOutput(string line, bool stdErr)
 		{
@@ -356,17 +340,23 @@ namespace ProbeNpp
 					match.Groups[1].Value, Convert.ToInt32(match.Groups[2].Value)));
 				_numWarnings++;
 			}
+			else if ((match = _rxError2.Match(line)).Success)
+			{
+				WriteObject(new CompileRef(line, CompileRefType.Error,
+					match.Groups[1].Value, Convert.ToInt32(match.Groups[2].Value)));
+				_numErrors++;
+			}
+			else if (line == "PROBE build failed.")
+			{
+				WriteObject(new CompileRef(line, CompileRefType.Error));
+				if (_numErrors == 0) _numErrors++;
+			}
 			else
 			{
 				WriteLine(line);
 			}
 		}
-
-		private bool Kill
-		{
-			get { lock (this) { return _kill; } }
-			set { lock (this) { _kill = value; } }
-		}
+		#endregion
 
 		public void WriteObject(object obj)
 		{
@@ -435,6 +425,21 @@ namespace ProbeNpp
 								if (cr.Line > 0) _plugin.GoToLine(cr.Line);
 							}
 						}
+						else
+						{
+							int selIndex = -1;
+							switch (cr.Type)
+							{
+								case CompileRefType.ErrorReport:
+									selIndex = FindFirstItemByType(CompileRefType.Error);
+									break;
+								case CompileRefType.WarningReport:
+									selIndex = FindFirstItemByType(CompileRefType.Warning);
+									break;
+							}
+
+							if (selIndex >= 0) lstHistory.SelectedIndex = selIndex;
+						}
 					}
 				}
 			}
@@ -444,23 +449,20 @@ namespace ProbeNpp
 			}
 		}
 
-		public void HidePanel()
-		{
-			try
-			{
-				if (InvokeRequired)
-				{
-					Invoke(new Action(() => { HidePanel(); }));
-					return;
-				}
+		
 
-				// TODO: need a implementation of this.
-				//_plugin.HideDock(Handle);
-			}
-			catch (Exception ex)
+		private int FindFirstItemByType(CompileRefType type)
+		{
+			int index = 0;
+			foreach (var item in lstHistory.Items)
 			{
-				Errors.Show(this, ex);
+				if (item.GetType() == typeof(CompileRef))
+				{
+					if ((item as CompileRef).Type == type) return index;
+				}
+				index++;
 			}
+			return -1;
 		}
 
 		#region Owner draw history box
@@ -492,14 +494,17 @@ namespace ProbeNpp
 						switch (((CompileRef)obj).Type)
 						{
 							case CompileRefType.Error:
+							case CompileRefType.ErrorReport:
+							case CompileRefType.Exception:
 								textBrush = selected ? SystemBrushes.Window : _errorBrush;
 								backBrush = selected ? _errorBrush : SystemBrushes.Window;
 								break;
 							case CompileRefType.Warning:
+							case CompileRefType.WarningReport:
 								textBrush = selected ? SystemBrushes.Window : _warningBrush;
 								backBrush = selected ? _warningBrush : SystemBrushes.Window;
 								break;
-							case CompileRefType.Success:
+							case CompileRefType.SuccessReport:
 								textBrush = selected ? SystemBrushes.Window : _successBrush;
 								backBrush = selected ? _successBrush : SystemBrushes.Window;
 								break;
@@ -537,6 +542,134 @@ namespace ProbeNpp
 		}
 		#endregion
 
+		private void cmCompile_Opening(object sender, CancelEventArgs e)
+		{
+			try
+			{
+				ciHideAfterSuccess.Checked = _plugin.Settings.Compile.ClosePanelAfterSuccess;
+				ciHideAfterWarnings.Checked = _plugin.Settings.Compile.ClosePanelAfterWarnings;
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		#region Panel Hiding
+		private bool _hidePending = false;
+		System.Windows.Forms.Timer _hideTimer = null;
+
+		private void HidePanelWhenOk()
+		{
+			if (InvokeRequired)
+			{
+				BeginInvoke(new Action(() => { HidePanelWhenOk(); }));
+				return;
+			}
+
+			_hidePending = true;
+
+			if (_hideTimer != null) _hideTimer.Stop();
+
+			_hideTimer = new System.Windows.Forms.Timer();
+			_hideTimer.Interval = k_compileWaitToHidePanel;
+			_hideTimer.Tick += new EventHandler(_hideTimer_Tick);
+			_hideTimer.Start();
+		}
+
+		private bool OkToHideTimer()
+		{
+			return !this.Bounds.Contains(this.PointToClient(Cursor.Position));
+		}
+
+		private void HidePanelIfOk()
+		{
+			_plugin.HideCompilePanel();
+		}
+
+		void  _hideTimer_Tick(object sender, EventArgs e)
+		{
+			try
+			{
+				if (OkToHideTimer())
+				{
+					_hidePending = false;
+					_plugin.HideCompilePanel();
+				}
+				_hideTimer.Stop();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void lstHistory_MouseLeave(object sender, EventArgs e)
+		{
+			try
+			{
+				if (_hidePending) HidePanelWhenOk();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void ciHideAfterSuccess_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				_plugin.Settings.Compile.ClosePanelAfterSuccess = !_plugin.Settings.Compile.ClosePanelAfterSuccess;
+				_hidePending = false;
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void ciHideAfterWarnings_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				_plugin.Settings.Compile.ClosePanelAfterWarnings = !_plugin.Settings.Compile.ClosePanelAfterWarnings;
+				_hidePending = false;
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+		#endregion
+
+		private void lstHistory_KeyDown(object sender, KeyEventArgs e)
+		{
+			try
+			{
+				if (e.KeyCode == Keys.C && e.Control && !e.Alt && !e.Shift)
+				{
+					if (lstHistory.SelectedItems.Count > 0)
+					{
+						var sb = new StringBuilder();
+						foreach (var i in lstHistory.SelectedItems)
+						{
+							if (sb.Length > 0) sb.AppendLine();
+							sb.Append(i.ToString());
+						}
+
+						Clipboard.SetData(DataFormats.Text, sb.ToString());
+					}
+
+					e.Handled = true;
+					e.SuppressKeyPress = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
 
 	}
 }

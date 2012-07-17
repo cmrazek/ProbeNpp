@@ -6,7 +6,7 @@ using NppSharp;
 
 namespace ProbeNpp
 {
-	public class ProbeEnvironment
+	internal class ProbeEnvironment
 	{
 		private string _currentApp = "";
 		private IniFile _nvFile = null;
@@ -232,8 +232,11 @@ namespace ProbeNpp
 			{
 				try
 				{
-					string fullPath = Path.Combine(path.Trim(), fileName);
-					if (File.Exists(fullPath)) return Path.GetFullPath(fullPath);
+					if (Directory.Exists(path.Trim()))
+					{
+						string fullPath = Path.Combine(path.Trim(), fileName);
+						if (File.Exists(fullPath)) return Path.GetFullPath(fullPath);
+					}
 				}
 				catch (Exception)
 				{ }
@@ -274,7 +277,7 @@ namespace ProbeNpp
 					string prompt = line.Substring(17, 31).Trim();
 					if (string.IsNullOrEmpty(prompt)) prompt = name;
 
-					_tables[name.ToLower()] = new ProbeTable(number, name, prompt);
+					_tables[name] = new ProbeTable(number, name, prompt);
 				}
 			}
 			catch (Exception ex)
@@ -290,7 +293,13 @@ namespace ProbeNpp
 
 		public bool IsProbeTable(string tableName)
 		{
-			return _tables.ContainsKey(tableName.ToLower());
+			return _tables.ContainsKey(tableName);
+		}
+
+		public ProbeTable GetTable(string tableName)
+		{
+			ProbeTable table;
+			return _tables.TryGetValue(tableName, out table) ? table : null;
 		}
 		#endregion
 
@@ -356,6 +365,41 @@ namespace ProbeNpp
 		public bool FileExistsInApp(string pathName)
 		{
 			return !string.IsNullOrEmpty(GetRelativePathName(Path.GetFullPath(pathName)));
+		}
+
+		public static string StringEscape(string str)
+		{
+			var sb = new StringBuilder(str.Length);
+
+			foreach (var ch in str)
+			{
+				switch (ch)
+				{
+					case '\t':
+						sb.Append(@"\t");
+						break;
+					case '\r':
+						sb.Append(@"\r");
+						break;
+					case '\n':
+						sb.Append(@"\n");
+						break;
+					case '\\':
+						sb.Append(@"\\");
+						break;
+					case '\"':
+						sb.Append(@"\""");
+						break;
+					case '\'':
+						sb.Append(@"\'");
+						break;
+					default:
+						sb.Append(ch);
+						break;
+				}
+			}
+
+			return sb.ToString();
 		}
 
 	}

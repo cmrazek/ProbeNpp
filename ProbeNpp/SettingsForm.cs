@@ -38,27 +38,100 @@ namespace ProbeNpp
 		#region Settings
 		private void LoadSettings()
 		{
-			chkCloseCompileAfterSuccess.Checked = _plugin.Settings.Compile.ClosePanelAfterSuccess;
-			chkCloseCompileAfterWarnings.Checked = _plugin.Settings.Compile.ClosePanelAfterWarnings;
-			txtProbeExtensions.Text = _plugin.Settings.Probe.Extensions;
+			var settings = _plugin.Settings;
+
+			// Compile
+			chkCloseCompileAfterSuccess.Checked = settings.Compile.ClosePanelAfterSuccess;
+			chkCloseCompileAfterWarnings.Checked = settings.Compile.ClosePanelAfterWarnings;
+
+			// Extensions
+			txtSourceExtensions.Text = settings.Probe.SourceExtensions;
+			txtDictExtensions.Text = settings.Probe.DictExtensions;
+
+			// Tagging
+			txtInitials.Text = settings.Tagging.Initials;
+			txtWorkOrderNumber.Text = settings.Tagging.WorkOrderNumber;
+			txtProblemNumber.Text = settings.Tagging.ProblemNumber;
+			chkInitialsInDiags.Checked = settings.Tagging.InitialsInDiags;
+			chkFileNameInDiags.Checked = settings.Tagging.FileNameInDiags;
+			chkTodoAfterDiags.Checked = settings.Tagging.TodoAfterDiags;
+			txtTagStart.Text = settings.Tagging.TagStartColumn > 0 ? settings.Tagging.TagStartColumn.ToString() : string.Empty;
+			chkSurroundingTagsOnNewLines.Checked = settings.Tagging.MultiLineTagsOnSeparateLines;
+			chkTagDate.Checked = settings.Tagging.TagDate;
 		}
 
 		private bool SaveSettings()
 		{
-			_plugin.Settings.Compile.ClosePanelAfterSuccess = chkCloseCompileAfterSuccess.Checked;
-			_plugin.Settings.Compile.ClosePanelAfterWarnings = chkCloseCompileAfterWarnings.Checked;
-			_plugin.Settings.Probe.Extensions = txtProbeExtensions.Text;
+			var settings = _plugin.Settings;
 
-			_plugin.Settings.Save();
+			int tagStartCol;
+			if (string.IsNullOrWhiteSpace(txtTagStart.Text))
+			{
+				tagStartCol = 0;
+			}
+			else if (!Int32.TryParse(txtTagStart.Text, out tagStartCol) || tagStartCol <= 0 || tagStartCol > 256)
+			{
+				txtTagStart.Focus();
+				Errors.Show(this, "Invalid tag start column.");
+				return false;
+			}
+
+			// Compile
+			settings.Compile.ClosePanelAfterSuccess = chkCloseCompileAfterSuccess.Checked;
+			settings.Compile.ClosePanelAfterWarnings = chkCloseCompileAfterWarnings.Checked;
+
+			// Extensions
+			settings.Probe.SourceExtensions = txtSourceExtensions.Text;
+			settings.Probe.DictExtensions = txtDictExtensions.Text;
+
+			// Tagging
+			settings.Tagging.Initials = txtInitials.Text;
+			settings.Tagging.WorkOrderNumber = txtWorkOrderNumber.Text;
+			settings.Tagging.ProblemNumber = txtProblemNumber.Text;
+			settings.Tagging.InitialsInDiags = chkInitialsInDiags.Checked;
+			settings.Tagging.FileNameInDiags = chkFileNameInDiags.Checked;
+			settings.Tagging.TodoAfterDiags = chkTodoAfterDiags.Checked;
+			settings.Tagging.TagStartColumn = tagStartCol;
+			settings.Tagging.MultiLineTagsOnSeparateLines = chkSurroundingTagsOnNewLines.Checked;
+			settings.Tagging.TagDate = chkTagDate.Checked;
+
+			settings.Save();
 
 			return true;
 		}
 
 		private bool TestSettingsChanged()
 		{
-			if (chkCloseCompileAfterSuccess.Checked != _plugin.Settings.Compile.ClosePanelAfterSuccess) return true;
-			if (chkCloseCompileAfterWarnings.Checked != _plugin.Settings.Compile.ClosePanelAfterWarnings) return true;
-			if (txtProbeExtensions.Text != _plugin.Settings.Probe.Extensions) return true;
+			var settings = _plugin.Settings;
+
+			// Compile
+			if (chkCloseCompileAfterSuccess.Checked != settings.Compile.ClosePanelAfterSuccess) return true;
+			if (chkCloseCompileAfterWarnings.Checked != settings.Compile.ClosePanelAfterWarnings) return true;
+
+			// Extensions
+			if (txtSourceExtensions.Text != settings.Probe.SourceExtensions) return true;
+			if (txtDictExtensions.Text != settings.Probe.DictExtensions) return true;
+
+			// Tagging
+			if (txtInitials.Text != settings.Tagging.Initials) return true;
+			if (txtWorkOrderNumber.Text != settings.Tagging.WorkOrderNumber) return true;
+			if (txtProblemNumber.Text != settings.Tagging.ProblemNumber) return true;
+			if (chkInitialsInDiags.Checked != settings.Tagging.InitialsInDiags) return true;
+			if (chkFileNameInDiags.Checked != settings.Tagging.FileNameInDiags) return true;
+			if (chkTodoAfterDiags.Checked != settings.Tagging.TodoAfterDiags) return true;
+			if (chkSurroundingTagsOnNewLines.Checked != settings.Tagging.MultiLineTagsOnSeparateLines) return true;
+			if (chkTagDate.Checked != settings.Tagging.TagDate) return true;
+
+			int tagStartCol;
+			if (string.IsNullOrWhiteSpace(txtTagStart.Text))
+			{
+				tagStartCol = 0;
+			}
+			else if (!Int32.TryParse(txtTagStart.Text, out tagStartCol) || tagStartCol <= 0 || tagStartCol > 256)
+			{
+				return true;
+			}
+			if (tagStartCol != settings.Tagging.TagStartColumn) return true;
 
 			return false;
 		}
@@ -125,5 +198,7 @@ namespace ProbeNpp
 			}
 		}
 		#endregion
+
+		
 	}
 }

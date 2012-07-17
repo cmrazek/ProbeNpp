@@ -9,7 +9,10 @@ namespace ProbeNpp
 		None,
 		Warning,
 		Error,
-		Success
+		WarningReport,
+		ErrorReport,
+		SuccessReport,
+		Exception
 	}
 
 	internal class CompileRef

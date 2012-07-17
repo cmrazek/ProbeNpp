@@ -10,30 +10,67 @@ using NppSharp;
 
 namespace ProbeNpp
 {
-	[NppDisplayName("Probe")]
+	[NppDisplayName("Probe Source")]
 	[NppDescription("Probe Source File")]
-	public class ProbeLexer : ILexer
+	public class ProbeSourceLexer : ProbeLexer
 	{
-		// Default file extensions.
-		// The user may modify this list through Settings -> Style Configurator.
+		public ProbeSourceLexer()
+			: base(ProbeLexerType.Source)
+		{
+		}
+
+		public override IEnumerable<string> GetExtensions()
+		{
+			return new string[] { ProbeNppPlugin.Instance.Settings.Probe.SourceExtensions };
+		}
+	}
+
+	[NppDisplayName("Probe Table")]
+	[NppDescription("Probe Dictionary File")]
+	public class ProbeDictLexer : ProbeLexer
+	{
+		public ProbeDictLexer()
+			: base(ProbeLexerType.Dict)
+		{
+		}
+
+		public override IEnumerable<string> GetExtensions()
+		{
+			return new string[] { ProbeNppPlugin.Instance.Settings.Probe.DictExtensions };
+		}
+	}
+
+	internal enum ProbeLexerType
+	{
+		Source,
+		Dict
+	}
+
+	[LexerComments(BlockStart = "/*", BlockEnd = "*/", Line = "//")]
+	public abstract class ProbeLexer : ILexer
+	{
+		ProbeLexerType _type;
+
 		public IEnumerable<string> Extensions
 		{
-			get { return new string[] { "ct", "ct&", "f", "f&", "i", "i&", "il", "il&", "gp", "gp&", "st", "st&", "t", "t&" }; }
+			get { return GetExtensions(); }
 		}
+
+		public abstract IEnumerable<string> GetExtensions();
 
 		// Styles used by this lexer.
 		LexerStyle _defaultStyle = new LexerStyle("Default");
 		LexerStyle _commentStyle = new LexerStyle("Comments", Color.Green, FontStyle.Italic);
 		LexerStyle _numberStyle = new LexerStyle("Numbers", Color.DarkRed);
 		LexerStyle _stringStyle = new LexerStyle("Strings", Color.DarkRed);
-		LexerStyle _operatorStyle = new LexerStyle("Operators", Color.DarkGray);
+		LexerStyle _operatorStyle = new LexerStyle("Operators", Color.DimGray);
 		LexerStyle _keywordStyle = new LexerStyle("Keywords", Color.Blue);
 		LexerStyle _functionStyle = new LexerStyle("Functions", Color.DarkMagenta);
 		LexerStyle _constantStyle = new LexerStyle("Constants", Color.Navy);
 		LexerStyle _dataTypeStyle = new LexerStyle("Data Types", Color.Teal);
 		LexerStyle _preprocessorStyle = new LexerStyle("Preprocessor", Color.Gray);
-		LexerStyle _tableStyle = new LexerStyle("Tables", Color.DarkOrange);
-		LexerStyle _fieldStyle = new LexerStyle("Fields", Color.DarkGray);
+		LexerStyle _tableStyle = new LexerStyle("Tables", Color.SteelBlue);
+		LexerStyle _fieldStyle = new LexerStyle("Fields", Color.SteelBlue);
 		LexerStyle _replacedStyle = new LexerStyle("Replaced", Color.DarkGray);
 		LexerStyle _errorStyle = new LexerStyle("Error", Color.Red, "", FontStyle.Bold);
 
@@ -43,8 +80,9 @@ namespace ProbeNpp
 		private HashSet<string> _dataTypes = new HashSet<string>();
 		private HashSet<string> _operators = new HashSet<string>();
 
-		public ProbeLexer()
+		internal ProbeLexer(ProbeLexerType type)
 		{
+			_type = type;
 			LoadConfig();
 		}
 
@@ -56,9 +94,19 @@ namespace ProbeNpp
 				var xmlDoc = new XmlDocument();
 				xmlDoc.Load(fileName);
 
-				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Keywords"))
+				if (_type == ProbeLexerType.Source)
 				{
-					ParseWordList(element.InnerText, _keywords);
+					foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/SourceKeywords"))
+					{
+						ParseWordList(element.InnerText, _keywords);
+					}
+				}
+				else
+				{
+					foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/DictKeywords"))
+					{
+						ParseWordList(element.InnerText, _keywords);
+					}
 				}
 
 				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Functions"))
@@ -83,15 +131,22 @@ namespace ProbeNpp
 			}
 		}
 
-		// Default styles.
-		// The user may modify the style appearance through Settings -> Style Configurator.
 		public IEnumerable<LexerStyle> Styles
 		{
 			get
 			{
-				return new LexerStyle[] { _defaultStyle, _commentStyle, _numberStyle, _stringStyle,
-					_operatorStyle, _keywordStyle, _functionStyle, _constantStyle, _dataTypeStyle,
-					_preprocessorStyle, _tableStyle, _fieldStyle, _replacedStyle, _errorStyle };
+				if (_type == ProbeLexerType.Source)
+				{
+					return new LexerStyle[] { _defaultStyle, _commentStyle, _numberStyle, _stringStyle,
+						_operatorStyle, _keywordStyle, _functionStyle, _constantStyle, _dataTypeStyle,
+						_preprocessorStyle, _tableStyle, _fieldStyle, _replacedStyle, _errorStyle };
+				}
+				else
+				{
+					return new LexerStyle[] { _defaultStyle, _commentStyle, _numberStyle, _stringStyle,
+						_operatorStyle, _keywordStyle, _constantStyle, _dataTypeStyle,
+						_preprocessorStyle, _tableStyle, _fieldStyle, _replacedStyle, _errorStyle };
+				}
 			}
 		}
 
@@ -122,6 +177,7 @@ namespace ProbeNpp
 		private ILexerLine _line = null;
 		private int _state = 0;
 		private int _tokenCount = 0;
+		private string _table = string.Empty;	// Used to validate table.field.
 
 		private int GetLastToken()
 		{
@@ -148,6 +204,7 @@ namespace ProbeNpp
 			_line = line;
 			_state = state;
 			_tokenCount = 0;
+			_table = string.Empty;
 
 			char nextCh;
 			int lastPos = -1;
@@ -196,42 +253,7 @@ namespace ProbeNpp
 				else if (Char.IsLetter(nextCh) || nextCh == '_')
 				{
 					// Token beginning with letter or underscore.  Standard identifier.
-					string token = line.Peek((ch) => Char.IsLetterOrDigit(ch) || ch == '_');
-					if (_keywords.Contains(token))
-					{
-						line.Style(_keywordStyle, token.Length);
-						SetLastToken(State_Token_Keyword);
-					}
-					else if (_functions.Contains(token))
-					{
-						line.Style(_functionStyle, token.Length);
-						SetLastToken(State_Token_Function);
-					}
-					else if (_constants.Contains(token))
-					{
-						line.Style(_constantStyle, token.Length);
-						SetLastToken(State_Token_Constant);
-					}
-					else if (_dataTypes.Contains(token))
-					{
-						line.Style(_dataTypeStyle, token.Length);
-						SetLastToken(State_Token_DataType);
-					}
-					else if (ProbeNppPlugin.Instance.Environment.IsProbeTable(token))
-					{
-						line.Style(_tableStyle, token.Length);
-						SetLastToken(State_Token_Table);
-					}
-					else if (GetLastToken() == State_Token_TableDelim)
-					{
-						line.Style(_fieldStyle, token.Length);
-						SetLastToken(State_Token_Field);
-					}
-					else
-					{
-						line.Style(_defaultStyle, token.Length);
-						SetLastToken(State_Token_UnknownIdent);
-					}
+					StyleIdent();
 				}
 				else if (Char.IsDigit(nextCh))
 				{
@@ -301,6 +323,64 @@ namespace ProbeNpp
 			}
 
 			return _state;
+		}
+
+		private void StyleIdent()
+		{
+			string token = _line.Peek((ch) => Char.IsLetterOrDigit(ch) || ch == '_');
+			if (_keywords.Contains(token))
+			{
+				_line.Style(_keywordStyle, token.Length);
+				SetLastToken(State_Token_Keyword);
+				return;
+			}
+
+			if (_functions.Contains(token))
+			{
+				_line.Style(_functionStyle, token.Length);
+				SetLastToken(State_Token_Function);
+				return;
+			}
+
+			if (_constants.Contains(token))
+			{
+				_line.Style(_constantStyle, token.Length);
+				SetLastToken(State_Token_Constant);
+				return;
+			}
+
+			if (_dataTypes.Contains(token))
+			{
+				_line.Style(_dataTypeStyle, token.Length);
+				SetLastToken(State_Token_DataType);
+				return;
+			}
+
+			var env = ProbeNppPlugin.Instance.Environment;
+			if (env.IsProbeTable(token))
+			{
+				_line.Style(_tableStyle, token.Length);
+				SetLastToken(State_Token_Table);
+				_table = token;
+				return;
+			}
+
+			if (GetLastToken() == State_Token_TableDelim)
+			{
+				if (!string.IsNullOrEmpty(_table))
+				{
+					var table = env.GetTable(_table);
+					if (table != null && table.IsField(token))
+					{
+						_line.Style(_fieldStyle, token.Length);
+						SetLastToken(State_Token_Field);
+						return;
+					}
+				}
+			}
+
+			_line.Style(_defaultStyle, token.Length);
+			SetLastToken(State_Token_UnknownIdent);
 		}
 
 		private void StylePreprocessor()

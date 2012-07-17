@@ -159,7 +159,7 @@ namespace ProbeNpp
 		private ProbeEnvironment _env = null;
 		private int _probeLanguageId = 0;
 
-		public ProbeEnvironment Environment
+		internal ProbeEnvironment Environment
 		{
 			get { return _env; }
 		}
@@ -251,6 +251,7 @@ namespace ProbeNpp
 		private const int k_compilePanelId = 564489;
 
 		[NppDisplayName("Show Probe Compile Panel")]
+		[NppShortcut(true, true, true, Keys.F7)]
 		public void ShowCompilePanel()
 		{
 			try
@@ -275,6 +276,11 @@ namespace ProbeNpp
 		internal bool CompilePanelIsVisible()
 		{
 			return _compilePanel != null && _compilePanel.Visible;
+		}
+
+		internal void HideCompilePanel()
+		{
+			if (_compilePanelDock != null) _compilePanelDock.Hide();
 		}
 
 		[NppDisplayName("Compile Probe")]
@@ -486,9 +492,8 @@ namespace ProbeNpp
 				form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
 				form.AddAction(Keys.C, "Compile", () => { Compile(); });
 				form.AddAction(Keys.H, "Add File Header", () => { AddFileHeader(); });
-				form.AddAction(Keys.I, "Set Initials", () => { SetUserInitials(); });
-				form.AddAction(Keys.W, "Set Work Order Number", () => { SetWorkOrderNumber(); });
-				form.AddAction(Keys.P, "Set Problem Number", () => { SetProblemNumber(); });
+				form.AddAction(Keys.D, "Insert Diag", () => { InsertDiag(); });
+				form.AddAction(Keys.S, "Settings", () => { ShowSettings(); });
 
 				if (form.ShowDialog(NppWindow) == DialogResult.OK)
 				{
@@ -538,9 +543,9 @@ namespace ProbeNpp
 				sb.AppendLine("// -------------------------------------------------------------------------------------------------");
 				sb.AppendLine();
 
-				GoToPos(0);
+				GoTo(Start);
 				Insert(sb.ToString());
-				GoToPos(GetLineEndPos(3));	// To enter file description.
+				GoTo(GetLineEndPos(3));	// To enter file description.
 			}
 			catch (Exception ex)
 			{
@@ -548,66 +553,181 @@ namespace ProbeNpp
 			}
 		}
 
-		[NppDisplayName("Set User Initials")]
-		public void SetUserInitials()
+		[NppDisplayName("Insert &Diag")]
+		[NppShortcut(true, false, true, Keys.D)]
+		public void InsertDiag()
 		{
-			try
+			var selText = SelectedText.Trim();
+			if (selText.IndexOf('\n') >= 0) selText = string.Empty;
+
+			var sb = new StringBuilder();
+			sb.Append("diag(\"");
+			if (Settings.Tagging.InitialsInDiags && !string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
 			{
-				var form = new PromptForm();
-				form.Value = Settings.Tagging.Initials;
-				form.AllowEmpty = true;
-				form.Prompt = "Enter your initials:";
-				if (form.ShowDialog(NppWindow) == DialogResult.OK)
-				{
-					Settings.Tagging.Initials = form.Value;
-				}
+				sb.Append(Settings.Tagging.Initials);
+				sb.Append(": ");
 			}
-			catch (Exception ex)
+
+			if (Settings.Tagging.FileNameInDiags)
 			{
-				Errors.Show(NppWindow, ex);
+				sb.Append(Path.GetFileName(ActiveFileName));
+				sb.Append(": ");
+			}
+
+			if (!string.IsNullOrWhiteSpace(selText))
+			{
+				sb.Append(ProbeEnvironment.StringEscape(selText));
+				sb.Append(" [\", ");
+				sb.Append(selText);
+				sb.Append(", \"]");
+			}
+
+			int lengthBefore = sb.Length;
+
+			sb.Append("\\n\");");
+			if (Settings.Tagging.TodoAfterDiags) sb.Append("\t// TODO");
+
+			Insert(sb.ToString());
+
+			if (string.IsNullOrWhiteSpace(selText))
+			{
+				GoTo(CurrentLocation - (sb.Length - lengthBefore));
 			}
 		}
 
-		[NppDisplayName("Set Work Order Number")]
-		public void SetWorkOrderNumber()
+		[NppDisplayName("&Tag Change")]
+		[NppShortcut(true, false, true, Keys.T)]
+		public void TagChange()
 		{
-			try
+			var selStart = SelectionStart < SelectionEnd ? SelectionStart : SelectionEnd;
+			var selEnd = SelectionStart < SelectionEnd ? SelectionEnd : SelectionStart;
+			var startLine = selStart.Line;
+			var endLine = selEnd.Line;
+
+			Output.WriteLine("startLine: {0} endLine: {1}", startLine, endLine);	// TODO
+
+			var sb = new StringBuilder();
+			if (!string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
 			{
-				var form = new PromptForm();
-				form.Value = Settings.Tagging.WorkOrderNumber;
-				form.AllowEmpty = true;
-				form.Prompt = "Enter the work order number you are working on:";
-				if (form.ShowDialog(NppWindow) == DialogResult.OK)
-				{
-					Settings.Tagging.WorkOrderNumber = form.Value;
-				}
+				sb.Append(Settings.Tagging.Initials);
 			}
-			catch (Exception ex)
+
+			if (Settings.Tagging.TagDate)
 			{
-				Errors.Show(NppWindow, ex);
+				if (sb.Length > 0) sb.Append(" ");
+				sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
+			}
+
+			if (!string.IsNullOrWhiteSpace(Settings.Tagging.WorkOrderNumber))
+			{
+				if (sb.Length > 0) sb.Append(" ");
+				sb.Append(Settings.Tagging.WorkOrderNumber);
+			}
+
+			if (!string.IsNullOrWhiteSpace(Settings.Tagging.ProblemNumber))
+			{
+				if (sb.Length > 0) sb.Append(" ");
+				sb.Append(Settings.Tagging.ProblemNumber);
+			}
+
+			if (startLine == endLine)
+			{
+				// Single line change.
+				ApplyTagChangeToLine(startLine, sb.ToString(), TagChangeLine.Single);
+			}
+			else
+			{
+				// Multi-line change.
+				ApplyTagChangeToLine(endLine, string.Concat(sb, " End"), TagChangeLine.End);
+				ApplyTagChangeToLine(startLine, string.Concat(sb, " Start"), TagChangeLine.Start);
 			}
 		}
 
-		[NppDisplayName("Set Problem Number")]
-		public void SetProblemNumber()
+		private enum TagChangeLine
 		{
-			try
+			Single,
+			Start,
+			End
+		}
+
+		private void ApplyTagChangeToLine(int line, string str, TagChangeLine tcl)
+		{
+			if (tcl == TagChangeLine.Start && Settings.Tagging.MultiLineTagsOnSeparateLines)
 			{
-				var form = new PromptForm();
-				form.Value = Settings.Tagging.ProblemNumber;
-				form.AllowEmpty = true;
-				form.Prompt = "Enter the problem number you are working on:";
-				if (form.ShowDialog(NppWindow) == DialogResult.OK)
-				{
-					Settings.Tagging.ProblemNumber = form.Value;
-				}
+				var indentPos = GetIndentPosOnLine(line);
+				var lineStartPos = GetLineStartPos(line);
+				var indent = GetText(lineStartPos, indentPos.CharPosition - lineStartPos.CharPosition);
+
+				GoTo(indentPos);
+				Insert(string.Concat("\r\n", indent));
+				GoTo(indentPos);
+
+				AdvanceToTagStartColumn();
+				Insert(string.Concat("// ", str));
 			}
-			catch (Exception ex)
+			else if (tcl == TagChangeLine.End && Settings.Tagging.MultiLineTagsOnSeparateLines)
 			{
-				Errors.Show(NppWindow, ex);
+				var indentPos = GetIndentPosOnLine(line);
+				var lineStartPos = GetLineStartPos(line);
+				var indent = GetText(lineStartPos, indentPos.CharPosition - lineStartPos.CharPosition);
+
+				var lineEndPos = GetLineEndPos(line);
+				GoTo(lineEndPos);
+				Insert(string.Concat("\r\n", indent));
+
+				AdvanceToTagStartColumn();
+				Insert(string.Concat("// ", str));
 			}
+			else
+			{
+				GoTo(GetLineEndPos(line));
+				AdvanceToTagStartColumn();
+				Insert(string.Concat("// ", str));
+			}
+		}
+
+		private TextLocation GetIndentPosOnLine(int line)
+		{
+		    var pos = new TextLocation(line, 1);
+			while (true)
+			{
+				var ch = GetText(pos, 1);
+				if (string.IsNullOrEmpty(ch)) break;
+				if (!Char.IsWhiteSpace(ch[0])) return pos;
+				pos++;
+			}
+			return new TextLocation(line, 1);
+		}
+
+		private void AdvanceToTagStartColumn()
+		{
+			// Check if we need to put at least one tab before the tag
+			var lineText = GetLineText(CurrentLine);
+			var textOnLine = lineText.Length > 0 && !Char.IsWhiteSpace(lineText[lineText.Length - 1]);
+
+			var startCol = Settings.Tagging.TagStartColumn;
+			var numTabs = 0;
+			//if (startCol > 0)
+			//{
+			//    var pos = CurrentLocation;
+			//    while (pos.Column < startCol)
+			//    {
+			//        Insert("\t");
+			//        numTabs++;
+			//    }
+			//}
+			if (numTabs == 0 && textOnLine) Insert("\t");
+		}
+
+		[NppDisplayName("Insert Date")]
+		[NppShortcut(true, false, true, Keys.Y)]
+		public void InsertDate()
+		{
+			Insert(DateTime.Now.ToString("ddMMMyyyy"));
 		}
 		#endregion
+
+		
 
 	}
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="Windows-1252" ?>
+<!--
+	Sample file for auto-completion.
+	This feature to be implemented later.
+-->
+<NotepadPlus>
+	<AutoComplete language="Probe Source">
+		<Environment ignoreCase="no" startFunc="(" stopFunc=")" paramSeparator="," terminal=";" />
+		<KeyWord name="GENERATE_NULL_REPORTS" />
+		<KeyWord name="OUTFILECONSOL" />
+		<KeyWord name="OUTFILEBRANCH" />
+		
+		<KeyWord name="find" func="yes">
+			<Overload retVal="int">
+				<Param name="table tableName" />
+				<Param name="indrel indrel" />
+				<Param name="findop_t mode" />
+			</Overload>
+		</KeyWord>
+	</AutoComplete>
+</NotepadPlus>

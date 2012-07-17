@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompilePanel.cs">
-      <SubType>Component</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="CompilePanel.designer.cs">
       <DependentUpon>CompilePanel.cs</DependentUpon>
@@ -58,7 +58,9 @@
     <Compile Include="Function Parser\FunctionCollection.cs" />
     <Compile Include="Function Parser\FunctionParser.cs" />
     <Compile Include="IniFile.cs" />
+    <Compile Include="ListViewUtil.cs" />
     <Compile Include="Output.cs" />
+    <Compile Include="ProbeField.cs" />
     <Compile Include="ProbeNppPlugin.cs" />
     <Compile Include="ProbeEnvironment.cs" />
     <Compile Include="ProbeException.cs" />
@@ -103,6 +105,7 @@
     <Compile Include="TextFilter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Probe Source.xml" />
     <Content Include="ProbeNppLexer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

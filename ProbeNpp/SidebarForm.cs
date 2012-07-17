@@ -14,6 +14,7 @@ namespace ProbeNpp
 	{
 		private ProbeNppPlugin _plugin;
 		private FileDetails _file = null;
+		private bool _loaded = false;
 
 		private const int k_imgFolder = 0;
 		private const int k_imgFile = 1;
@@ -24,6 +25,13 @@ namespace ProbeNpp
 			_plugin = plugin;
 
 			InitializeComponent();
+
+			if (_plugin.Settings.FileListView.FileColumnWidth > 0) colFileTitle.Width = _plugin.Settings.FileListView.FileColumnWidth;
+			if (_plugin.Settings.FileListView.DirColumnWidth > 0) colFileDir.Width = _plugin.Settings.FileListView.DirColumnWidth;
+
+			if (_plugin.Settings.FunctionListView.FunctionColumnWidth > 0) colFunctionName.Width = _plugin.Settings.FunctionListView.FunctionColumnWidth;
+
+			_loaded = true;
 		}
 
 		public void OnSidebarLoad(FileDetails currentFile)
@@ -49,27 +57,6 @@ namespace ProbeNpp
 		{
 			lstFiles.Visible = !string.IsNullOrEmpty(txtFileFilter.Text);
 			treeFiles.Visible = string.IsNullOrEmpty(txtFileFilter.Text);
-		}
-
-		private void FitListViewColumns(ListView list)
-		{
-			int clientWidth = list.ClientSize.Width;
-			if (clientWidth > 10)
-			{
-				int colWidth = 0;
-
-				foreach (ColumnHeader col in list.Columns) colWidth += col.Width;
-
-				if (colWidth != clientWidth)
-				{
-					foreach (ColumnHeader col in list.Columns)
-					{
-						int newWidth = (int)((float)col.Width / (float)colWidth * (float)clientWidth);
-						col.Width = newWidth;
-					}
-				}
-			}
-
 		}
 
 		public void OnFileActivated(FileDetails fd)
@@ -359,6 +346,12 @@ namespace ProbeNpp
 						lstFiles.Focus();
 						e.Handled = true;
 					}
+					else if (e.KeyCode == Keys.Escape)
+					{
+						txtFileFilter.Text = string.Empty;
+						e.Handled = true;
+						e.SuppressKeyPress = true;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -396,11 +389,15 @@ namespace ProbeNpp
 			}
 		}
 
-		private void lstFiles_Resize(object sender, EventArgs e)
+		private void lstFiles_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
 		{
 			try
 			{
-				FitListViewColumns(lstFiles);
+				if (_loaded)
+				{
+					_plugin.Settings.FileListView.FileColumnWidth = colFileTitle.Width;
+					_plugin.Settings.FileListView.DirColumnWidth = colFileDir.Width;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -420,7 +417,7 @@ namespace ProbeNpp
 		private void ParseFunctions()
 		{
 			FunctionParser parser = new FunctionParser();
-			parser.Parse(_plugin.GetText(0, _plugin.Length));
+			parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
 			_file.functions = new List<Function>();
 			_file.functions.AddRange(parser.Functions);
 		}
@@ -482,7 +479,7 @@ namespace ProbeNpp
 
 			// Get a list of the functions, and where they are in the file now.
 			FunctionParser fp = new FunctionParser();
-			fp.Parse(_plugin.GetText(0, _plugin.Length));
+			fp.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
 
 			// Refresh the visible function list.
 			List<Function> newFuncs = new List<Function>();
@@ -573,6 +570,12 @@ namespace ProbeNpp
 					lstFunctions.Focus();
 					e.Handled = true;
 				}
+				else if (e.KeyCode == Keys.Escape)
+				{
+					txtFunctionFilter.Text = string.Empty;
+					e.Handled = true;
+					e.SuppressKeyPress = true;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -597,11 +600,14 @@ namespace ProbeNpp
 			}
 		}
 
-		private void lstFunctions_Resize(object sender, EventArgs e)
+		private void lstFunctions_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
 		{
 			try
 			{
-				FitListViewColumns(lstFunctions);
+				if (_loaded)
+				{
+					_plugin.Settings.FunctionListView.FunctionColumnWidth = colFunctionName.Width;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -672,5 +678,9 @@ namespace ProbeNpp
 				Errors.Show(this, ex);
 			}
 		}
+
+		
+
+		
 	}
 }

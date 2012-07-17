@@ -36,20 +36,20 @@ namespace ProbeNpp
 			this.tabControl = new System.Windows.Forms.TabControl();
 			this.tabFiles = new System.Windows.Forms.TabPage();
 			this.lstFiles = new System.Windows.Forms.ListView();
-			this.colFileTitle = new System.Windows.Forms.ColumnHeader();
-			this.colFileDir = new System.Windows.Forms.ColumnHeader();
+			this.colFileTitle = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.colFileDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.cmFiles = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.ciRefreshFiles = new System.Windows.Forms.ToolStripMenuItem();
 			this.txtFileFilter = new System.Windows.Forms.TextBox();
 			this.treeFiles = new System.Windows.Forms.TreeView();
 			this.imgFiles = new System.Windows.Forms.ImageList(this.components);
 			this.tabFunctions = new System.Windows.Forms.TabPage();
-			this.txtFunctionFilter = new System.Windows.Forms.TextBox();
 			this.lstFunctions = new System.Windows.Forms.ListView();
-			this.colFunctionName = new System.Windows.Forms.ColumnHeader();
+			this.colFunctionName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.cmFunctions = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.ciRefreshFunctions = new System.Windows.Forms.ToolStripMenuItem();
 			this.imgFunctions = new System.Windows.Forms.ImageList(this.components);
+			this.txtFunctionFilter = new System.Windows.Forms.TextBox();
 			this.tabOther = new System.Windows.Forms.TabPage();
 			this.btnPstTable = new System.Windows.Forms.Button();
 			this.btnSettings = new System.Windows.Forms.Button();
@@ -130,8 +130,8 @@ namespace ProbeNpp
 			this.lstFiles.TabIndex = 3;
 			this.lstFiles.UseCompatibleStateImageBehavior = false;
 			this.lstFiles.View = System.Windows.Forms.View.Details;
+			this.lstFiles.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.lstFiles_ColumnWidthChanged);
 			this.lstFiles.ItemActivate += new System.EventHandler(this.lstFiles_ItemActivate);
-			this.lstFiles.Resize += new System.EventHandler(this.lstFiles_Resize);
 			this.lstFiles.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lstFiles_KeyDown);
 			// 
 			// colFileTitle
@@ -202,16 +202,6 @@ namespace ProbeNpp
 			this.tabFunctions.Text = "Functions";
 			this.tabFunctions.UseVisualStyleBackColor = true;
 			// 
-			// txtFunctionFilter
-			// 
-			this.txtFunctionFilter.Dock = System.Windows.Forms.DockStyle.Top;
-			this.txtFunctionFilter.Location = new System.Drawing.Point(3, 3);
-			this.txtFunctionFilter.Name = "txtFunctionFilter";
-			this.txtFunctionFilter.Size = new System.Drawing.Size(191, 20);
-			this.txtFunctionFilter.TabIndex = 1;
-			this.txtFunctionFilter.TextChanged += new System.EventHandler(this.txtFunctionFilter_TextChanged);
-			this.txtFunctionFilter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFunctionFilter_KeyDown);
-			// 
 			// lstFunctions
 			// 
 			this.lstFunctions.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
@@ -228,8 +218,8 @@ namespace ProbeNpp
 			this.lstFunctions.TabIndex = 0;
 			this.lstFunctions.UseCompatibleStateImageBehavior = false;
 			this.lstFunctions.View = System.Windows.Forms.View.Details;
+			this.lstFunctions.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.lstFunctions_ColumnWidthChanged);
 			this.lstFunctions.ItemActivate += new System.EventHandler(this.lstFunctions_ItemActivate);
-			this.lstFunctions.Resize += new System.EventHandler(this.lstFunctions_Resize);
 			this.lstFunctions.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lstFunctions_KeyDown);
 			// 
 			// colFunctionName
@@ -256,6 +246,16 @@ namespace ProbeNpp
 			this.imgFunctions.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imgFunctions.ImageStream")));
 			this.imgFunctions.TransparentColor = System.Drawing.Color.Transparent;
 			this.imgFunctions.Images.SetKeyName(0, "Function.png");
+			// 
+			// txtFunctionFilter
+			// 
+			this.txtFunctionFilter.Dock = System.Windows.Forms.DockStyle.Top;
+			this.txtFunctionFilter.Location = new System.Drawing.Point(3, 3);
+			this.txtFunctionFilter.Name = "txtFunctionFilter";
+			this.txtFunctionFilter.Size = new System.Drawing.Size(191, 20);
+			this.txtFunctionFilter.TabIndex = 1;
+			this.txtFunctionFilter.TextChanged += new System.EventHandler(this.txtFunctionFilter_TextChanged);
+			this.txtFunctionFilter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFunctionFilter_KeyDown);
 			// 
 			// tabOther
 			// 
@@ -315,11 +315,10 @@ namespace ProbeNpp
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(205, 527);
 			this.Controls.Add(this.tabControl);
 			this.Controls.Add(this.cmbApp);
 			this.Name = "SidebarForm";
-			this.Text = "Probe Sidebar";
+			this.Size = new System.Drawing.Size(205, 527);
 			this.Resize += new System.EventHandler(this.SidebarForm_Resize);
 			this.cmAppCombo.ResumeLayout(false);
 			this.tabControl.ResumeLayout(false);
