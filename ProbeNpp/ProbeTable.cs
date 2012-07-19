@@ -9,7 +9,7 @@ using NppSharp;
 
 namespace ProbeNpp
 {
-	public class ProbeTable
+	internal class ProbeTable
 	{
 		private int _number = 0;
 		private string _name = "";
@@ -42,6 +42,15 @@ namespace ProbeNpp
 		{
 			if (_fields == null) LoadFields();
 			return _fields.ContainsKey(fieldName);
+		}
+
+		public IEnumerable<ProbeField> Fields
+		{
+			get
+			{
+				if (_fields == null) LoadFields();
+				return _fields.Values;
+			}
 		}
 
 		private void LoadFields()

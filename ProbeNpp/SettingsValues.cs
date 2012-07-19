@@ -16,7 +16,7 @@ namespace ProbeNpp
 		public ProbeGroup Probe = new ProbeGroup();
 		public class ProbeGroup : SettingsGroup
 		{
-			public string SourceExtensions = "ct ct& f f& fec i i& il il& sp sp& st st&";
+			public string SourceExtensions = "ct ct& f f& fec gp gp& i i& il il& sp sp& st st&";
 			public string DictExtensions = "pst t t&";
 		}
 

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NppSharp;
 
 namespace ProbeNpp
@@ -348,7 +349,7 @@ namespace ProbeNpp
 			}
 			else if (line == "PROBE build failed.")
 			{
-				WriteObject(new CompileRef(line, CompileRefType.Error));
+				WriteObject(new CompileRef(line, CompileRefType.ErrorReport));
 				if (_numErrors == 0) _numErrors++;
 			}
 			else
@@ -369,13 +370,15 @@ namespace ProbeNpp
 				}
 
 				int selIndex = lstHistory.SelectedIndex;
-				bool scrollToBottom = selIndex == -1 || selIndex == lstHistory.Items.Count - 1;
+				bool scrollToBottom = selIndex == -1 || (selIndex == lstHistory.Items.Count - 1);
 
 				int index = lstHistory.Items.Add(obj);
 				if (scrollToBottom)
 				{
+					foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
 					lstHistory.SetSelected(index, true);
 					lstHistory.SetSelected(index, false);
+					
 				}
 			}
 			catch (Exception)
@@ -438,7 +441,11 @@ namespace ProbeNpp
 									break;
 							}
 
-							if (selIndex >= 0) lstHistory.SelectedIndex = selIndex;
+							if (selIndex >= 0)
+							{
+								foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
+								lstHistory.SelectedIndex = selIndex;
+							}
 						}
 					}
 				}

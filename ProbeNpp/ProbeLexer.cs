@@ -328,6 +328,33 @@ namespace ProbeNpp
 		private void StyleIdent()
 		{
 			string token = _line.Peek((ch) => Char.IsLetterOrDigit(ch) || ch == '_');
+
+			if (GetLastToken() == State_Token_TableDelim)
+			{
+				if (!string.IsNullOrEmpty(_table))
+				{
+					var env = ProbeNppPlugin.Instance.Environment;
+					var table = env.GetTable(_table);
+					if (table != null && table.IsField(token))
+					{
+						_line.Style(_fieldStyle, token.Length);
+						SetLastToken(State_Token_Field);
+						return;
+					}
+				}
+			}
+			else
+			{
+				var env = ProbeNppPlugin.Instance.Environment;
+				if (env.IsProbeTable(token))
+				{
+					_line.Style(_tableStyle, token.Length);
+					SetLastToken(State_Token_Table);
+					_table = token;
+					return;
+				}
+			}
+
 			if (_keywords.Contains(token))
 			{
 				_line.Style(_keywordStyle, token.Length);
@@ -356,28 +383,7 @@ namespace ProbeNpp
 				return;
 			}
 
-			var env = ProbeNppPlugin.Instance.Environment;
-			if (env.IsProbeTable(token))
-			{
-				_line.Style(_tableStyle, token.Length);
-				SetLastToken(State_Token_Table);
-				_table = token;
-				return;
-			}
-
-			if (GetLastToken() == State_Token_TableDelim)
-			{
-				if (!string.IsNullOrEmpty(_table))
-				{
-					var table = env.GetTable(_table);
-					if (table != null && table.IsField(token))
-					{
-						_line.Style(_fieldStyle, token.Length);
-						SetLastToken(State_Token_Field);
-						return;
-					}
-				}
-			}
+			
 
 			_line.Style(_defaultStyle, token.Length);
 			SetLastToken(State_Token_UnknownIdent);

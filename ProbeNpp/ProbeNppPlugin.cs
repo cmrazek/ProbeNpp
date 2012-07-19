@@ -7,6 +7,7 @@ using System.IO;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using System.Linq;
 using NppSharp;
 
 namespace ProbeNpp
@@ -47,6 +48,8 @@ namespace ProbeNpp
 			FileOpened += new FileEventHandler(Plugin_FileOpened);
 			FileClosed += new FileEventHandler(Plugin_FileClosed);
 			FileActivated += new FileEventHandler(Plugin_FileActivated);
+
+			CharAdded += new CharAddedEventHandler(ProbeNppPlugin_CharAdded);
 		}
 
 		private void Plugin_Ready(object sender, EventArgs e)
@@ -727,7 +730,40 @@ namespace ProbeNpp
 		}
 		#endregion
 
-		
+		#region AutoCompletion
+		void ProbeNppPlugin_CharAdded(object sender, CharAddedEventArgs e)
+		{
+			if (e.Character == '.')
+			{
+				CheckAutoCompletion();
+			}
+		}
+
+		private void CheckAutoCompletion()
+		{
+			var wordEnd = CurrentLocation - 1;
+			var wordStart = GetWordStartPos(wordEnd, false);
+
+			var word = GetText(wordStart, wordEnd);
+			if (string.IsNullOrWhiteSpace(word))
+			{
+				wordEnd = wordStart;
+				wordStart = GetWordStartPos(wordEnd, false);
+				word = GetText(wordStart, wordEnd);
+				if (string.IsNullOrWhiteSpace(word)) return;
+			}
+
+			var table = _env.GetTable(word);
+			if (table == null) return;
+
+			var fields = table.Fields;
+			if (!fields.Any()) return;
+
+			ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
+		}
+		#endregion
+
+
 
 	}
 }
