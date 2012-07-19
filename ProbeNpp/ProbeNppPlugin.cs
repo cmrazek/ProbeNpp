@@ -16,6 +16,7 @@ using NppSharp;
 // 40	Insert Date
 //		--------------------------
 // 50	FEC File
+// 55	FEC to Visual C
 // 60	PST Table
 // 70	Show File List
 // 75	Show Function List
@@ -506,6 +507,45 @@ namespace ProbeNpp
 				}
 
 				OpenFile(fileName);
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(NppWindow, ex);
+			}
+		}
+
+		[NppDisplayName("FEC to Visual C")]
+		[NppSortOrder(55)]
+		public void CompileToVisualC()
+		{
+			try
+			{
+				string baseFileName = Environment.FindBaseFile(ActiveFileName);
+				if (string.IsNullOrEmpty(baseFileName))
+				{
+					MessageBox.Show("Base file could not be found.");
+					return;
+				}
+
+				var pr = new ProcessRunner();
+				int exitCode = pr.ExecuteProcess("fec.exe", string.Concat("\"", baseFileName, "\""),
+					Path.GetDirectoryName(baseFileName), true);
+
+				if (exitCode != 0)
+				{
+					Errors.Show(NppWindow, "FEC returned exit code {0}.", exitCode);
+					return;
+				}
+
+				var cFileName = Path.Combine(Path.GetDirectoryName(baseFileName),
+					string.Concat(Path.GetFileNameWithoutExtension(baseFileName), ".c"));
+				if (!File.Exists(cFileName))
+				{
+					Errors.Show(NppWindow, "Unable to find .c file produced by FEC.");
+					return;
+				}
+
+				OpenFile(cFileName);
 			}
 			catch (Exception ex)
 			{
