@@ -44,8 +44,7 @@ namespace ProbeNpp
 			this.txtSourceExtensions = new System.Windows.Forms.TextBox();
 			this.tabTagging = new System.Windows.Forms.TabPage();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
-			this.txtTagStart = new System.Windows.Forms.TextBox();
-			this.lblTagStart = new System.Windows.Forms.Label();
+			this.chkTagDate = new System.Windows.Forms.CheckBox();
 			this.chkSurroundingTagsOnNewLines = new System.Windows.Forms.CheckBox();
 			this.grpDiags = new System.Windows.Forms.GroupBox();
 			this.chkInitialsInDiags = new System.Windows.Forms.CheckBox();
@@ -57,7 +56,6 @@ namespace ProbeNpp
 			this.lblWorkOrderNumber = new System.Windows.Forms.Label();
 			this.lblInitials = new System.Windows.Forms.Label();
 			this.txtInitials = new System.Windows.Forms.TextBox();
-			this.chkTagDate = new System.Windows.Forms.CheckBox();
 			this.panel1.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tabCompile.SuspendLayout();
@@ -246,8 +244,6 @@ namespace ProbeNpp
 			// groupBox1
 			// 
 			this.groupBox1.Controls.Add(this.chkTagDate);
-			this.groupBox1.Controls.Add(this.txtTagStart);
-			this.groupBox1.Controls.Add(this.lblTagStart);
 			this.groupBox1.Controls.Add(this.chkSurroundingTagsOnNewLines);
 			this.groupBox1.Location = new System.Drawing.Point(11, 87);
 			this.groupBox1.Name = "groupBox1";
@@ -256,27 +252,21 @@ namespace ProbeNpp
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Tags";
 			// 
-			// txtTagStart
+			// chkTagDate
 			// 
-			this.txtTagStart.Location = new System.Drawing.Point(108, 19);
-			this.txtTagStart.Name = "txtTagStart";
-			this.txtTagStart.Size = new System.Drawing.Size(80, 20);
-			this.txtTagStart.TabIndex = 0;
-			this.txtTagStart.TextChanged += new System.EventHandler(this.EnableControls);
-			// 
-			// lblTagStart
-			// 
-			this.lblTagStart.AutoSize = true;
-			this.lblTagStart.Location = new System.Drawing.Point(3, 22);
-			this.lblTagStart.Name = "lblTagStart";
-			this.lblTagStart.Size = new System.Drawing.Size(92, 13);
-			this.lblTagStart.TabIndex = 1;
-			this.lblTagStart.Text = "Tag Start Column:";
+			this.chkTagDate.AutoSize = true;
+			this.chkTagDate.Location = new System.Drawing.Point(6, 42);
+			this.chkTagDate.Name = "chkTagDate";
+			this.chkTagDate.Size = new System.Drawing.Size(85, 17);
+			this.chkTagDate.TabIndex = 2;
+			this.chkTagDate.Text = "Include date";
+			this.chkTagDate.UseVisualStyleBackColor = true;
+			this.chkTagDate.CheckedChanged += new System.EventHandler(this.EnableControls);
 			// 
 			// chkSurroundingTagsOnNewLines
 			// 
 			this.chkSurroundingTagsOnNewLines.AutoSize = true;
-			this.chkSurroundingTagsOnNewLines.Location = new System.Drawing.Point(6, 45);
+			this.chkSurroundingTagsOnNewLines.Location = new System.Drawing.Point(6, 19);
 			this.chkSurroundingTagsOnNewLines.Name = "chkSurroundingTagsOnNewLines";
 			this.chkSurroundingTagsOnNewLines.Size = new System.Drawing.Size(185, 17);
 			this.chkSurroundingTagsOnNewLines.TabIndex = 1;
@@ -380,17 +370,6 @@ namespace ProbeNpp
 			this.txtInitials.TabIndex = 0;
 			this.txtInitials.TextChanged += new System.EventHandler(this.EnableControls);
 			// 
-			// chkTagDate
-			// 
-			this.chkTagDate.AutoSize = true;
-			this.chkTagDate.Location = new System.Drawing.Point(232, 45);
-			this.chkTagDate.Name = "chkTagDate";
-			this.chkTagDate.Size = new System.Drawing.Size(85, 17);
-			this.chkTagDate.TabIndex = 2;
-			this.chkTagDate.Text = "Include date";
-			this.chkTagDate.UseVisualStyleBackColor = true;
-			this.chkTagDate.CheckedChanged += new System.EventHandler(this.EnableControls);
-			// 
 			// SettingsForm
 			// 
 			this.AcceptButton = this.btnOk;
@@ -450,8 +429,6 @@ namespace ProbeNpp
 		private System.Windows.Forms.GroupBox grpDiags;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.CheckBox chkSurroundingTagsOnNewLines;
-		private System.Windows.Forms.TextBox txtTagStart;
-		private System.Windows.Forms.Label lblTagStart;
 		private System.Windows.Forms.CheckBox chkTagDate;
 
 	}

@@ -238,12 +238,7 @@ namespace ProbeNpp
 
 				foreach (string file in Directory.GetFiles(parentDir))
 				{
-					TreeNode fileNode = new TreeNode(Path.GetFileName(file));
-					fileNode.Tag = new FileTreeNode(true, file);
-					fileNode.ImageIndex = k_imgFile;
-					fileNode.SelectedImageIndex = k_imgFile;
-
-					parentNode.Nodes.Add(fileNode);
+					PopulateFileTree_AddFile(parentNode, file);
 					AddProbeFile(file);
 				}
 			}
@@ -251,6 +246,16 @@ namespace ProbeNpp
 			{
 				_plugin.Output.WriteLine(OutputStyle.Error, "Error when scanning probe directory '{0}': {1}", parentDir, ex);
 			}
+		}
+
+		private void PopulateFileTree_AddFile(TreeNode parentNode, string fileName)
+		{
+			TreeNode fileNode = new TreeNode(Path.GetFileName(fileName));
+			fileNode.Tag = new FileTreeNode(true, fileName);
+			fileNode.ImageIndex = k_imgFile;
+			fileNode.SelectedImageIndex = k_imgFile;
+
+			parentNode.Nodes.Add(fileNode);
 		}
 
 		private void treeFiles_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -410,6 +415,76 @@ namespace ProbeNpp
 			tabControl.SelectedTab = tabFiles;
 			txtFileFilter.Focus();
 			txtFileFilter.SelectAll();
+		}
+
+		private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+		{
+			try
+			{
+				treeFiles.SelectedNode = e.Node;
+
+				if (e.Node != null)
+				{
+					var ftNode = e.Node.Tag as FileTreeNode;
+					ciCreateNewFile.Visible = !ftNode.isFile;
+				}
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void ciCreateNewFile_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				var node = treeFiles.SelectedNode;
+				if (node != null)
+				{
+					var ftNode = node.Tag as FileTreeNode;
+					if (!ftNode.isFile)
+					{
+						OnCreateNewFile(ftNode.pathName, node);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void OnCreateNewFile(string dir, TreeNode parentNode)
+		{
+			var form = new PromptForm();
+			form.AllowEmpty = false;
+			if (form.ShowDialog() == DialogResult.OK)
+			{
+				var fileName = form.Value;
+				if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+				{
+					Errors.Show(this, "This file name contains invalid characters.");
+				}
+				else
+				{
+					var pathName = Path.Combine(dir, fileName);
+					if (File.Exists(pathName))
+					{
+						Errors.Show(this, "This file already exists.");
+					}
+					else
+					{
+						using (var stream = new StreamWriter(pathName, false, Encoding.ASCII))
+						{
+							stream.Write(_plugin.CreateFileHeaderText(pathName));
+						}
+						PopulateFileTree_AddFile(parentNode, pathName);
+						AddProbeFile(pathName);
+					}
+					_plugin.OpenFile(pathName);
+				}
+			}
 		}
 		#endregion
 
@@ -628,59 +703,5 @@ namespace ProbeNpp
 			txtFunctionFilter.SelectAll();
 		}
 		#endregion
-
-		#region Fec File
-		private void btnFecFile_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				_plugin.FecFile();
-			}
-			catch (Exception ex)
-			{
-				Errors.Show(this, ex);
-			}
-		}
-		#endregion
-
-		private void btnRunSamCam_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				_plugin.OnRun();
-			}
-			catch (Exception ex)
-			{
-				Errors.Show(this, ex);
-			}
-		}
-
-		private void btnSettings_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				_plugin.ShowSettings();
-			}
-			catch (Exception ex)
-			{
-				Errors.Show(this, ex);
-			}
-		}
-
-		private void btnPstTable_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				_plugin.PstTable();
-			}
-			catch (Exception ex)
-			{
-				Errors.Show(this, ex);
-			}
-		}
-
-		
-
-		
 	}
 }

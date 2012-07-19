@@ -46,7 +46,6 @@ namespace ProbeNpp
 			public bool FileNameInDiags = true;
 			public bool TodoAfterDiags = false;
 
-			public int TagStartColumn = 0;
 			public bool TagDate = false;
 			public bool MultiLineTagsOnSeparateLines = true;
 		}

@@ -39,6 +39,7 @@ namespace ProbeNpp
 			this.colFileTitle = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.colFileDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.cmFiles = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.ciCreateNewFile = new System.Windows.Forms.ToolStripMenuItem();
 			this.ciRefreshFiles = new System.Windows.Forms.ToolStripMenuItem();
 			this.txtFileFilter = new System.Windows.Forms.TextBox();
 			this.treeFiles = new System.Windows.Forms.TreeView();
@@ -50,18 +51,12 @@ namespace ProbeNpp
 			this.ciRefreshFunctions = new System.Windows.Forms.ToolStripMenuItem();
 			this.imgFunctions = new System.Windows.Forms.ImageList(this.components);
 			this.txtFunctionFilter = new System.Windows.Forms.TextBox();
-			this.tabOther = new System.Windows.Forms.TabPage();
-			this.btnPstTable = new System.Windows.Forms.Button();
-			this.btnSettings = new System.Windows.Forms.Button();
-			this.btnRunSamCam = new System.Windows.Forms.Button();
-			this.btnFecFile = new System.Windows.Forms.Button();
 			this.cmAppCombo.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tabFiles.SuspendLayout();
 			this.cmFiles.SuspendLayout();
 			this.tabFunctions.SuspendLayout();
 			this.cmFunctions.SuspendLayout();
-			this.tabOther.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// cmbApp
@@ -94,7 +89,6 @@ namespace ProbeNpp
 			// 
 			this.tabControl.Controls.Add(this.tabFiles);
 			this.tabControl.Controls.Add(this.tabFunctions);
-			this.tabControl.Controls.Add(this.tabOther);
 			this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tabControl.Location = new System.Drawing.Point(0, 21);
 			this.tabControl.Name = "tabControl";
@@ -147,14 +141,22 @@ namespace ProbeNpp
 			// cmFiles
 			// 
 			this.cmFiles.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ciCreateNewFile,
             this.ciRefreshFiles});
 			this.cmFiles.Name = "cmFiles";
-			this.cmFiles.Size = new System.Drawing.Size(124, 26);
+			this.cmFiles.Size = new System.Drawing.Size(162, 48);
+			// 
+			// ciCreateNewFile
+			// 
+			this.ciCreateNewFile.Name = "ciCreateNewFile";
+			this.ciCreateNewFile.Size = new System.Drawing.Size(161, 22);
+			this.ciCreateNewFile.Text = "&Create New File";
+			this.ciCreateNewFile.Click += new System.EventHandler(this.ciCreateNewFile_Click);
 			// 
 			// ciRefreshFiles
 			// 
 			this.ciRefreshFiles.Name = "ciRefreshFiles";
-			this.ciRefreshFiles.Size = new System.Drawing.Size(123, 22);
+			this.ciRefreshFiles.Size = new System.Drawing.Size(161, 22);
 			this.ciRefreshFiles.Text = "&Refresh";
 			this.ciRefreshFiles.Click += new System.EventHandler(this.ciRefreshFiles_Click);
 			// 
@@ -181,6 +183,7 @@ namespace ProbeNpp
 			this.treeFiles.SelectedImageIndex = 0;
 			this.treeFiles.Size = new System.Drawing.Size(191, 454);
 			this.treeFiles.TabIndex = 0;
+			this.treeFiles.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeFiles_NodeMouseClick);
 			this.treeFiles.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeFiles_NodeMouseDoubleClick);
 			// 
 			// imgFiles
@@ -257,60 +260,6 @@ namespace ProbeNpp
 			this.txtFunctionFilter.TextChanged += new System.EventHandler(this.txtFunctionFilter_TextChanged);
 			this.txtFunctionFilter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFunctionFilter_KeyDown);
 			// 
-			// tabOther
-			// 
-			this.tabOther.Controls.Add(this.btnPstTable);
-			this.tabOther.Controls.Add(this.btnSettings);
-			this.tabOther.Controls.Add(this.btnRunSamCam);
-			this.tabOther.Controls.Add(this.btnFecFile);
-			this.tabOther.Location = new System.Drawing.Point(4, 22);
-			this.tabOther.Name = "tabOther";
-			this.tabOther.Padding = new System.Windows.Forms.Padding(3);
-			this.tabOther.Size = new System.Drawing.Size(197, 480);
-			this.tabOther.TabIndex = 2;
-			this.tabOther.Text = "Other";
-			this.tabOther.UseVisualStyleBackColor = true;
-			// 
-			// btnPstTable
-			// 
-			this.btnPstTable.Location = new System.Drawing.Point(0, 58);
-			this.btnPstTable.Name = "btnPstTable";
-			this.btnPstTable.Size = new System.Drawing.Size(120, 23);
-			this.btnPstTable.TabIndex = 2;
-			this.btnPstTable.Text = "PST Table";
-			this.btnPstTable.UseVisualStyleBackColor = true;
-			this.btnPstTable.Click += new System.EventHandler(this.btnPstTable_Click);
-			// 
-			// btnSettings
-			// 
-			this.btnSettings.Location = new System.Drawing.Point(0, 87);
-			this.btnSettings.Name = "btnSettings";
-			this.btnSettings.Size = new System.Drawing.Size(120, 23);
-			this.btnSettings.TabIndex = 1;
-			this.btnSettings.Text = "Settings";
-			this.btnSettings.UseVisualStyleBackColor = true;
-			this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
-			// 
-			// btnRunSamCam
-			// 
-			this.btnRunSamCam.Location = new System.Drawing.Point(0, 0);
-			this.btnRunSamCam.Name = "btnRunSamCam";
-			this.btnRunSamCam.Size = new System.Drawing.Size(120, 23);
-			this.btnRunSamCam.TabIndex = 0;
-			this.btnRunSamCam.Text = "Run SAM/CAM";
-			this.btnRunSamCam.UseVisualStyleBackColor = true;
-			this.btnRunSamCam.Click += new System.EventHandler(this.btnRunSamCam_Click);
-			// 
-			// btnFecFile
-			// 
-			this.btnFecFile.Location = new System.Drawing.Point(0, 29);
-			this.btnFecFile.Name = "btnFecFile";
-			this.btnFecFile.Size = new System.Drawing.Size(120, 23);
-			this.btnFecFile.TabIndex = 0;
-			this.btnFecFile.Text = "FEC Current File";
-			this.btnFecFile.UseVisualStyleBackColor = true;
-			this.btnFecFile.Click += new System.EventHandler(this.btnFecFile_Click);
-			// 
 			// SidebarForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -328,7 +277,6 @@ namespace ProbeNpp
 			this.tabFunctions.ResumeLayout(false);
 			this.tabFunctions.PerformLayout();
 			this.cmFunctions.ResumeLayout(false);
-			this.tabOther.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -353,12 +301,8 @@ namespace ProbeNpp
 		private System.Windows.Forms.ToolStripMenuItem ciRefreshFiles;
 		private System.Windows.Forms.TextBox txtFunctionFilter;
 		private System.Windows.Forms.ImageList imgFunctions;
-		private System.Windows.Forms.TabPage tabOther;
-		private System.Windows.Forms.Button btnFecFile;
 		private System.Windows.Forms.ContextMenuStrip cmAppCombo;
 		private System.Windows.Forms.ToolStripMenuItem ciRefreshAppList;
-		private System.Windows.Forms.Button btnRunSamCam;
-		private System.Windows.Forms.Button btnSettings;
-		private System.Windows.Forms.Button btnPstTable;
+		private System.Windows.Forms.ToolStripMenuItem ciCreateNewFile;
 	}
 }

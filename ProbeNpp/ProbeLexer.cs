@@ -14,6 +14,8 @@ namespace ProbeNpp
 	[NppDescription("Probe Source File")]
 	public class ProbeSourceLexer : ProbeLexer
 	{
+		public const string Name = "Probe Source";
+
 		public ProbeSourceLexer()
 			: base(ProbeLexerType.Source)
 		{
@@ -29,6 +31,8 @@ namespace ProbeNpp
 	[NppDescription("Probe Dictionary File")]
 	public class ProbeDictLexer : ProbeLexer
 	{
+		public const string Name = "Probe Table";
+
 		public ProbeDictLexer()
 			: base(ProbeLexerType.Dict)
 		{

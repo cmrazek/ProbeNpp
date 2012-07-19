@@ -55,7 +55,6 @@ namespace ProbeNpp
 			chkInitialsInDiags.Checked = settings.Tagging.InitialsInDiags;
 			chkFileNameInDiags.Checked = settings.Tagging.FileNameInDiags;
 			chkTodoAfterDiags.Checked = settings.Tagging.TodoAfterDiags;
-			txtTagStart.Text = settings.Tagging.TagStartColumn > 0 ? settings.Tagging.TagStartColumn.ToString() : string.Empty;
 			chkSurroundingTagsOnNewLines.Checked = settings.Tagging.MultiLineTagsOnSeparateLines;
 			chkTagDate.Checked = settings.Tagging.TagDate;
 		}
@@ -63,18 +62,6 @@ namespace ProbeNpp
 		private bool SaveSettings()
 		{
 			var settings = _plugin.Settings;
-
-			int tagStartCol;
-			if (string.IsNullOrWhiteSpace(txtTagStart.Text))
-			{
-				tagStartCol = 0;
-			}
-			else if (!Int32.TryParse(txtTagStart.Text, out tagStartCol) || tagStartCol <= 0 || tagStartCol > 256)
-			{
-				txtTagStart.Focus();
-				Errors.Show(this, "Invalid tag start column.");
-				return false;
-			}
 
 			// Compile
 			settings.Compile.ClosePanelAfterSuccess = chkCloseCompileAfterSuccess.Checked;
@@ -91,7 +78,6 @@ namespace ProbeNpp
 			settings.Tagging.InitialsInDiags = chkInitialsInDiags.Checked;
 			settings.Tagging.FileNameInDiags = chkFileNameInDiags.Checked;
 			settings.Tagging.TodoAfterDiags = chkTodoAfterDiags.Checked;
-			settings.Tagging.TagStartColumn = tagStartCol;
 			settings.Tagging.MultiLineTagsOnSeparateLines = chkSurroundingTagsOnNewLines.Checked;
 			settings.Tagging.TagDate = chkTagDate.Checked;
 
@@ -121,17 +107,6 @@ namespace ProbeNpp
 			if (chkTodoAfterDiags.Checked != settings.Tagging.TodoAfterDiags) return true;
 			if (chkSurroundingTagsOnNewLines.Checked != settings.Tagging.MultiLineTagsOnSeparateLines) return true;
 			if (chkTagDate.Checked != settings.Tagging.TagDate) return true;
-
-			int tagStartCol;
-			if (string.IsNullOrWhiteSpace(txtTagStart.Text))
-			{
-				tagStartCol = 0;
-			}
-			else if (!Int32.TryParse(txtTagStart.Text, out tagStartCol) || tagStartCol <= 0 || tagStartCol > 256)
-			{
-				return true;
-			}
-			if (tagStartCol != settings.Tagging.TagStartColumn) return true;
 
 			return false;
 		}

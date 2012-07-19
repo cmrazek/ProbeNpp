@@ -10,8 +10,29 @@ using System.Drawing;
 using System.Linq;
 using NppSharp;
 
+// 10	Add File Header
+// 20	Tag Change
+// 30	Insert Diag
+// 40	Insert Date
+//		--------------------------
+// 50	FEC File
+// 60	PST Table
+// 70	Show File List
+// 75	Show Function List
+// 80	Show Sidebar
+//		--------------------------
+// 90	Compile
+// 100	Stop Compile
+// 110	Show Compile Panel
+//		--------------------------
+// 120	Run
+//		--------------------------
+// 130	Probe Shortcut
+// 140	Probe Settings
+
 namespace ProbeNpp
 {
+	[NppSortOrder(100)]
 	public class ProbeNppPlugin : NppScript
 	{
 		#region Static Instance
@@ -193,8 +214,9 @@ namespace ProbeNpp
 
 		private const int k_dockWindowId = 6481891;
 
-		[NppDisplayName("Show Probe Sidebar")]
+		[NppDisplayName("Show Sidebar")]
 		[NppShortcut(true, false, true, Keys.F9)]
+		[NppSortOrder(80)]
 		public void ShowSidebar()
 		{
 			try
@@ -218,6 +240,7 @@ namespace ProbeNpp
 
 		[NppDisplayName("Show File List")]
 		[NppShortcut(true, false, true, Keys.F11)]
+		[NppSortOrder(70)]
 		public void ShowSidebarFileList()
 		{
 			try
@@ -233,6 +256,7 @@ namespace ProbeNpp
 
 		[NppDisplayName("Show Function List")]
 		[NppShortcut(true, false, true, Keys.F12)]
+		[NppSortOrder(75)]
 		public void ShowSidebarFunctionList()
 		{
 			try
@@ -253,8 +277,9 @@ namespace ProbeNpp
 
 		private const int k_compilePanelId = 564489;
 
-		[NppDisplayName("Show Probe Compile Panel")]
+		[NppDisplayName("Show Compile Panel")]
 		[NppShortcut(true, true, true, Keys.F7)]
+		[NppSortOrder(110)]
 		public void ShowCompilePanel()
 		{
 			try
@@ -286,8 +311,10 @@ namespace ProbeNpp
 			if (_compilePanelDock != null) _compilePanelDock.Hide();
 		}
 
-		[NppDisplayName("Compile Probe")]
+		[NppDisplayName("Compile")]
 		[NppShortcut(true, false, true, Keys.F7)]
+		[NppSortOrder(90)]
+		[NppSeparator]
 		public void Compile()
 		{
 			try
@@ -303,6 +330,7 @@ namespace ProbeNpp
 
 		[NppDisplayName("Stop Compile")]
 		[NppShortcut(true, false, true, Keys.F8)]
+		[NppSortOrder(100)]
 		public void StopCompile()
 		{
 			try
@@ -362,6 +390,7 @@ namespace ProbeNpp
 		private Settings _settings = null;
 
 		[NppDisplayName("Probe Settings")]
+		[NppSortOrder(140)]
 		public void ShowSettings()
 		{
 			try
@@ -382,9 +411,11 @@ namespace ProbeNpp
 		#endregion
 
 		#region Run
-		[NppDisplayName("Run Probe")]
+		[NppDisplayName("Run")]
 		[NppShortcut(true, false, true, Keys.F5)]
-		public void OnRun()
+		[NppSortOrder(120)]
+		[NppSeparator]
+		public void Run()
 		{
 			try
 			{
@@ -399,6 +430,7 @@ namespace ProbeNpp
 
 		#region PST
 		[NppDisplayName("PST Table")]
+		[NppSortOrder(60)]
 		public void PstTable()
 		{
 			try
@@ -442,6 +474,8 @@ namespace ProbeNpp
 
 		#region FEC
 		[NppDisplayName("FEC File")]
+		[NppSortOrder(50)]
+		[NppSeparator]
 		public void FecFile()
 		{
 			try
@@ -483,6 +517,8 @@ namespace ProbeNpp
 		#region Shortcuts
 		[NppDisplayName("Probe Shortcut")]
 		[NppShortcut(true, false, false, Keys.Oemcomma)]
+		[NppSortOrder(130)]
+		[NppSeparator]
 		public void ProbeShortcut()
 		{
 			try
@@ -513,41 +549,13 @@ namespace ProbeNpp
 
 		#region Tagging
 		[NppDisplayName("Add File Header")]
+		[NppSortOrder(10)]
 		public void AddFileHeader()
 		{
 			try
 			{
-				var sb = new StringBuilder();
-				sb.AppendLine("// -------------------------------------------------------------------------------------------------");
-				sb.Append("// File Name: ");
-				sb.AppendLine(Path.GetFileName(ActiveFileName));
-				sb.AppendLine("//\t");
-				sb.AppendLine("//");
-				sb.AppendLine("// Modification History:");
-				sb.AppendLine("//\tDate        Who #       Description of Changes");
-				sb.AppendLine("//\t----------- --- ------- ------------------------------------------------------------------------");
-				sb.Append("//\t");
-				sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
-				sb.Append("   ");
-				sb.Append(Settings.Tagging.Initials.PadRight(4));
-				sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
-
-				var prob = Settings.Tagging.ProblemNumber;
-				if (!string.IsNullOrWhiteSpace(prob))
-				{
-					sb.Append(prob);
-					sb.Append(" Created");
-				}
-				else
-				{
-					sb.Append("Created");
-				}
-				sb.AppendLine();
-				sb.AppendLine("// -------------------------------------------------------------------------------------------------");
-				sb.AppendLine();
-
 				GoTo(Start);
-				Insert(sb.ToString());
+				Insert(CreateFileHeaderText(ActiveFileName));
 				GoTo(GetLineEndPos(3));	// To enter file description.
 			}
 			catch (Exception ex)
@@ -556,8 +564,43 @@ namespace ProbeNpp
 			}
 		}
 
+		internal string CreateFileHeaderText(string fileName)
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine("// -------------------------------------------------------------------------------------------------");
+			sb.Append("// File Name: ");
+			sb.AppendLine(Path.GetFileName(fileName));
+			sb.AppendLine("//\t");
+			sb.AppendLine("//");
+			sb.AppendLine("// Modification History:");
+			sb.AppendLine("//\tDate        Who #       Description of Changes");
+			sb.AppendLine("//\t----------- --- ------- ------------------------------------------------------------------------");
+			sb.Append("//\t");
+			sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
+			sb.Append("   ");
+			sb.Append(Settings.Tagging.Initials.PadRight(4));
+			sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
+
+			var prob = Settings.Tagging.ProblemNumber;
+			if (!string.IsNullOrWhiteSpace(prob))
+			{
+				sb.Append(prob);
+				sb.Append(" Created");
+			}
+			else
+			{
+				sb.Append("Created");
+			}
+			sb.AppendLine();
+			sb.AppendLine("// -------------------------------------------------------------------------------------------------");
+			sb.AppendLine();
+
+			return sb.ToString();
+		}
+
 		[NppDisplayName("Insert &Diag")]
 		[NppShortcut(true, false, true, Keys.D)]
+		[NppSortOrder(30)]
 		public void InsertDiag()
 		{
 			var selText = SelectedText.Trim();
@@ -600,6 +643,7 @@ namespace ProbeNpp
 
 		[NppDisplayName("&Tag Change")]
 		[NppShortcut(true, false, true, Keys.T)]
+		[NppSortOrder(20)]
 		public void TagChange()
 		{
 			var selStart = SelectionStart < SelectionEnd ? SelectionStart : SelectionEnd;
@@ -664,8 +708,6 @@ namespace ProbeNpp
 				GoTo(indentPos);
 				Insert(string.Concat("\r\n", indent));
 				GoTo(indentPos);
-
-				AdvanceToTagStartColumn();
 				Insert(string.Concat("// ", str));
 			}
 			else if (tcl == TagChangeLine.End && Settings.Tagging.MultiLineTagsOnSeparateLines)
@@ -677,15 +719,12 @@ namespace ProbeNpp
 				var lineEndPos = GetLineEndPos(line);
 				GoTo(lineEndPos);
 				Insert(string.Concat("\r\n", indent));
-
-				AdvanceToTagStartColumn();
 				Insert(string.Concat("// ", str));
 			}
 			else
 			{
 				GoTo(GetLineEndPos(line));
-				AdvanceToTagStartColumn();
-				Insert(string.Concat("// ", str));
+				Insert(string.Concat("\t// ", str));
 			}
 		}
 
@@ -702,28 +741,9 @@ namespace ProbeNpp
 			return new TextLocation(line, 1);
 		}
 
-		private void AdvanceToTagStartColumn()
-		{
-			// Check if we need to put at least one tab before the tag
-			var lineText = GetLineText(CurrentLine);
-			var textOnLine = lineText.Length > 0 && !Char.IsWhiteSpace(lineText[lineText.Length - 1]);
-
-			var startCol = Settings.Tagging.TagStartColumn;
-			var numTabs = 0;
-			//if (startCol > 0)
-			//{
-			//    var pos = CurrentLocation;
-			//    while (pos.Column < startCol)
-			//    {
-			//        Insert("\t");
-			//        numTabs++;
-			//    }
-			//}
-			if (numTabs == 0 && textOnLine) Insert("\t");
-		}
-
 		[NppDisplayName("Insert Date")]
 		[NppShortcut(true, false, true, Keys.Y)]
+		[NppSortOrder(40)]
 		public void InsertDate()
 		{
 			Insert(DateTime.Now.ToString("ddMMMyyyy"));
@@ -733,7 +753,7 @@ namespace ProbeNpp
 		#region AutoCompletion
 		void ProbeNppPlugin_CharAdded(object sender, CharAddedEventArgs e)
 		{
-			if (e.Character == '.')
+			if (e.Character == '.' && LanguageName == ProbeSourceLexer.Name)
 			{
 				CheckAutoCompletion();
 			}
@@ -743,23 +763,18 @@ namespace ProbeNpp
 		{
 			var wordEnd = CurrentLocation - 1;
 			var wordStart = GetWordStartPos(wordEnd, false);
-
 			var word = GetText(wordStart, wordEnd);
-			if (string.IsNullOrWhiteSpace(word))
+
+			if (!string.IsNullOrWhiteSpace(word))
 			{
-				wordEnd = wordStart;
-				wordStart = GetWordStartPos(wordEnd, false);
-				word = GetText(wordStart, wordEnd);
-				if (string.IsNullOrWhiteSpace(word)) return;
+				var table = _env.GetTable(word);
+				if (table == null) return;
+
+				var fields = table.Fields;
+				if (!fields.Any()) return;
+
+				ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
 			}
-
-			var table = _env.GetTable(word);
-			if (table == null) return;
-
-			var fields = table.Fields;
-			if (!fields.Any()) return;
-
-			ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
 		}
 		#endregion
 
