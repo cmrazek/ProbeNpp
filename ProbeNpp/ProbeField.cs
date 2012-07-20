@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 
 namespace ProbeNpp
@@ -16,7 +18,11 @@ namespace ProbeNpp
 		public ProbeField(ProbeTable table, string name, string prompt, string comment, string dataType)
 		{
 			if (table == null) throw new ArgumentNullException("table");
+#if DOTNET4
 			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Field name is blank.");
+#else
+			if (StringUtil.IsNullOrWhiteSpace(name)) throw new ArgumentException("Field name is blank.");
+#endif
 
 			Table = table;
 			Name = name;

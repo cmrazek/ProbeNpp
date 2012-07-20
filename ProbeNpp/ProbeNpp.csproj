@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ProbeNpp</RootNamespace>
     <AssemblyName>ProbeNpp</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,16 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NppSharpInterface">
+    <Reference Include="NppSharpInterface, Version=1.0.3.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\Program Files\Notepad++\NppSharpInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -52,6 +49,7 @@
       <DependentUpon>CompilePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="CompileRef.cs" />
+    <Compile Include="DelegateUtil.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="FileDetails.cs" />
     <Compile Include="Function Parser\Function.cs" />
@@ -100,6 +98,7 @@
     <Compile Include="SidebarForm.designer.cs">
       <DependentUpon>SidebarForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="StringUtil.cs" />
     <Compile Include="TagString.cs" />
     <Compile Include="TempManager.cs" />
     <Compile Include="TextFilter.cs" />
