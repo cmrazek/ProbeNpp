@@ -235,7 +235,7 @@ namespace ProbeNpp
 				if ((_state & State_InsideComment) != 0)
 				{
 					// Currently inside block comment.
-					if (line.Peek(2) == "*/")
+					if (line.Match("*/"))
 					{
 						line.Style(_commentStyle, 2);
 						_state &= ~State_InsideComment;
@@ -251,13 +251,13 @@ namespace ProbeNpp
 					_line.Style(_replacedStyle);
 					SetLastToken(State_Token_None);
 				}
-				else if (line.Peek(2) == "//")
+				else if (line.Match("//"))
 				{
 					// Start of line comment; rest of line is forfeit.
 					line.StyleRemainder(_commentStyle);
 					SetLastToken(State_Token_StreamComment);
 				}
-				else if (line.Peek(2) == "/*")
+				else if (line.Match("/*"))
 				{
 					// Start of block comment. Switch the state on so it passes down to other lines.
 					_line.Style(_commentStyle, 2);
