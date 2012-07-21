@@ -1,5 +1,5 @@
 *.suo
 
-/Notepad++/*
+/deploy/bin/*
 /ProbeNpp/bin/*
 /ProbeNpp/obj/*

@@ -134,8 +134,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)Notepad++\"
-copy "$(TargetDir)ProbeNppLexer.xml" "$(SolutionDir)Notepad++\"</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)deploy\bin\"
+copy "$(TargetDir)ProbeNppLexer.xml" "$(SolutionDir)deploy\bin\"
+"$(SolutionDir)deploy\make.bat"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
