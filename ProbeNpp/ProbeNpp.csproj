@@ -42,6 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeProcessing\CodeError.cs" />
+    <Compile Include="CodeProcessing\CodeFile.cs" />
+    <Compile Include="CodeProcessing\CodeLine.cs" />
+    <Compile Include="CodeProcessing\CodeProcessor.cs" />
     <Compile Include="CompilePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
