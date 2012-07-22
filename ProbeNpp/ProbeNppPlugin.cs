@@ -17,6 +17,7 @@ using NppSharp;
 //		--------------------------
 // 50	FEC File
 // 55	FEC to Visual C
+// 56	Merge File
 // 60	PST Table
 // 70	Show File List
 // 75	Show Function List
@@ -566,6 +567,7 @@ namespace ProbeNpp
 				var form = new ShortcutForm();
 
 				form.AddAction(Keys.L, "FEC File", () => { FecFile(); });
+				form.AddAction(Keys.M, "Merge File", () => { MergeFile(); });
 				form.AddAction(Keys.T, "PST Table", () => { PstTable(); });
 				form.AddAction(Keys.F, "Show Functions", () => { ShowSidebarFunctionList(); });
 				form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
@@ -691,8 +693,6 @@ namespace ProbeNpp
 			var startLine = selStart.Line;
 			var endLine = selEnd.Line;
 
-			Output.WriteLine("startLine: {0} endLine: {1}", startLine, endLine);	// TODO
-
 			var sb = new StringBuilder();
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
 			{
@@ -814,6 +814,54 @@ namespace ProbeNpp
 				if (!fields.Any()) return;
 
 				ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
+			}
+		}
+		#endregion
+
+		#region Merge File
+		[NppDisplayName("Merge File")]
+		[NppSortOrder(56)]
+		public void MergeFile()
+		{
+			try
+			{
+				var fileName = ActiveFileName;
+
+				var cp = new CodeProcessing.CodeProcessor(_env);
+				cp.ShowMergeComments = true;
+				cp.ProcessFile(fileName);
+
+				string tempFileName = string.Empty;
+				using (var tempFileOutput = new TempFileOutput(string.Concat(Path.GetFileNameWithoutExtension(fileName), "_merge"),
+					Path.GetExtension(fileName)))
+				{
+					var errors = cp.Errors;
+					if (errors.Any())
+					{
+						tempFileOutput.WriteLine("// Errors encountered during processing:");
+						foreach (var error in errors)
+						{
+							if (error.Line != null && error.Line.File != null) tempFileOutput.WriteLine(string.Format("// {0}({1}): {2}", error.Line.FileName, error.Line.LineNum, error.Message));
+							else tempFileOutput.WriteLine(error.Message);
+						}
+						tempFileOutput.WriteLine(string.Empty);
+					}
+
+					foreach (var line in cp.Lines)
+					{
+						//if (line.File != null) tempFileOutput.WriteLine(string.Format("/*{0}({1})*/ {2}", line.FileName, line.LineNum, line.Text));
+						//else
+						tempFileOutput.WriteLine(line.Text);
+					}
+
+					tempFileName = tempFileOutput.FileName;
+				}
+
+				OpenFile(tempFileName);
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(NppWindow, ex);
 			}
 		}
 		#endregion
