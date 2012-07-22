@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -43,6 +45,7 @@ namespace ProbeNpp.CodeProcessing
 			_lines.Clear();
 			_replace.Clear();
 
+#if DOTNET4
 			var mergeFileNames = _env.FindLocalFiles(fileName, true).ToArray();
 			if (mergeFileNames.Length == 0)
 			{
@@ -76,6 +79,55 @@ namespace ProbeNpp.CodeProcessing
 					MergeLocalFile(file);
 				}
 			}
+#else
+			var mergeFileNames = _env.FindLocalFiles(fileName, true);
+			if (!mergeFileNames.GetEnumerator().MoveNext())
+			{
+				_errors.Add(new CodeError(null, "No files found."));
+				return;
+			}
+
+			// Process the base file (don't end with "&")
+			foreach (var baseFileName in mergeFileNames)
+			{
+				if (baseFileName.EndsWith("&")) continue;
+
+				if (!string.IsNullOrEmpty(_baseFileName))
+				{
+					_errors.Add(new CodeError(null, string.Format("More than one base file found.  File '{0}' is ignored.", baseFileName)));
+					continue;
+				}
+
+				_baseFileName = baseFileName;
+
+				var file = new CodeFile(baseFileName, true);
+				_files.Add(file);
+				AddBaseFile(file);
+			}
+
+			// Process the local files (end with "&")
+			foreach (var localFileName in mergeFileNames)
+			{
+				if (!localFileName.EndsWith("&")) continue;
+
+				var dupe = false;
+				foreach (var f in _files)
+				{
+					if (f.FileName.Equals(localFileName, StringComparison.OrdinalIgnoreCase))
+					{
+						dupe = true;
+						break;
+					}
+				}
+
+				if (!dupe)
+				{
+					var file = new CodeFile(localFileName, false);
+					_files.Add(file);
+					MergeLocalFile(file);
+				}
+			}
+#endif
 		}
 
 		public IEnumerable<CodeLine> Lines
@@ -95,7 +147,7 @@ namespace ProbeNpp.CodeProcessing
 
 		public bool HasErrors
 		{
-			get { return _errors.Any(); }
+			get { return _errors.Count != 0; }
 		}
 
 		private void AddBaseFile(CodeFile file)
@@ -211,7 +263,11 @@ namespace ProbeNpp.CodeProcessing
 								_insertIndex++;
 							}
 
+#if DOTNET4
 							if (!string.IsNullOrWhiteSpace(match.Groups[1].Value))
+#else
+							if (!StringUtil.IsNullOrWhiteSpace(match.Groups[1].Value))
+#endif
 							{
 								_lines.Insert(_insertIndex, new CodeLine(line.File, line.LineNum, match.Groups[1].Value));
 							}
@@ -241,7 +297,11 @@ namespace ProbeNpp.CodeProcessing
 						_mergeMode = MergeMode.Normal;
 						_insertIndex = -1;
 
+#if DOTNET4
 						if (!String.IsNullOrWhiteSpace(match.Groups[1].Value))
+#else
+						if (!StringUtil.IsNullOrWhiteSpace(match.Groups[1].Value))
+#endif
 						{
 							_lines.Add(new CodeLine(line.File, line.LineNum, match.Groups[1].Value));
 						}
@@ -293,7 +353,12 @@ namespace ProbeNpp.CodeProcessing
 		private int FindReplace()
 		{
 			var replaceCount = _replace.Count;
+#if DOTNET4
 			var cleanReplace = (from r in _replace select CleanReplaceLine(r)).ToArray();
+#else
+			var cleanReplace = new List<string>(_replace.Count);
+			foreach (var r in _replace) cleanReplace.Add(CleanReplaceLine(r));
+#endif
 
 			for (int lineIndex = 0, maxLineIndex = _lines.Count - replaceCount; lineIndex < maxLineIndex; lineIndex++)
 			{

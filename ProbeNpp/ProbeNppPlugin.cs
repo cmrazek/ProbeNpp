@@ -7,7 +7,9 @@ using System.IO;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.Drawing;
+#if DOTNET4
 using System.Linq;
+#endif
 using NppSharp;
 
 // 10	Add File Header
@@ -624,7 +626,11 @@ namespace ProbeNpp
 			sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
 
 			var prob = Settings.Tagging.ProblemNumber;
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(prob))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(prob))
+#endif
 			{
 				sb.Append(prob);
 				sb.Append(" Created");
@@ -650,7 +656,13 @@ namespace ProbeNpp
 
 			var sb = new StringBuilder();
 			sb.Append("diag(\"");
-			if (Settings.Tagging.InitialsInDiags && !string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
+			if (Settings.Tagging.InitialsInDiags &&
+#if DOTNET4
+				!string.IsNullOrWhiteSpace(Settings.Tagging.Initials)
+#else
+				!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.Initials)
+#endif
+				)
 			{
 				sb.Append(Settings.Tagging.Initials);
 				sb.Append(": ");
@@ -662,7 +674,11 @@ namespace ProbeNpp
 				sb.Append(": ");
 			}
 
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(selText))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(selText))
+#endif
 			{
 				sb.Append(ProbeEnvironment.StringEscape(selText));
 				sb.Append(" [\", ");
@@ -677,7 +693,11 @@ namespace ProbeNpp
 
 			Insert(sb.ToString());
 
+#if DOTNET4
 			if (string.IsNullOrWhiteSpace(selText))
+#else
+			if (StringUtil.IsNullOrWhiteSpace(selText))
+#endif
 			{
 				GoTo(CurrentLocation - (sb.Length - lengthBefore));
 			}
@@ -694,7 +714,11 @@ namespace ProbeNpp
 			var endLine = selEnd.Line;
 
 			var sb = new StringBuilder();
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.Initials))
+#endif
 			{
 				sb.Append(Settings.Tagging.Initials);
 			}
@@ -705,13 +729,21 @@ namespace ProbeNpp
 				sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
 			}
 
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.WorkOrderNumber))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.WorkOrderNumber))
+#endif
 			{
 				if (sb.Length > 0) sb.Append(" ");
 				sb.Append(Settings.Tagging.WorkOrderNumber);
 			}
 
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.ProblemNumber))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.ProblemNumber))
+#endif
 			{
 				if (sb.Length > 0) sb.Append(" ");
 				sb.Append(Settings.Tagging.ProblemNumber);
@@ -805,15 +837,28 @@ namespace ProbeNpp
 			var wordStart = GetWordStartPos(wordEnd, false);
 			var word = GetText(wordStart, wordEnd);
 
+#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(word))
+#else
+			if (!StringUtil.IsNullOrWhiteSpace(word))
+#endif
 			{
 				var table = _env.GetTable(word);
 				if (table == null) return;
 
+#if DOTNET4
 				var fields = table.Fields;
 				if (!fields.Any()) return;
-
 				ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
+#else
+				var fields = new List<string>();
+				foreach (var field in table.Fields)
+				{
+					fields.Add(field.Name);
+				}
+				fields.Sort(new StringComparerIgnoreCase());
+				ShowAutoCompletion(0, fields, true);
+#endif
 			}
 		}
 		#endregion
@@ -836,6 +881,7 @@ namespace ProbeNpp
 					Path.GetExtension(fileName)))
 				{
 					var errors = cp.Errors;
+#if DOTNET4
 					if (errors.Any())
 					{
 						tempFileOutput.WriteLine("// Errors encountered during processing:");
@@ -846,6 +892,24 @@ namespace ProbeNpp
 						}
 						tempFileOutput.WriteLine(string.Empty);
 					}
+#else
+					var firstError = true;
+					foreach (var error in errors)
+					{
+						if (firstError)
+						{
+							tempFileOutput.WriteLine("// Errors encountered during processing:");
+							firstError = false;
+						}
+
+						if (error.Line != null && error.Line.File != null) tempFileOutput.WriteLine(string.Format("// {0}({1}): {2}", error.Line.FileName, error.Line.LineNum, error.Message));
+						else tempFileOutput.WriteLine(error.Message);
+					}
+					if (!firstError)
+					{
+						tempFileOutput.WriteLine(string.Empty);
+					}
+#endif
 
 					foreach (var line in cp.Lines)
 					{
@@ -865,8 +929,6 @@ namespace ProbeNpp
 			}
 		}
 		#endregion
-
-
 
 	}
 }
