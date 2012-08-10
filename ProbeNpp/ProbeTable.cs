@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-#if DEBUG
-using NppSharp;
-#endif
-
 namespace ProbeNpp
 {
 	internal class ProbeTable

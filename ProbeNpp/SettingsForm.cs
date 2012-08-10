@@ -82,6 +82,7 @@ namespace ProbeNpp
 			settings.Tagging.TagDate = chkTagDate.Checked;
 
 			settings.Save();
+			_plugin.OnSettingsSaved();
 
 			return true;
 		}

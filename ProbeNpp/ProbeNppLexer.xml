@@ -38,12 +38,12 @@
 	<Functions>
 		abs action asof
 		backsnap beginwork
-		callform charchng clearbuf ClearPROBELocale closef closeform clrrownoreq commit compareoldbuf count
+		callform charchng clearbuf clearcnt ClearPROBELocale closef closeform clrrownoreq commit compareoldbuf count
 		day _delete diag dispflds dbdate dbdateRefresh dbtoset
 		EarliestEffective encpwd endmarker errmsg
 		fieldcomment fieldname fieldprompt find finddate formcomment formname formpageno
 		formprompt freenotebuf freeoldbuf
-		genpwd getmsg getmulti getwarehoused gofield
+		genpwd getcnt getmsg getmulti getwarehoused gofield
 		hour
 		incdate insert insrel inssnap integ isident
 		listupdates logten
@@ -51,12 +51,12 @@
 		notebuf noterec noterow nullstr
 		oldvalue openf openform
 		pageno pagerow pendchar pointbuf pointrec pointrow power print puts _putts
-			pwordget pwordkey
+		pwordget pwordkey
 		qaction qbufreq qbufsend qcheck qcolsend qcompareoldbuf qdelete qfind qgetcur qinit
-		qinitdos qinsert qinsrel qkeysend qlistingreq qrecnoreq qrecnosend qroom 
+		qinitdos qinsert qinsrel qkeysend qlistingreq qrecnoreq qrecnosend qroom
 		qrownoreq qrownosend qsend qsendnw qsetoldbuf qupdate qupdrel
-		recmarker remote_message_to_file remote_message_to_string revoke rfiller rn0
-			rn1 rn2 rn3 rollback rowmarker rraw rs runtriggers
+		rbc rbn recmarker remote_message_to_file remote_message_to_string revoke rfiller rn0
+		rn1 rn2 rn3 rollback rowmarker rpe0 rpe1 rpe2 rpe3 rraw rs runtriggers
 		update updrel
 		second select_action select_listing select_menu send_file_to_remote
 		send_string_to_remote sesprio SetAccessMode setdelim
@@ -65,8 +65,8 @@
 		statusf strcap strchng strlen strlwr strsrch strstrip strwords strupr sum sysdate
 		systemrl systime systemex
 		_tcslen _tcslwr _tcsupr
-		UNREFERENCED_PARAMETER
-		waitfor wbn weekday wfiller wn0 wn1 wn2 wn3 wordpos wordrepl wordstrip ws wsname
+		unpackf UNREFERENCED_PARAMETER
+		waitfor wbc wbn weekday wfiller wn0 wn1 wn2 wn3 wordpos wordrepl wordstrip ws wsname
 		year
 	</Functions>
 	<Constants>
@@ -78,11 +78,11 @@
 		false FIRST first FIRSTforUpdate FIX FIX_RECALC FORM FORMATROWSCOLS
 		GE GENERATE_NULL_REPORTS GT ge gt
 		INPUT INSERT
-		LAST last LE le LT lt
+		LAST last LE le LEADINGZEROS LT lt
 		MODAL MODE MODELESS MONTHS months
 		NEXT next NEXTEND NEXT_OFF NEXTEND_OFF no NOAUDIT NOBACKDATE NOCHANGE
-			NODISPLAY NOECHO NOEDITS NOINPUT NOPICK NORECALC NOTRIGGERS NOUSE NOTRIGGER
-			NOWAIT NOWAREHOUSED
+		NODISPLAY NOECHO NOEDITS NOINPUT NOPICK NORECALC NOTRIGGERS NOUSE NOTRIGGER
+		NOWAIT NOWAREHOUSED
 		OUTFILEBRANCH OUTFILECONSOL
 		physical PREVIOUS previous
 		RECALC READ READ_ONLY READ_WRITE REQUIRED UPDATE

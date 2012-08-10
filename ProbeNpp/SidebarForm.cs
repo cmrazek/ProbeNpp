@@ -8,6 +8,10 @@ using System.Windows.Forms;
 using System.IO;
 using NppSharp;
 
+#if DOTNET4
+using System.Linq;
+#endif
+
 namespace ProbeNpp
 {
 	internal partial class SidebarForm : UserControl
@@ -200,17 +204,28 @@ namespace ProbeNpp
 		{
 			try
 			{
+				// Reset file lists back to empty.
 				treeFiles.Nodes.Clear();
 				lstFiles.Items.Clear();
 				_files.Clear();
 				txtFileFilter.Text = "";
 
+				// Add files in source directories.
 				foreach (string srcDir in _plugin.Environment.SourceDirs)
 				{
 					TreeNode rootNode = new TreeNode(srcDir);
 					rootNode.Tag = new FileTreeNode(false, srcDir);
 					treeFiles.Nodes.Add(rootNode);
 					PopulateFileTree_SearchDir(srcDir, rootNode);
+				}
+
+				// Add files in include directories.
+				foreach (string includeDir in _plugin.Environment.IncludeDirs)
+				{
+					TreeNode rootNode = new TreeNode(includeDir);
+					rootNode.Tag = new FileTreeNode(false, includeDir);
+					treeFiles.Nodes.Add(rootNode);
+					PopulateFileTree_SearchDir(includeDir, rootNode);
 				}
 			}
 			catch (Exception ex)
@@ -238,8 +253,11 @@ namespace ProbeNpp
 
 				foreach (string file in Directory.GetFiles(parentDir))
 				{
-					PopulateFileTree_AddFile(parentNode, file);
-					AddProbeFile(file);
+					if (_plugin.Environment.IsProbeFile(file))
+					{
+						PopulateFileTree_AddFile(parentNode, file);
+						AddProbeFile(file);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -289,6 +307,16 @@ namespace ProbeNpp
 
 		private void AddProbeFile(string pathName)
 		{
+			// Protect against duplicate files.
+#if DOTNET4
+			if (_files.Any(f => f.pathName.Equals(pathName, StringComparison.OrdinalIgnoreCase))) return;
+#else
+			foreach (var f in _files)
+			{
+				if (f.pathName.Equals(pathName, StringComparison.OrdinalIgnoreCase)) return;
+			}
+#endif
+
 			ProbeFile pf = new ProbeFile();
 			pf.pathName = pathName;
 			pf.title = Path.GetFileName(pathName);
