@@ -4,18 +4,19 @@ using System.Text;
 using System.IO;
 using NppSharp;
 
+#if DOTNET4
+using System.Linq;
+#endif
+
 namespace ProbeNpp
 {
 	internal class ProbeEnvironment
 	{
-		private string _currentApp = "";
-		private IniFile _nvFile = null;
-		private Dictionary<string, ProbeTable> _tables = new Dictionary<string, ProbeTable>();
-		private string _probeIniFileName = "";
-		private FileSystemWatcher _probeIniWatcher = null;
-
+		#region Events
 		public event EventHandler AppChanged;
+		#endregion
 
+		#region Construction
 		public ProbeEnvironment()
 		{
 			Reload();
@@ -31,6 +32,18 @@ namespace ProbeNpp
 			}
 		}
 
+		internal void OnSettingsSaved()
+		{
+			_probeExtensions = null;
+		}
+		#endregion
+
+		#region PSelect
+		private string _currentApp = "";
+		private IniFile _nvFile = null;
+		private string _probeIniFileName = "";
+		private FileSystemWatcher _probeIniWatcher = null;
+		
 		void _probeIniWatcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			try
@@ -47,68 +60,6 @@ namespace ProbeNpp
 			}
 		}
 
-		public void ReloadCurrentApp()
-		{
-			_probeIniFileName = LocateFileInPath("probe.ini");
-			if (string.IsNullOrEmpty(_probeIniFileName))
-			{
-				Plugin.Output.WriteLine(OutputStyle.Warning, "probe.ini could not be found.");
-				_currentApp = "";
-			}
-			else
-			{
-				IniFile probeFile = new IniFile(_probeIniFileName);
-				_currentApp = probeFile["Options", "CurrentApp"];
-			}
-		}
-
-		public void Reload()
-		{
-			ReloadCurrentApp();
-
-			string nvFileName = LocateFileInPath("probenv.ini");
-			if (string.IsNullOrEmpty(nvFileName))
-			{
-				_nvFile = new IniFile();
-				Plugin.Output.WriteLine(OutputStyle.Warning, "probenv.ini could not be found.");
-			}
-			else
-			{
-				_nvFile = new IniFile(nvFileName);
-			}
-
-			ReloadTableList();
-		}
-
-		public bool CheckForAppChanged()
-		{
-			try
-			{
-				if (!string.IsNullOrEmpty(_probeIniFileName))
-				{
-					IniFile probeFile = new IniFile(_probeIniFileName);
-					string currentApp = probeFile["Options", "CurrentApp"];
-					if (currentApp != _currentApp)
-					{
-						_currentApp = currentApp;
-						Reload();
-
-						EventHandler ev = AppChanged;
-						if (ev != null) ev(this, new EventArgs());
-					}
-
-					return true;
-				}
-			}
-			catch (Exception ex)
-			{
-				Plugin.Output.WriteLine(OutputStyle.Error, "Exception when checking for app change: " + ex);
-			}
-
-			return false;
-		}
-
-		#region PSelect
 		public IEnumerable<string> SourceDirs
 		{
 			get
@@ -224,27 +175,72 @@ namespace ProbeNpp
 				}
 			}
 		}
-		#endregion
 
-		public static string LocateFileInPath(string fileName)
+		public bool CheckForAppChanged()
 		{
-			foreach (string path in Environment.GetEnvironmentVariable("path").Split(';'))
+			try
 			{
-				try
+				if (!string.IsNullOrEmpty(_probeIniFileName))
 				{
-					if (Directory.Exists(path.Trim()))
+					IniFile probeFile = new IniFile(_probeIniFileName);
+					string currentApp = probeFile["Options", "CurrentApp"];
+					if (currentApp != _currentApp)
 					{
-						string fullPath = Path.Combine(path.Trim(), fileName);
-						if (File.Exists(fullPath)) return Path.GetFullPath(fullPath);
+						_currentApp = currentApp;
+						Reload();
+
+						EventHandler ev = AppChanged;
+						if (ev != null) ev(this, new EventArgs());
 					}
+
+					return true;
 				}
-				catch (Exception)
-				{ }
 			}
-			return "";
+			catch (Exception ex)
+			{
+				Plugin.Output.WriteLine(OutputStyle.Error, "Exception when checking for app change: " + ex);
+			}
+
+			return false;
 		}
 
+		public void ReloadCurrentApp()
+		{
+			_probeIniFileName = LocateFileInPath("probe.ini");
+			if (string.IsNullOrEmpty(_probeIniFileName))
+			{
+				Plugin.Output.WriteLine(OutputStyle.Warning, "probe.ini could not be found.");
+				_currentApp = "";
+			}
+			else
+			{
+				IniFile probeFile = new IniFile(_probeIniFileName);
+				_currentApp = probeFile["Options", "CurrentApp"];
+			}
+		}
+
+		public void Reload()
+		{
+			ReloadCurrentApp();
+
+			string nvFileName = LocateFileInPath("probenv.ini");
+			if (string.IsNullOrEmpty(nvFileName))
+			{
+				_nvFile = new IniFile();
+				Plugin.Output.WriteLine(OutputStyle.Warning, "probenv.ini could not be found.");
+			}
+			else
+			{
+				_nvFile = new IniFile(nvFileName);
+			}
+
+			ReloadTableList();
+		}
+		#endregion
+
 		#region Table List
+		private Dictionary<string, ProbeTable> _tables = new Dictionary<string, ProbeTable>();
+
 		private void ReloadTableList()
 		{
 			try
@@ -302,6 +298,27 @@ namespace ProbeNpp
 			return _tables.TryGetValue(tableName, out table) ? table : null;
 		}
 		#endregion
+
+		#region File Paths
+		private string[] _probeExtensions = null;
+
+		public static string LocateFileInPath(string fileName)
+		{
+			foreach (string path in Environment.GetEnvironmentVariable("path").Split(';'))
+			{
+				try
+				{
+					if (Directory.Exists(path.Trim()))
+					{
+						string fullPath = Path.Combine(path.Trim(), fileName);
+						if (File.Exists(fullPath)) return Path.GetFullPath(fullPath);
+					}
+				}
+				catch (Exception)
+				{ }
+			}
+			return "";
+		}
 
 		public string GetRelativePathName(string pathName)
 		{
@@ -367,6 +384,61 @@ namespace ProbeNpp
 			return !string.IsNullOrEmpty(GetRelativePathName(Path.GetFullPath(pathName)));
 		}
 
+		/// <summary>
+		/// Determines if a file has an extension considered to be a probe file.
+		/// </summary>
+		/// <param name="pathName">The path name of the file to test.</param>
+		/// <returns>True if the file extension appears to be a type containing Probe code or table definition;
+		/// Otherwise false.</returns>
+		public bool IsProbeFile(string pathName)
+		{
+			// Populate the probe extension list, if it hasn't been already.
+			if (_probeExtensions == null)
+			{
+#if DOTNET4
+				_probeExtensions = (from e in string.Concat(ProbeNppPlugin.Instance.Settings.Probe.SourceExtensions,
+									 " ", ProbeNppPlugin.Instance.Settings.Probe.DictExtensions).Split(' ')
+									where !string.IsNullOrWhiteSpace(e)
+									select (e.StartsWith(".") ? e.ToLower() : string.Concat(".", e.ToLower()))).ToArray();
+#else
+				var extList = new List<string>();
+				foreach (var ext in string.Concat(ProbeNppPlugin.Instance.Settings.Probe.SourceExtensions,
+									 " ", ProbeNppPlugin.Instance.Settings.Probe.DictExtensions).Split(' '))
+				{
+					if (!StringUtil.IsNullOrWhiteSpace(ext))
+					{
+						extList.Add(ext.StartsWith(".") ? ext.ToLower() : string.Concat(".", ext.ToLower()));
+					}
+				}
+				_probeExtensions = extList.ToArray();
+#endif
+			}
+
+			// Special exception for dictionary files.
+			switch (Path.GetFileName(pathName).ToLower())
+			{
+				case "dict":
+				case "dict&":
+					return true;
+			}
+
+			// Search the file extension list.
+			
+#if DOTNET4
+			var fileExt = Path.GetExtension(pathName);
+			return _probeExtensions.Contains(fileExt.ToLower());
+#else
+			var fileExt = Path.GetExtension(pathName).ToLower();
+			foreach (var ext in _probeExtensions)
+			{
+				if (ext == fileExt) return true;
+			}
+			return false;
+#endif
+		}
+		#endregion
+
+		#region Probe Language
 		public static string StringEscape(string str)
 		{
 			var sb = new StringBuilder(str.Length);
@@ -401,6 +473,6 @@ namespace ProbeNpp
 
 			return sb.ToString();
 		}
-
+		#endregion
 	}
 }

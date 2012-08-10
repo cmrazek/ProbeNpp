@@ -412,6 +412,11 @@ namespace ProbeNpp
 		{
 			get { return _settings; }
 		}
+
+		internal void OnSettingsSaved()
+		{
+			_env.OnSettingsSaved();
+		}
 		#endregion
 
 		#region Run
