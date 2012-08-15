@@ -253,11 +253,8 @@ namespace ProbeNpp
 
 				foreach (string file in Directory.GetFiles(parentDir))
 				{
-					if (_plugin.Environment.IsProbeFile(file))
-					{
-						PopulateFileTree_AddFile(parentNode, file);
-						AddProbeFile(file);
-					}
+					PopulateFileTree_AddFile(parentNode, file);
+					AddProbeFile(file);
 				}
 			}
 			catch (Exception ex)

@@ -23,6 +23,7 @@ namespace ProbeNpp
 
 #region Variables
 		private ProbeNppPlugin _plugin;
+		private Control _focusControl = null;
 #endregion
 
 		public RunForm(ProbeNppPlugin plugin)
@@ -41,12 +42,15 @@ namespace ProbeNpp
 				{
 					case RunApp.SamAndCam:
 						radSamAndCam.Checked = true;
+						_focusControl = radSamAndCam;
 						break;
 					case RunApp.Sam:
 						radSam.Checked = true;
+						_focusControl = radSam;
 						break;
 					case RunApp.Cam:
 						radCam.Checked = true;
+						_focusControl = radCam;
 						break;
 				}
 
@@ -59,6 +63,18 @@ namespace ProbeNpp
 				txtMaxChannels.Text = _plugin.Settings.RunSamCam.MaxChannels.ToString();
 				txtLoadSamTime.Text = _plugin.Settings.RunSamCam.LoadSamTime.ToString();
 				txtCamWidth.Text = _plugin.Settings.RunSamCam.CamWidth.ToString();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		private void RunForm_Shown(object sender, EventArgs e)
+		{
+			try
+			{
+				if (_focusControl != null) _focusControl.Focus();
 			}
 			catch (Exception ex)
 			{
@@ -268,5 +284,6 @@ namespace ProbeNpp
 			}
 			return sb.ToString();
 		}
+
 	}
 }
