@@ -52,13 +52,13 @@ namespace ProbeNpp
 			this.label1 = new System.Windows.Forms.Label();
 			this.txtTransAbortTimeout = new System.Windows.Forms.TextBox();
 			this.txtTransReportTimeout = new System.Windows.Forms.TextBox();
+			this.label9 = new System.Windows.Forms.Label();
+			this.txtLoadSamTime = new System.Windows.Forms.TextBox();
 			this.tabCam = new System.Windows.Forms.TabPage();
 			this.label6 = new System.Windows.Forms.Label();
 			this.txtCamWidth = new System.Windows.Forms.TextBox();
 			this.label5 = new System.Windows.Forms.Label();
 			this.panel1 = new System.Windows.Forms.Panel();
-			this.txtLoadSamTime = new System.Windows.Forms.TextBox();
-			this.label9 = new System.Windows.Forms.Label();
 			this.groupBox1.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tabApp.SuspendLayout();
@@ -177,7 +177,7 @@ namespace ProbeNpp
 			this.tabControl.Name = "tabControl";
 			this.tabControl.SelectedIndex = 0;
 			this.tabControl.Size = new System.Drawing.Size(343, 206);
-			this.tabControl.TabIndex = 6;
+			this.tabControl.TabIndex = 0;
 			// 
 			// tabApp
 			// 
@@ -317,6 +317,22 @@ namespace ProbeNpp
 			this.txtTransReportTimeout.Size = new System.Drawing.Size(40, 20);
 			this.txtTransReportTimeout.TabIndex = 0;
 			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Location = new System.Drawing.Point(153, 30);
+			this.label9.Name = "label9";
+			this.label9.Size = new System.Drawing.Size(69, 13);
+			this.label9.TabIndex = 2;
+			this.label9.Text = "(milliseconds)";
+			// 
+			// txtLoadSamTime
+			// 
+			this.txtLoadSamTime.Location = new System.Drawing.Point(87, 27);
+			this.txtLoadSamTime.Name = "txtLoadSamTime";
+			this.txtLoadSamTime.Size = new System.Drawing.Size(60, 20);
+			this.txtLoadSamTime.TabIndex = 0;
+			// 
 			// tabCam
 			// 
 			this.tabCam.Controls.Add(this.label6);
@@ -363,23 +379,7 @@ namespace ProbeNpp
 			this.panel1.Location = new System.Drawing.Point(0, 206);
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(343, 30);
-			this.panel1.TabIndex = 7;
-			// 
-			// txtLoadSamTime
-			// 
-			this.txtLoadSamTime.Location = new System.Drawing.Point(87, 27);
-			this.txtLoadSamTime.Name = "txtLoadSamTime";
-			this.txtLoadSamTime.Size = new System.Drawing.Size(60, 20);
-			this.txtLoadSamTime.TabIndex = 0;
-			// 
-			// label9
-			// 
-			this.label9.AutoSize = true;
-			this.label9.Location = new System.Drawing.Point(153, 30);
-			this.label9.Name = "label9";
-			this.label9.Size = new System.Drawing.Size(69, 13);
-			this.label9.TabIndex = 2;
-			this.label9.Text = "(milliseconds)";
+			this.panel1.TabIndex = 1;
 			// 
 			// RunForm
 			// 
@@ -395,6 +395,7 @@ namespace ProbeNpp
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Run";
 			this.Load += new System.EventHandler(this.RunForm_Load);
+			this.Shown += new System.EventHandler(this.RunForm_Shown);
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			this.tabControl.ResumeLayout(false);
