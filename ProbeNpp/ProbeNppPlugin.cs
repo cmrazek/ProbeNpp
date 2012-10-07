@@ -25,6 +25,8 @@ using NppSharp;
 // 75	Show Function List
 // 80	Show Sidebar
 //		--------------------------
+// 85	Find in Probe Files
+//		--------------------------
 // 90	Compile
 // 100	Stop Compile
 // 110	Show Compile Panel
@@ -79,6 +81,14 @@ namespace ProbeNpp
 
 		private void Plugin_Ready(object sender, EventArgs e)
 		{
+			try
+			{
+				if (Settings.Sidebar.ShowOnStartup) ShowSidebar();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(_nppWindow, ex);
+			}
 		}
 
 		private void Init(NativeWindow nppWindow)
@@ -250,7 +260,7 @@ namespace ProbeNpp
 			try
 			{
 				ShowSidebar();
-				if (_sidebar != null) _sidebar.ShowFileList();
+				if (_sidebar != null) _sidebar.ShowFileList(SelectedText);
 			}
 			catch (Exception ex)
 			{
@@ -266,7 +276,7 @@ namespace ProbeNpp
 			try
 			{
 				ShowSidebar();
-				if (_sidebar != null) _sidebar.ShowFunctionList();
+				if (_sidebar != null) _sidebar.ShowFunctionList(SelectedText);
 			}
 			catch (Exception ex)
 			{
@@ -578,6 +588,7 @@ namespace ProbeNpp
 				form.AddAction(Keys.T, "PST Table", () => { PstTable(); });
 				form.AddAction(Keys.F, "Show Functions", () => { ShowSidebarFunctionList(); });
 				form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
+				form.AddAction(Keys.I, "Find in Probe Files", () => { FindInProbeFiles(); });
 				form.AddAction(Keys.C, "Compile", () => { Compile(); });
 				form.AddAction(Keys.H, "Add File Header", () => { AddFileHeader(); });
 				form.AddAction(Keys.D, "Insert Diag", () => { InsertDiag(); });
@@ -927,6 +938,56 @@ namespace ProbeNpp
 				}
 
 				OpenFile(tempFileName);
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(NppWindow, ex);
+			}
+		}
+		#endregion
+
+		#region Find in Probe Files
+		FindInProbeFilesPanel _findInProbeFilesPanel = null;
+		IDockWindow _findInProbeFilesDock = null;
+		FindInProbeFilesThread _findInProbeFilesThread = null;
+
+		private const int k_findInProbeFilesPanelId = 14965;
+
+		[NppDisplayName("Find in Probe Files")]
+		[NppSortOrder(85)]
+		[NppSeparator]
+		public void FindInProbeFiles()
+		{
+			try
+			{
+				var form = new FindInProbeFilesDialog();
+				if (form.ShowDialog(NppWindow) == DialogResult.OK)
+				{
+					if (_findInProbeFilesDock != null)
+					{
+						_findInProbeFilesDock.Show();
+					}
+					else
+					{
+						_findInProbeFilesPanel = new FindInProbeFilesPanel();
+						_findInProbeFilesDock = DockWindow(_findInProbeFilesPanel, "Find in Probe Files", DockWindowAlignment.Bottom, k_findInProbeFilesPanelId);
+					}
+
+					if (_findInProbeFilesThread != null) _findInProbeFilesThread.Kill();
+
+					_findInProbeFilesThread = new FindInProbeFilesThread();
+					_findInProbeFilesThread.Search(new FindInProbeFilesArgs
+					{
+						SearchText = form.SearchText,
+						SearchRegex = form.SearchRegex,
+						Method = form.Method,
+						MatchCase = form.MatchCase,
+						MatchWholeWord = form.MatchWholeWord,
+						ProbeFilesOnly = form.OnlyProbeFiles,
+						Panel = _findInProbeFilesPanel,
+						Probe = Environment
+					});
+				}
 			}
 			catch (Exception ex)
 			{

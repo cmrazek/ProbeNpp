@@ -463,6 +463,41 @@ namespace ProbeNpp
 
 			return sb.ToString();
 		}
+
+		public static bool IsValidFunctionName(string str)
+		{
+			if (string.IsNullOrEmpty(str)) return false;
+
+			bool firstCh = true;
+			foreach (var ch in str)
+			{
+				if (firstCh)
+				{
+					if (!Char.IsLetter(ch) && ch != '_') return false;
+					firstCh = false;
+				}
+				else
+				{
+					if (!Char.IsLetterOrDigit(ch) && ch != '_') return false;
+				}
+			}
+
+			return true;
+		}
+
+		public static bool IsValidFileName(string str)
+		{
+			if (string.IsNullOrWhiteSpace(str)) return false;
+
+			var badPathChars = Path.GetInvalidPathChars();
+
+			foreach (var ch in str)
+			{
+				if (badPathChars.Contains(ch) || Char.IsWhiteSpace(ch)) return false;
+			}
+
+			return true;
+		}
 		#endregion
 	}
 }

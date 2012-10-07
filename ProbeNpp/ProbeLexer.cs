@@ -502,38 +502,38 @@ namespace ProbeNpp
 
 					case "#include":
 						_line.Style(_preprocessorStyle, cmd.Length);
-						if (StyleWhiteSpace())
-						{
-							char nextCh = _line.NextChar;
-							switch (nextCh)
-							{
-								case '\"':
-									{
-										char lastCh = '\\';
-										bool done = false;
-										_line.Style(_stringStyle, (ch) =>
-										{
-											if (done) return false;
-											if (ch == nextCh && lastCh != '\\') done = true;
-											lastCh = ch;
-											return true;
-										});
-									}
-									break;
+						StyleWhiteSpace();
 
-								case '<':
+						char nextCh = _line.NextChar;
+						switch (nextCh)
+						{
+							case '\"':
+								{
+									char lastCh = '\\';
+									bool done = false;
+									_line.Style(_stringStyle, (ch) =>
 									{
-										bool done = false;
-										_line.Style(_stringStyle, (ch) =>
-										{
-											if (done) return false;
-											if (ch == '>') done = true;
-											return true;
-										});
-									}
-									break;
-							}
+										if (done) return false;
+										if (ch == nextCh && lastCh != '\\') done = true;
+										lastCh = ch;
+										return true;
+									});
+								}
+								break;
+
+							case '<':
+								{
+									bool done = false;
+									_line.Style(_stringStyle, (ch) =>
+									{
+										if (done) return false;
+										if (ch == '>') done = true;
+										return true;
+									});
+								}
+								break;
 						}
+
 						SetLastToken(State_Token_Preprocessor);
 						break;
 

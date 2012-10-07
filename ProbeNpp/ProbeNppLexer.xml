@@ -2,7 +2,7 @@
 <ProbeNpp>
 	<SourceKeywords>
 		after all and asc
-		break button by
+		before break button by
 		comment case col colff cols continue
 		default desc
 		each else extern extract
@@ -14,11 +14,11 @@
 		permanent prompt
 		return row rows
 		select static switch
-		where while
+		where while widthof
 	</SourceKeywords>
 	<DictKeywords>
 		after asc
-		button by
+		before button by
 		comment col create
 		desc display
 		endgroup

@@ -347,6 +347,11 @@ namespace ProbeNpp
 					match.Groups[1].Value, Convert.ToInt32(match.Groups[2].Value)));
 				_numErrors++;
 			}
+			else if (line.StartsWith("LINK : fatal error"))
+			{
+				WriteObject(new CompileRef(line, CompileRefType.Error));
+				_numErrors++;
+			}
 			else if (line == "PROBE build failed.")
 			{
 				WriteObject(new CompileRef(line, CompileRefType.ErrorReport));
@@ -455,8 +460,6 @@ namespace ProbeNpp
 				Errors.Show(this, ex);
 			}
 		}
-
-		
 
 		private int FindFirstItemByType(CompileRefType type)
 		{

@@ -28,5 +28,17 @@ namespace ProbeNpp
 			}
 
 		}
+
+		public static void SelectSingleItem(this ListView list, ListViewItem lvi)
+		{
+			foreach (var nonsel in (from l in list.SelectedItems.Cast<ListViewItem>()
+									where l != lvi
+									select l))
+			{
+				nonsel.Selected = false;
+			}
+
+			if (lvi != null) lvi.Selected = true;
+		}
 	}
 }

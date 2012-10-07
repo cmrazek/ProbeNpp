@@ -168,9 +168,9 @@ namespace ProbeNpp
 		{
 			try
 			{
-				string oldApp = _plugin.Environment.CurrentApp;
+				_plugin.Environment.Reload();
 				PopulateAppCombo();
-				if (_plugin.Environment.CurrentApp != oldApp) OnAppChanged();
+				OnAppChanged();
 			}
 			catch (Exception ex)
 			{
@@ -435,11 +435,21 @@ namespace ProbeNpp
 			}
 		}
 
-		public void ShowFileList()
+		public void ShowFileList(string selectedText = null)
 		{
 			tabControl.SelectedTab = tabFiles;
 			txtFileFilter.Focus();
-			txtFileFilter.SelectAll();
+
+			if (!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFileName(selectedText) &&
+				_files.Any(x => x.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase)))
+			{
+				txtFileFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFileFilter.SelectAll();
+			}
 		}
 
 		private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -529,11 +539,12 @@ namespace ProbeNpp
 			TextFilter tf = new TextFilter(txtFunctionFilter.Text);
 
 			lstFunctions.Items.Clear();
+
 			foreach (Function func in _file.functions)
 			{
 				if (tf.Match(func.Name))
 				{
-					lstFunctions.Items.Add(CreateFunctionLvi(func));
+					var lvi = lstFunctions.Items.Add(CreateFunctionLvi(func));
 				}
 			}
 		}
@@ -715,7 +726,7 @@ namespace ProbeNpp
 			}
 		}
 
-		public void ShowFunctionList()
+		public void ShowFunctionList(string selectedText = null)
 		{
 			if (_file != null)
 			{
@@ -725,7 +736,18 @@ namespace ProbeNpp
 
 			tabControl.SelectedTab = tabFunctions;
 			txtFunctionFilter.Focus();
-			txtFunctionFilter.SelectAll();
+
+			if (_file != null &&
+				!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFunctionName(selectedText) &&
+				_file.functions.Any(x => x.Name == selectedText))
+			{
+				txtFunctionFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFunctionFilter.SelectAll();
+			}
 		}
 		#endregion
 	}
