@@ -22,6 +22,7 @@ namespace ProbeNpp
 
 		private const int k_imgFolder = 0;
 		private const int k_imgFile = 1;
+		private const int k_maxFileParseLength = 1024 * 1024 * 10;	// 10 MB
 
 		#region Construction
 		public SidebarForm(ProbeNppPlugin plugin)
@@ -526,10 +527,13 @@ namespace ProbeNpp
 		#region Function List
 		private void ParseFunctions()
 		{
-			FunctionParser parser = new FunctionParser();
-			parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
 			_file.functions = new List<Function>();
-			_file.functions.AddRange(parser.Functions);
+			if (_plugin.Length <= k_maxFileParseLength)
+			{
+				FunctionParser parser = new FunctionParser();
+				parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
+				_file.functions.AddRange(parser.Functions);
+			}
 		}
 
 		private void PopulateFunctionList()

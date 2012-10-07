@@ -105,6 +105,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Res.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Res.resx</DependentUpon>
+    </Compile>
     <Compile Include="RunForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -137,6 +142,19 @@
     <Compile Include="XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\devenv.exe" />
+    <None Include="Images\Find.png" />
+    <None Include="Images\Run.png" />
+    <None Include="Images\Compile.png" />
+    <None Include="Images\StopCompile.png" />
+    <None Include="Images\FEC.png" />
+    <None Include="Images\PST.png" />
+    <None Include="Images\AddFileHeader.png" />
+    <None Include="Images\TagIcon.png" />
+    <None Include="Images\Date.png" />
+    <None Include="Images\Diag.png" />
+    <None Include="Images\Merge.png" />
+    <None Include="Images\Settings.png" />
     <Content Include="Probe Source.xml">
       <SubType>Designer</SubType>
     </Content>
@@ -164,6 +182,10 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Res.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Res.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="RunForm.resx">
       <DependentUpon>RunForm.cs</DependentUpon>

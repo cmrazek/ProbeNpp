@@ -3,7 +3,7 @@
 ;---------------------------------------------------------------------------------------------------
 
 Name "ProbeNpp"
-OutFile "Output\ProbeNpp_Setup_1.1.0.0.exe"
+OutFile "Output\ProbeNpp_Setup_1.1.1.0.exe"
 InstallDir "$PROGRAMFILES32\Notepad++"
 
 ;---------------------------------------------------------------------------------------------------
@@ -28,8 +28,8 @@ Section ""
 	File "bin\ProbeNppLexer.xml"
 	
 	; Write uninstall strings
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NppSharp" "DisplayName" "ProbeNpp"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NppSharp" "UninstallString" '"$INSTDIR\UninstallProbeNpp.exe"'
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ProbeNpp" "DisplayName" "ProbeNpp"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ProbeNpp" "UninstallString" '"$INSTDIR\UninstallProbeNpp.exe"'
 	WriteUninstaller "$INSTDIR\UninstallProbeNpp.exe"
 	
 SectionEnd

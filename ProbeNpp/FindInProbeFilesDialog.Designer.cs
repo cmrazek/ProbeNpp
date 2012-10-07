@@ -148,8 +148,10 @@
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.cmbSearchText);
 			this.Controls.Add(this.label1);
+			this.MaximumSize = new System.Drawing.Size(32767, 210);
+			this.MinimumSize = new System.Drawing.Size(350, 210);
 			this.Name = "FindInProbeFilesDialog";
-			this.Text = "FindInProbeFilesDialog";
+			this.Text = "Find in Probe Files";
 			this.Load += new System.EventHandler(this.FindInProbeFilesDialog_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();
