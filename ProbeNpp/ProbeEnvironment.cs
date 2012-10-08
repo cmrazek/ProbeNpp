@@ -407,7 +407,7 @@ namespace ProbeNpp
 				{
 					if (!StringUtil.IsNullOrWhiteSpace(ext))
 					{
-						extList.Add(ext.StartsWith(".") ? ext.ToLower(), string.Concat(".", ext.ToLower()));
+						extList.Add(ext.StartsWith(".") ? ext.ToLower() : string.Concat(".", ext.ToLower()));
 					}
 				}
 				_probeExtensions = extList.ToArray();
@@ -424,7 +424,15 @@ namespace ProbeNpp
 
 			// Search the file extension list.
 			var fileExt = Path.GetExtension(pathName);
+#if DOTNET4
 			return _probeExtensions.Contains(fileExt.ToLower());
+#else
+			foreach (string e in _probeExtensions)
+			{
+				if (e.Equals(fileExt, StringComparison.OrdinalIgnoreCase)) return true;
+			}
+			return false;
+#endif
 		}
 		#endregion
 
@@ -487,13 +495,21 @@ namespace ProbeNpp
 
 		public static bool IsValidFileName(string str)
 		{
-			if (string.IsNullOrWhiteSpace(str)) return false;
+			if (string.IsNullOrEmpty(str)) return false;
 
 			var badPathChars = Path.GetInvalidPathChars();
 
 			foreach (var ch in str)
 			{
+#if DOTNET4
 				if (badPathChars.Contains(ch) || Char.IsWhiteSpace(ch)) return false;
+#else
+				if (Char.IsWhiteSpace(ch)) return false;
+				foreach (var bpc in badPathChars)
+				{
+					if (bpc == ch) return false;
+				}
+#endif
 			}
 
 			return true;

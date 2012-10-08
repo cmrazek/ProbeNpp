@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -235,7 +237,7 @@ namespace ProbeNpp
 
 		private void SearchRegex(string fileName, string fileContent)
 		{
-			foreach (var match in _searchRegex.Matches(fileContent).Cast<Match>())
+			foreach (Match match in _searchRegex.Matches(fileContent))
 			{
 				if (_matchWholeWord == false || CheckMatchWord(fileContent, match.Index, match.Length))
 				{

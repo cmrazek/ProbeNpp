@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Data;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Windows.Forms;
 
@@ -82,7 +84,12 @@ namespace ProbeNpp
 		{
 			try
 			{
+#if DOTNET4
 				var item = lstMatches.SelectedItems.Cast<ListViewItem>().FirstOrDefault();
+#else
+				ListViewItem item = null;
+				if (lstMatches.SelectedItems.Count > 0) item = lstMatches.SelectedItems[0];
+#endif
 				if (item == null || item.Tag == null || item.Tag.GetType() != typeof(FindInProbeFilesMatch)) return;
 
 				var match = (FindInProbeFilesMatch)item.Tag;

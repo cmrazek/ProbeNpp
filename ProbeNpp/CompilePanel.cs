@@ -9,7 +9,9 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.IO;
+#if DOTNET4
 using System.Linq;
+#endif
 using NppSharp;
 
 namespace ProbeNpp
@@ -380,7 +382,14 @@ namespace ProbeNpp
 				int index = lstHistory.Items.Add(obj);
 				if (scrollToBottom)
 				{
+#if DOTNET4
 					foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
+#else
+					foreach (int i in lstHistory.SelectedIndices)
+					{
+						lstHistory.SetSelected(i, false);
+					}
+#endif
 					lstHistory.SetSelected(index, true);
 					lstHistory.SetSelected(index, false);
 					
@@ -448,7 +457,14 @@ namespace ProbeNpp
 
 							if (selIndex >= 0)
 							{
+#if DOTNET4
 								foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
+#else
+								foreach (int i in lstHistory.SelectedIndices)
+								{
+									lstHistory.SetSelected(i, false);
+								}
+#endif
 								lstHistory.SelectedIndex = selIndex;
 							}
 						}

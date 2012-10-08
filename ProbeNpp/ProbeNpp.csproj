@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="CompileRef.cs" />
     <Compile Include="EnumUtil.cs" />
+    <Compile Include="DelegateUtil.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="FileDetails.cs" />
     <Compile Include="FindInProbeFilesDialog.cs">
@@ -136,13 +137,13 @@
     <Compile Include="SidebarForm.designer.cs">
       <DependentUpon>SidebarForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="StringUtil.cs" />
     <Compile Include="TagString.cs" />
     <Compile Include="TempManager.cs" />
     <Compile Include="TextFilter.cs" />
     <Compile Include="XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\devenv.exe" />
     <None Include="Images\Find.png" />
     <None Include="Images\Run.png" />
     <None Include="Images\Compile.png" />
@@ -185,6 +186,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Res.resx">
       <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
       <LastGenOutput>Res.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="RunForm.resx">
@@ -200,7 +202,9 @@
       <DependentUpon>SidebarForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)deploy\bin\"

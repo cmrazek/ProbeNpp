@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -32,7 +34,11 @@ namespace ProbeNpp
 			try
 			{
 				foreach (var mru in LoadMru()) cmbSearchText.Items.Add(mru);
+#if DOTNET4
 				cmbMethod.InitForEnum<FindInProbeFilesMethod>(ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method);
+#else
+				ComboBoxUtil.InitForEnum<FindInProbeFilesMethod>(cmbMethod, ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method);
+#endif
 				chkMatchCase.Checked = _matchCase;
 				chkMatchWholeWord.Checked = _matchWholeWord;
 				chkOnlyProbeFiles.Checked = _onlyProbeFiles;
@@ -56,7 +62,11 @@ namespace ProbeNpp
 			try
 			{
 				var xml = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.MRU;
+#if DOTNET4
 				if (string.IsNullOrWhiteSpace(xml)) return new string[] { };
+#else
+				if (StringUtil.IsNullOrWhiteSpace(xml)) return new string[] { };
+#endif
 				return XmlUtil.Deserialize<string[]>(xml);
 			}
 			catch (Exception)
@@ -77,7 +87,11 @@ namespace ProbeNpp
 				_searchText = cmbSearchText.Text;
 				if (string.IsNullOrEmpty(_searchText)) return;
 
+#if DOTNET4
 				_method = cmbMethod.GetEnumValue<FindInProbeFilesMethod>();
+#else
+				_method = ComboBoxUtil.GetEnumValue<FindInProbeFilesMethod>(cmbMethod);
+#endif
 				_matchCase = chkMatchCase.Checked;
 				_matchWholeWord = chkMatchWholeWord.Checked;
 				_onlyProbeFiles = chkOnlyProbeFiles.Checked;

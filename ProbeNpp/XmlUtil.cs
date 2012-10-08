@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if DOTNET4
 using System.Linq;
+#endif
 using System.Text;
 using System.Drawing;
 using System.Xml;
@@ -78,11 +80,19 @@ namespace ProbeNpp
 		LexerStyle _replacedStyle = new LexerStyle("Replaced", Color.DarkGray);
 		LexerStyle _errorStyle = new LexerStyle("Error", Color.Red, "", FontStyle.Bold);
 
+#if DOTNET4
 		private HashSet<string> _keywords  = new HashSet<string>();
 		private HashSet<string> _functions = new HashSet<string>();
 		private HashSet<string> _constants = new HashSet<string>();
 		private HashSet<string> _dataTypes = new HashSet<string>();
 		private HashSet<string> _operators = new HashSet<string>();
+#else
+		private List<string> _keywords = new List<string>();
+		private List<string> _functions = new List<string>();
+		private List<string> _constants = new List<string>();
+		private List<string> _dataTypes = new List<string>();
+		private List<string> _operators = new List<string>();
+#endif
 
 		internal ProbeLexer(ProbeLexerType type)
 		{
@@ -572,7 +582,13 @@ namespace ProbeNpp
 			return false;
 		}
 
-		private void ParseWordList(string text, HashSet<string> wordList)
+		private void ParseWordList(string text,
+#if DOTNET4
+			HashSet<string> wordList
+#else
+			List<string> wordList
+#endif
+			)
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -581,7 +597,11 @@ namespace ProbeNpp
 				if (Char.IsWhiteSpace(ch))
 				{
 					if (sb.Length > 0) wordList.Add(sb.ToString());
+#if DOTNET4
 					sb.Clear();
+#else
+					sb.Remove(0, sb.Length);
+#endif
 				}
 				else sb.Append(ch);
 			}

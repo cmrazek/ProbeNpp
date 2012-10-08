@@ -441,6 +441,7 @@ namespace ProbeNpp
 			tabControl.SelectedTab = tabFiles;
 			txtFileFilter.Focus();
 
+#if DOTNET4
 			if (!string.IsNullOrEmpty(selectedText) &&
 				ProbeEnvironment.IsValidFileName(selectedText) &&
 				_files.Any(x => x.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase)))
@@ -451,6 +452,30 @@ namespace ProbeNpp
 			{
 				txtFileFilter.SelectAll();
 			}
+#else
+			var useFilter = false;
+
+			if (!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFileName(selectedText))
+			{
+				foreach (var file in _files)
+				{
+					if (file.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase))
+					{
+						useFilter = true;
+						break;
+					}
+				}
+			}
+			if (useFilter)
+			{
+				txtFileFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFileFilter.SelectAll();
+			}
+#endif
 		}
 
 		private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -741,6 +766,7 @@ namespace ProbeNpp
 			tabControl.SelectedTab = tabFunctions;
 			txtFunctionFilter.Focus();
 
+#if DOTNET4
 			if (_file != null &&
 				!string.IsNullOrEmpty(selectedText) &&
 				ProbeEnvironment.IsValidFunctionName(selectedText) &&
@@ -752,6 +778,31 @@ namespace ProbeNpp
 			{
 				txtFunctionFilter.SelectAll();
 			}
+#else
+			var useFilter = false;
+
+			if (_file != null &&
+				!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFunctionName(selectedText))
+			{
+				foreach (var func in _file.functions)
+				{
+					if (func.Name == selectedText)
+					{
+						useFilter = true;
+						break;
+					}
+				}
+			}
+			if (useFilter)
+			{
+				txtFunctionFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFunctionFilter.SelectAll();
+			}
+#endif
 		}
 		#endregion
 	}
