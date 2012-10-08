@@ -423,15 +423,13 @@ namespace ProbeNpp
 			}
 
 			// Search the file extension list.
-			
-#if DOTNET4
 			var fileExt = Path.GetExtension(pathName);
+#if DOTNET4
 			return _probeExtensions.Contains(fileExt.ToLower());
 #else
-			var fileExt = Path.GetExtension(pathName).ToLower();
-			foreach (var ext in _probeExtensions)
+			foreach (string e in _probeExtensions)
 			{
-				if (ext == fileExt) return true;
+				if (e.Equals(fileExt, StringComparison.OrdinalIgnoreCase)) return true;
 			}
 			return false;
 #endif
@@ -472,6 +470,49 @@ namespace ProbeNpp
 			}
 
 			return sb.ToString();
+		}
+
+		public static bool IsValidFunctionName(string str)
+		{
+			if (string.IsNullOrEmpty(str)) return false;
+
+			bool firstCh = true;
+			foreach (var ch in str)
+			{
+				if (firstCh)
+				{
+					if (!Char.IsLetter(ch) && ch != '_') return false;
+					firstCh = false;
+				}
+				else
+				{
+					if (!Char.IsLetterOrDigit(ch) && ch != '_') return false;
+				}
+			}
+
+			return true;
+		}
+
+		public static bool IsValidFileName(string str)
+		{
+			if (string.IsNullOrEmpty(str)) return false;
+
+			var badPathChars = Path.GetInvalidPathChars();
+
+			foreach (var ch in str)
+			{
+#if DOTNET4
+				if (badPathChars.Contains(ch) || Char.IsWhiteSpace(ch)) return false;
+#else
+				if (Char.IsWhiteSpace(ch)) return false;
+				foreach (var bpc in badPathChars)
+				{
+					if (bpc == ch) return false;
+				}
+#endif
+			}
+
+			return true;
 		}
 		#endregion
 	}

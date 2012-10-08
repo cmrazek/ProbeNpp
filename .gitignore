@@ -3,3 +3,6 @@
 /deploy/bin/*
 /ProbeNpp/bin/*
 /ProbeNpp/obj/*
+/Setup/Archive/*
+/Setup/Bin/*
+/Setup/output/*

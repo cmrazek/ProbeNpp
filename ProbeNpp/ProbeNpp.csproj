@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NppSharpInterface, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NppSharpInterface">
       <HintPath>..\..\..\Program Files\Notepad++\NppSharpInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -46,6 +46,7 @@
     <Compile Include="CodeProcessing\CodeFile.cs" />
     <Compile Include="CodeProcessing\CodeLine.cs" />
     <Compile Include="CodeProcessing\CodeProcessor.cs" />
+    <Compile Include="ComboBoxUtil.cs" />
     <Compile Include="CompilePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -53,15 +54,36 @@
       <DependentUpon>CompilePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="CompileRef.cs" />
+    <Compile Include="EnumUtil.cs" />
     <Compile Include="DelegateUtil.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="FileDetails.cs" />
+    <Compile Include="FindInProbeFilesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FindInProbeFilesDialog.Designer.cs">
+      <DependentUpon>FindInProbeFilesDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FindInProbeFilesPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FindInProbeFilesPanel.Designer.cs">
+      <DependentUpon>FindInProbeFilesPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FindInProbeFilesThread.cs" />
     <Compile Include="Function Parser\Function.cs" />
     <Compile Include="Function Parser\FunctionCollection.cs" />
     <Compile Include="Function Parser\FunctionParser.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="ListViewUtil.cs" />
     <Compile Include="Output.cs" />
+    <Compile Include="OutputLine.cs" />
+    <Compile Include="OutputPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="OutputPanel.Designer.cs">
+      <DependentUpon>OutputPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProbeField.cs" />
     <Compile Include="ProbeNppPlugin.cs" />
     <Compile Include="ProbeEnvironment.cs" />
@@ -76,6 +98,16 @@
       <DependentUpon>PromptForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Res.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Res.resx</DependentUpon>
+    </Compile>
     <Compile Include="RunForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -106,9 +138,24 @@
     <Compile Include="TagString.cs" />
     <Compile Include="TempManager.cs" />
     <Compile Include="TextFilter.cs" />
+    <Compile Include="XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Probe Source.xml" />
+    <None Include="Images\Find.png" />
+    <None Include="Images\Run.png" />
+    <None Include="Images\Compile.png" />
+    <None Include="Images\StopCompile.png" />
+    <None Include="Images\FEC.png" />
+    <None Include="Images\PST.png" />
+    <None Include="Images\AddFileHeader.png" />
+    <None Include="Images\TagIcon.png" />
+    <None Include="Images\Date.png" />
+    <None Include="Images\Diag.png" />
+    <None Include="Images\Merge.png" />
+    <None Include="Images\Settings.png" />
+    <Content Include="Probe Source.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="ProbeNppLexer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -118,8 +165,26 @@
     <EmbeddedResource Include="CompilePanel.resx">
       <DependentUpon>CompilePanel.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FindInProbeFilesDialog.resx">
+      <DependentUpon>FindInProbeFilesDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FindInProbeFilesPanel.resx">
+      <DependentUpon>FindInProbeFilesPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OutputPanel.resx">
+      <DependentUpon>OutputPanel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="PromptForm.resx">
       <DependentUpon>PromptForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Res.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Res.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="RunForm.resx">
       <DependentUpon>RunForm.cs</DependentUpon>
@@ -134,7 +199,9 @@
       <DependentUpon>SidebarForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)deploy\bin\"

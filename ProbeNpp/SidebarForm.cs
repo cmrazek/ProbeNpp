@@ -22,6 +22,7 @@ namespace ProbeNpp
 
 		private const int k_imgFolder = 0;
 		private const int k_imgFile = 1;
+		private const int k_maxFileParseLength = 1024 * 1024 * 10;	// 10 MB
 
 		#region Construction
 		public SidebarForm(ProbeNppPlugin plugin)
@@ -168,9 +169,9 @@ namespace ProbeNpp
 		{
 			try
 			{
-				string oldApp = _plugin.Environment.CurrentApp;
+				_plugin.Environment.Reload();
 				PopulateAppCombo();
-				if (_plugin.Environment.CurrentApp != oldApp) OnAppChanged();
+				OnAppChanged();
 			}
 			catch (Exception ex)
 			{
@@ -435,11 +436,46 @@ namespace ProbeNpp
 			}
 		}
 
-		public void ShowFileList()
+		public void ShowFileList(string selectedText = null)
 		{
 			tabControl.SelectedTab = tabFiles;
 			txtFileFilter.Focus();
-			txtFileFilter.SelectAll();
+
+#if DOTNET4
+			if (!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFileName(selectedText) &&
+				_files.Any(x => x.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase)))
+			{
+				txtFileFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFileFilter.SelectAll();
+			}
+#else
+			var useFilter = false;
+
+			if (!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFileName(selectedText))
+			{
+				foreach (var file in _files)
+				{
+					if (file.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase))
+					{
+						useFilter = true;
+						break;
+					}
+				}
+			}
+			if (useFilter)
+			{
+				txtFileFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFileFilter.SelectAll();
+			}
+#endif
 		}
 
 		private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -516,10 +552,13 @@ namespace ProbeNpp
 		#region Function List
 		private void ParseFunctions()
 		{
-			FunctionParser parser = new FunctionParser();
-			parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
 			_file.functions = new List<Function>();
-			_file.functions.AddRange(parser.Functions);
+			if (_plugin.Length <= k_maxFileParseLength)
+			{
+				FunctionParser parser = new FunctionParser();
+				parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
+				_file.functions.AddRange(parser.Functions);
+			}
 		}
 
 		private void PopulateFunctionList()
@@ -529,11 +568,12 @@ namespace ProbeNpp
 			TextFilter tf = new TextFilter(txtFunctionFilter.Text);
 
 			lstFunctions.Items.Clear();
+
 			foreach (Function func in _file.functions)
 			{
 				if (tf.Match(func.Name))
 				{
-					lstFunctions.Items.Add(CreateFunctionLvi(func));
+					var lvi = lstFunctions.Items.Add(CreateFunctionLvi(func));
 				}
 			}
 		}
@@ -715,7 +755,7 @@ namespace ProbeNpp
 			}
 		}
 
-		public void ShowFunctionList()
+		public void ShowFunctionList(string selectedText = null)
 		{
 			if (_file != null)
 			{
@@ -725,7 +765,44 @@ namespace ProbeNpp
 
 			tabControl.SelectedTab = tabFunctions;
 			txtFunctionFilter.Focus();
-			txtFunctionFilter.SelectAll();
+
+#if DOTNET4
+			if (_file != null &&
+				!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFunctionName(selectedText) &&
+				_file.functions.Any(x => x.Name == selectedText))
+			{
+				txtFunctionFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFunctionFilter.SelectAll();
+			}
+#else
+			var useFilter = false;
+
+			if (_file != null &&
+				!string.IsNullOrEmpty(selectedText) &&
+				ProbeEnvironment.IsValidFunctionName(selectedText))
+			{
+				foreach (var func in _file.functions)
+				{
+					if (func.Name == selectedText)
+					{
+						useFilter = true;
+						break;
+					}
+				}
+			}
+			if (useFilter)
+			{
+				txtFunctionFilter.Text = selectedText;
+			}
+			else
+			{
+				txtFunctionFilter.SelectAll();
+			}
+#endif
 		}
 		#endregion
 	}

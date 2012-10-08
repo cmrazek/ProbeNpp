@@ -185,95 +185,109 @@ namespace ProbeNpp
 		{
 			object val = null;
 
-			switch (Type.GetTypeCode(type))
+			if (type.IsEnum)
 			{
-				case TypeCode.Boolean:
-					{
-						Boolean v;
-						if (Boolean.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Char:
-					{
-						Char v;
-						if (Char.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.SByte:
-					{
-						SByte v;
-						if (SByte.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Byte:
-					{
-						Byte v;
-						if (Byte.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Int16:
-					{
-						Int16 v;
-						if (Int16.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.UInt16:
-					{
-						UInt16 v;
-						if (UInt16.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Int32:
-					{
-						Int32 v;
-						if (Int32.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.UInt32:
-					{
-						UInt32 v;
-						if (UInt32.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Int64:
-					{
-						Int64 v;
-						if (Int64.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.UInt64:
-					{
-						UInt64 v;
-						if (UInt64.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Single:
-					{
-						Single v;
-						if (Single.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Double:
-					{
-						Double v;
-						if (Double.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.Decimal:
-					{
-						Decimal v;
-						if (Decimal.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.DateTime:
-					{
-						DateTime v;
-						if (DateTime.TryParse(str, out v)) val = v;
-					}
-					break;
-				case TypeCode.String:
-					val = str;
-					break;
+				try 
+				{
+					return Enum.Parse(type, str);
+				}
+				catch (Exception)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				switch (Type.GetTypeCode(type))
+				{
+					case TypeCode.Boolean:
+						{
+							Boolean v;
+							if (Boolean.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Char:
+						{
+							Char v;
+							if (Char.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.SByte:
+						{
+							SByte v;
+							if (SByte.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Byte:
+						{
+							Byte v;
+							if (Byte.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Int16:
+						{
+							Int16 v;
+							if (Int16.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.UInt16:
+						{
+							UInt16 v;
+							if (UInt16.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Int32:
+						{
+							Int32 v;
+							if (Int32.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.UInt32:
+						{
+							UInt32 v;
+							if (UInt32.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Int64:
+						{
+							Int64 v;
+							if (Int64.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.UInt64:
+						{
+							UInt64 v;
+							if (UInt64.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Single:
+						{
+							Single v;
+							if (Single.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Double:
+						{
+							Double v;
+							if (Double.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.Decimal:
+						{
+							Decimal v;
+							if (Decimal.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.DateTime:
+						{
+							DateTime v;
+							if (DateTime.TryParse(str, out v)) val = v;
+						}
+						break;
+					case TypeCode.String:
+						val = str;
+						break;
+				}
 			}
 
 			return val;

@@ -61,14 +61,26 @@ namespace ProbeNpp
 			// this can happen with a badly formatted function, or if it's a localization file.
 			switch(funcName)
 			{
-				case "if":
-				case "for":
-				case "while":
-				case "switch":
 				case "and":
-				case "or":
+				case "char":
+				case "enum":
+				case "numeric":
 				case "oldvalue":
+				case "or":
+					// keywords that may have brackets after, which could be a source of a false-positive.
 					return false;
+
+				case "else":
+				case "for":
+				case "if":
+				case "select":
+				case "switch":
+				case "while":
+					// Control statements that are always inside a function, and have '{' following.
+					var index = FindForward('{');
+					if (index < 0) return false;
+					MoveTo(index + 1);
+					return true;
 			}
 
 			// Next char should be '('
@@ -109,7 +121,7 @@ namespace ProbeNpp
 
 			// Opening brace.
 			if (_pos < _length && _fileData[_pos] != '{') return false;
-			if (!ParseNestable(true)) return false;
+			//if (!ParseNestable(true)) return false;	// Don't require the function to be closed.
 
 			// Add the function to the list
 			AddFunction(funcName, startLine, _line);
@@ -237,6 +249,15 @@ namespace ProbeNpp
 			_pos++;
 		}
 
+		void PrevChar()
+		{
+			if (_pos > 0)
+			{
+				_pos--;
+				if (_pos < _length && _fileData[_pos] == '\n') _line--;
+			}
+		}
+
 		void SkipWhiteSpace()
 		{
 			while (_pos < _length)
@@ -329,6 +350,27 @@ namespace ProbeNpp
 		public IEnumerable<Function> Functions
 		{
 			get { return _funcs; }
+		}
+
+		int FindForward(char ch)
+		{
+			for (var pos = _pos; pos < _length; pos++)
+			{
+				if (_fileData[pos] == ch) return pos;
+			}
+			return -1;
+		}
+
+		void MoveTo(int pos)
+		{
+			if (pos > _pos)
+			{
+				while (pos > _pos) NextChar();
+			}
+			else if (pos < _pos)
+			{
+				while (pos < _pos) PrevChar();
+			}
 		}
 
 	}

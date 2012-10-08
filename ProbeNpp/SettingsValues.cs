@@ -16,7 +16,7 @@ namespace ProbeNpp
 		public ProbeGroup Probe = new ProbeGroup();
 		public class ProbeGroup : SettingsGroup
 		{
-			public string SourceExtensions = "ct ct& f f& fec gp gp& i i& il il& sp sp& st st&";
+			public string SourceExtensions = "ct ct& f f& fec gp gp& i i& ic id ie il il& sp sp& st st&";
 			public string DictExtensions = "pst t t&";
 		}
 
@@ -61,6 +61,26 @@ namespace ProbeNpp
 		public class FunctionListViewGroup : SettingsGroup
 		{
 			public int FunctionColumnWidth = 0;
+		}
+
+		public SidebarGroup Sidebar = new SidebarGroup();
+		public class SidebarGroup : SettingsGroup
+		{
+			public bool ShowOnStartup = true;
+		}
+
+		public FindInProbeFilesGroup FindInProbeFiles = new FindInProbeFilesGroup();
+		public class FindInProbeFilesGroup : SettingsGroup
+		{
+			public string MRU = string.Empty;
+			public FindInProbeFilesMethod Method = FindInProbeFilesMethod.Normal;
+			public bool MatchCase = false;
+			public bool MatchWholeWord = false;
+			public bool OnlyProbeFiles = true;
+
+			public int FileNameColumnWidth = 0;
+			public int LineNumberColumnWidth = 0;
+			public int LineTextColumnWidth = 0;
 		}
 	}
 }

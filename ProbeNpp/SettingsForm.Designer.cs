@@ -56,6 +56,8 @@ namespace ProbeNpp
 			this.lblWorkOrderNumber = new System.Windows.Forms.Label();
 			this.lblInitials = new System.Windows.Forms.Label();
 			this.txtInitials = new System.Windows.Forms.TextBox();
+			this.tabMisc = new System.Windows.Forms.TabPage();
+			this.chkShowSidebarOnStartup = new System.Windows.Forms.CheckBox();
 			this.panel1.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tabCompile.SuspendLayout();
@@ -63,6 +65,7 @@ namespace ProbeNpp
 			this.tabTagging.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			this.grpDiags.SuspendLayout();
+			this.tabMisc.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// panel1
@@ -115,6 +118,7 @@ namespace ProbeNpp
 			this.tabControl.Controls.Add(this.tabCompile);
 			this.tabControl.Controls.Add(this.tabExtensions);
 			this.tabControl.Controls.Add(this.tabTagging);
+			this.tabControl.Controls.Add(this.tabMisc);
 			this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tabControl.Location = new System.Drawing.Point(0, 0);
 			this.tabControl.Name = "tabControl";
@@ -370,6 +374,27 @@ namespace ProbeNpp
 			this.txtInitials.TabIndex = 0;
 			this.txtInitials.TextChanged += new System.EventHandler(this.EnableControls);
 			// 
+			// tabMisc
+			// 
+			this.tabMisc.Controls.Add(this.chkShowSidebarOnStartup);
+			this.tabMisc.Location = new System.Drawing.Point(4, 22);
+			this.tabMisc.Name = "tabMisc";
+			this.tabMisc.Padding = new System.Windows.Forms.Padding(3);
+			this.tabMisc.Size = new System.Drawing.Size(344, 245);
+			this.tabMisc.TabIndex = 3;
+			this.tabMisc.Text = "Misc";
+			this.tabMisc.UseVisualStyleBackColor = true;
+			// 
+			// chkShowSidebarOnStartup
+			// 
+			this.chkShowSidebarOnStartup.AutoSize = true;
+			this.chkShowSidebarOnStartup.Location = new System.Drawing.Point(8, 6);
+			this.chkShowSidebarOnStartup.Name = "chkShowSidebarOnStartup";
+			this.chkShowSidebarOnStartup.Size = new System.Drawing.Size(144, 17);
+			this.chkShowSidebarOnStartup.TabIndex = 0;
+			this.chkShowSidebarOnStartup.Text = "Show Sidebar on Startup";
+			this.chkShowSidebarOnStartup.UseVisualStyleBackColor = true;
+			// 
 			// SettingsForm
 			// 
 			this.AcceptButton = this.btnOk;
@@ -396,6 +421,8 @@ namespace ProbeNpp
 			this.groupBox1.PerformLayout();
 			this.grpDiags.ResumeLayout(false);
 			this.grpDiags.PerformLayout();
+			this.tabMisc.ResumeLayout(false);
+			this.tabMisc.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -430,6 +457,8 @@ namespace ProbeNpp
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.CheckBox chkSurroundingTagsOnNewLines;
 		private System.Windows.Forms.CheckBox chkTagDate;
+		private System.Windows.Forms.TabPage tabMisc;
+		private System.Windows.Forms.CheckBox chkShowSidebarOnStartup;
 
 	}
 }

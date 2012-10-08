@@ -12,18 +12,20 @@ using System.Linq;
 #endif
 using NppSharp;
 
-// 10	Add File Header
-// 20	Tag Change
-// 30	Insert Diag
-// 40	Insert Date
+// 10	Add File Header				(toolbar icon)
+// 20	Tag Change					(toolbar icon)
+// 30	Insert Date					(toolbar icon)
+// 40	Insert Diag					(toolbar icon)
 //		--------------------------
 // 50	FEC File
 // 55	FEC to Visual C
-// 56	Merge File
 // 60	PST Table
+// 65	Merge File
 // 70	Show File List
 // 75	Show Function List
 // 80	Show Sidebar
+//		--------------------------
+// 85	Find in Probe Files
 //		--------------------------
 // 90	Compile
 // 100	Stop Compile
@@ -79,6 +81,14 @@ namespace ProbeNpp
 
 		private void Plugin_Ready(object sender, EventArgs e)
 		{
+			try
+			{
+				if (Settings.Sidebar.ShowOnStartup) ShowSidebar();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(_nppWindow, ex);
+			}
 		}
 
 		private void Init(NativeWindow nppWindow)
@@ -250,7 +260,7 @@ namespace ProbeNpp
 			try
 			{
 				ShowSidebar();
-				if (_sidebar != null) _sidebar.ShowFileList();
+				if (_sidebar != null) _sidebar.ShowFileList(SelectedText);
 			}
 			catch (Exception ex)
 			{
@@ -266,7 +276,7 @@ namespace ProbeNpp
 			try
 			{
 				ShowSidebar();
-				if (_sidebar != null) _sidebar.ShowFunctionList();
+				if (_sidebar != null) _sidebar.ShowFunctionList(SelectedText);
 			}
 			catch (Exception ex)
 			{
@@ -319,6 +329,7 @@ namespace ProbeNpp
 		[NppShortcut(true, false, true, Keys.F7)]
 		[NppSortOrder(90)]
 		[NppSeparator]
+		[NppToolbarIcon(Property = "CompileIcon")]
 		public void Compile()
 		{
 			try
@@ -332,9 +343,15 @@ namespace ProbeNpp
 			}
 		}
 
+		public Bitmap CompileIcon
+		{
+			get { return Res.CompileIcon; }
+		}
+
 		[NppDisplayName("Stop Compile")]
 		[NppShortcut(true, false, true, Keys.F8)]
 		[NppSortOrder(100)]
+		[NppToolbarIcon(Property = "StopCompileIcon")]
 		public void StopCompile()
 		{
 			try
@@ -345,6 +362,11 @@ namespace ProbeNpp
 			{
 				Errors.Show(_nppWindow, ex);
 			}
+		}
+
+		public Bitmap StopCompileIcon
+		{
+			get { return Res.StopCompileIcon; }
 		}
 
 		internal void SaveFilesInApp()
@@ -395,6 +417,7 @@ namespace ProbeNpp
 
 		[NppDisplayName("Probe Settings")]
 		[NppSortOrder(140)]
+		[NppToolbarIcon(Property = "ShowSettingsIcon")]
 		public void ShowSettings()
 		{
 			try
@@ -406,6 +429,11 @@ namespace ProbeNpp
 			{
 				Errors.Show(_nppWindow, ex);
 			}
+		}
+
+		public Bitmap ShowSettingsIcon
+		{
+			get { return Res.SettingsIcon; }
 		}
 
 		internal Settings Settings
@@ -420,10 +448,11 @@ namespace ProbeNpp
 		#endregion
 
 		#region Run
-		[NppDisplayName("Run")]
+		[NppDisplayName("Run SAM/CAM")]
 		[NppShortcut(true, false, true, Keys.F5)]
 		[NppSortOrder(120)]
 		[NppSeparator]
+		[NppToolbarIcon(Property = "RunIcon")]
 		public void Run()
 		{
 			try
@@ -435,11 +464,17 @@ namespace ProbeNpp
 				Errors.Show(_nppWindow, ex);
 			}
 		}
+
+		public Bitmap RunIcon
+		{
+			get { return Res.RunIcon; }
+		}
 		#endregion
 
 		#region PST
 		[NppDisplayName("PST Table")]
 		[NppSortOrder(60)]
+		[NppToolbarIcon(Property = "PstTableIcon")]
 		public void PstTable()
 		{
 			try
@@ -479,12 +514,18 @@ namespace ProbeNpp
 				Errors.Show(_nppWindow, ex);
 			}
 		}
+
+		public Bitmap PstTableIcon
+		{
+			get { return Res.PstIcon; }
+		}
 		#endregion
 
 		#region FEC
 		[NppDisplayName("FEC File")]
 		[NppSortOrder(50)]
 		[NppSeparator]
+		[NppToolbarIcon(Property = "FecFileIcon")]
 		public void FecFile()
 		{
 			try
@@ -520,6 +561,11 @@ namespace ProbeNpp
 			{
 				Errors.Show(NppWindow, ex);
 			}
+		}
+
+		public Bitmap FecFileIcon
+		{
+			get { return Res.FecIcon; }
 		}
 
 		[NppDisplayName("FEC to Visual C")]
@@ -578,6 +624,7 @@ namespace ProbeNpp
 				form.AddAction(Keys.T, "PST Table", () => { PstTable(); });
 				form.AddAction(Keys.F, "Show Functions", () => { ShowSidebarFunctionList(); });
 				form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
+				form.AddAction(Keys.I, "Find in Probe Files", () => { FindInProbeFiles(); });
 				form.AddAction(Keys.C, "Compile", () => { Compile(); });
 				form.AddAction(Keys.H, "Add File Header", () => { AddFileHeader(); });
 				form.AddAction(Keys.D, "Insert Diag", () => { InsertDiag(); });
@@ -599,6 +646,7 @@ namespace ProbeNpp
 		#region Tagging
 		[NppDisplayName("Add File Header")]
 		[NppSortOrder(10)]
+		[NppToolbarIcon(Property = "AddFileHeaderIcon")]
 		public void AddFileHeader()
 		{
 			try
@@ -611,6 +659,11 @@ namespace ProbeNpp
 			{
 				Errors.Show(NppWindow, ex);
 			}
+		}
+
+		public Bitmap AddFileHeaderIcon
+		{
+			get { return Res.AddFileHeaderIcon; }
 		}
 
 		internal string CreateFileHeaderText(string fileName)
@@ -653,7 +706,8 @@ namespace ProbeNpp
 
 		[NppDisplayName("Insert &Diag")]
 		[NppShortcut(true, false, true, Keys.D)]
-		[NppSortOrder(30)]
+		[NppSortOrder(40)]
+		[NppToolbarIcon(Property = "InsertDiagIcon")]
 		public void InsertDiag()
 		{
 			var selText = SelectedText.Trim();
@@ -708,9 +762,15 @@ namespace ProbeNpp
 			}
 		}
 
+		public Bitmap InsertDiagIcon
+		{
+			get { return Res.DiagIcon; }
+		}
+
 		[NppDisplayName("&Tag Change")]
 		[NppShortcut(true, false, true, Keys.T)]
 		[NppSortOrder(20)]
+		[NppToolbarIcon(Property = "TagChangeIcon")]
 		public void TagChange()
 		{
 			var selStart = SelectionStart < SelectionEnd ? SelectionStart : SelectionEnd;
@@ -767,6 +827,11 @@ namespace ProbeNpp
 			}
 		}
 
+		public Bitmap TagChangeIcon
+		{
+			get { return Res.TagIcon; }
+		}
+
 		private enum TagChangeLine
 		{
 			Single,
@@ -820,10 +885,16 @@ namespace ProbeNpp
 
 		[NppDisplayName("Insert Date")]
 		[NppShortcut(true, false, true, Keys.Y)]
-		[NppSortOrder(40)]
+		[NppSortOrder(30)]
+		[NppToolbarIcon(Property = "InsertDateIcon")]
 		public void InsertDate()
 		{
 			Insert(DateTime.Now.ToString("ddMMMyyyy"));
+		}
+
+		public Bitmap InsertDateIcon
+		{
+			get { return Res.DateIcon; }
 		}
 		#endregion
 
@@ -870,7 +941,8 @@ namespace ProbeNpp
 
 		#region Merge File
 		[NppDisplayName("Merge File")]
-		[NppSortOrder(56)]
+		[NppSortOrder(65)]
+		[NppToolbarIcon(Property = "MergeFileIcon")]
 		public void MergeFile()
 		{
 			try
@@ -932,6 +1004,67 @@ namespace ProbeNpp
 			{
 				Errors.Show(NppWindow, ex);
 			}
+		}
+
+		public Bitmap MergeFileIcon
+		{
+			get { return Res.MergeIcon; }
+		}
+		#endregion
+
+		#region Find in Probe Files
+		FindInProbeFilesPanel _findInProbeFilesPanel = null;
+		IDockWindow _findInProbeFilesDock = null;
+		FindInProbeFilesThread _findInProbeFilesThread = null;
+
+		private const int k_findInProbeFilesPanelId = 14965;
+
+		[NppDisplayName("Find in Probe Files")]
+		[NppSortOrder(85)]
+		[NppSeparator]
+		[NppToolbarIcon(Property = "FindInProbeFilesIcon")]
+		public void FindInProbeFiles()
+		{
+			try
+			{
+				var form = new FindInProbeFilesDialog();
+				if (form.ShowDialog(NppWindow) == DialogResult.OK)
+				{
+					if (_findInProbeFilesDock != null)
+					{
+						_findInProbeFilesDock.Show();
+					}
+					else
+					{
+						_findInProbeFilesPanel = new FindInProbeFilesPanel();
+						_findInProbeFilesDock = DockWindow(_findInProbeFilesPanel, "Find in Probe Files", DockWindowAlignment.Bottom, k_findInProbeFilesPanelId);
+					}
+
+					if (_findInProbeFilesThread != null) _findInProbeFilesThread.Kill();
+
+					_findInProbeFilesThread = new FindInProbeFilesThread();
+					_findInProbeFilesThread.Search(new FindInProbeFilesArgs
+					{
+						SearchText = form.SearchText,
+						SearchRegex = form.SearchRegex,
+						Method = form.Method,
+						MatchCase = form.MatchCase,
+						MatchWholeWord = form.MatchWholeWord,
+						ProbeFilesOnly = form.OnlyProbeFiles,
+						Panel = _findInProbeFilesPanel,
+						Probe = Environment
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(NppWindow, ex);
+			}
+		}
+
+		public Bitmap FindInProbeFilesIcon
+		{
+			get { return Res.FindIcon; }
 		}
 		#endregion
 
