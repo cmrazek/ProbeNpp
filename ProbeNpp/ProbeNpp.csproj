@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NppSharpInterface">
-      <HintPath>..\..\..\Program Files\Notepad++\NppSharpInterface.dll</HintPath>
+      <HintPath>..\Ref\NppSharpInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -207,9 +207,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)deploy\bin\"
-copy "$(TargetDir)ProbeNppLexer.xml" "$(SolutionDir)deploy\bin\"
-"$(SolutionDir)deploy\make.bat"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -14,6 +14,7 @@ namespace ProbeNpp
 	internal partial class FindInProbeFilesPanel : UserControl
 	{
 		private bool _loaded = false;
+		private int _numMatches = 0;
 
 		public event EventHandler FindStopped;
 
@@ -54,6 +55,27 @@ namespace ProbeNpp
 				lvi.SubItems.Add(CleanLineText(match.LineText));
 				lvi.Tag = match;
 
+				lstMatches.Items.Add(lvi);
+
+				_numMatches++;
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		public void AddInfo(string info)
+		{
+			try
+			{
+				if (InvokeRequired)
+				{
+					BeginInvoke(new Action(() => { AddInfo(info); }));
+					return;
+				}
+
+				var lvi = new ListViewItem(info);
 				lstMatches.Items.Add(lvi);
 			}
 			catch (Exception ex)
@@ -151,6 +173,7 @@ namespace ProbeNpp
 					return;
 				}
 
+				_numMatches = 0;
 				progWorking.Enabled = progWorking.Visible = true;
 			}
 			catch (Exception ex)
@@ -168,6 +191,9 @@ namespace ProbeNpp
 					BeginInvoke(new Action(() => { OnSearchEnded(); }));
 					return;
 				}
+
+				if (_numMatches == 1) AddInfo("1 match found.");
+				else AddInfo(string.Format("{0} matches found.", _numMatches));
 
 				progWorking.Enabled = progWorking.Visible = false;
 			}

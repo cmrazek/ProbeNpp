@@ -129,6 +129,12 @@ namespace ProbeNpp
 						SearchFile(fileName);
 					}
 				}
+
+				foreach (var subDir in Directory.GetDirectories(dir))
+				{
+					if (_kill) return;
+					SearchDir(subDir);
+				}
 			}
 			catch (Exception ex)
 			{
