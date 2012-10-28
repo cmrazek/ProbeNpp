@@ -60,87 +60,115 @@ namespace ProbeNpp {
             }
         }
         
-        internal static System.Drawing.Bitmap AddFileHeaderIcon {
+        internal static System.Drawing.Icon AddFileHeaderIcon {
             get {
                 object obj = ResourceManager.GetObject("AddFileHeaderIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap CompileIcon {
+        internal static System.Drawing.Icon CompileIcon {
             get {
                 object obj = ResourceManager.GetObject("CompileIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap DateIcon {
+        internal static System.Drawing.Icon DateIcon {
             get {
                 object obj = ResourceManager.GetObject("DateIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap DiagIcon {
+        internal static System.Drawing.Icon DiagIcon {
             get {
                 object obj = ResourceManager.GetObject("DiagIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap FecIcon {
+        internal static System.Drawing.Icon ErrorIcon {
+            get {
+                object obj = ResourceManager.GetObject("ErrorIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon FecIcon {
             get {
                 object obj = ResourceManager.GetObject("FecIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap FindIcon {
+        internal static System.Drawing.Icon FileIcon {
+            get {
+                object obj = ResourceManager.GetObject("FileIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon FindIcon {
             get {
                 object obj = ResourceManager.GetObject("FindIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap MergeIcon {
+        internal static System.Drawing.Icon FolderIcon {
+            get {
+                object obj = ResourceManager.GetObject("FolderIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon FunctionIcon {
+            get {
+                object obj = ResourceManager.GetObject("FunctionIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon MergeIcon {
             get {
                 object obj = ResourceManager.GetObject("MergeIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap PstIcon {
+        internal static System.Drawing.Icon PstIcon {
             get {
                 object obj = ResourceManager.GetObject("PstIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap RunIcon {
+        internal static System.Drawing.Icon RunIcon {
             get {
                 object obj = ResourceManager.GetObject("RunIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap SettingsIcon {
+        internal static System.Drawing.Icon SettingsIcon {
             get {
                 object obj = ResourceManager.GetObject("SettingsIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap StopCompileIcon {
+        internal static System.Drawing.Icon StopCompileIcon {
             get {
                 object obj = ResourceManager.GetObject("StopCompileIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap TagIcon {
+        internal static System.Drawing.Icon TagIcon {
             get {
                 object obj = ResourceManager.GetObject("TagIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Icon)(obj));
             }
         }
     }

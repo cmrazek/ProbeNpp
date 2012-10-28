@@ -34,6 +34,7 @@ namespace ProbeNpp
 			try
 			{
 				foreach (var mru in LoadMru()) cmbSearchText.Items.Add(mru);
+				cmbSearchText.Text = _searchText;
 #if DOTNET4
 				cmbMethod.InitForEnum<FindInProbeFilesMethod>(ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method);
 #else

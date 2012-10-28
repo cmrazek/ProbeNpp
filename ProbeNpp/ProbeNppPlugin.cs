@@ -191,6 +191,17 @@ namespace ProbeNpp
 				return dir;
 			}
 		}
+
+		private Bitmap IconToBitmap(Icon icon)
+		{
+			var bmp = new Bitmap(icon.Width, icon.Height);
+			using (var g = Graphics.FromImage(bmp))
+			{
+				g.Clear(Color.Transparent);
+				g.DrawIcon(icon, new Rectangle(0, 0, icon.Width, icon.Height));
+			}
+			return bmp;
+		}
 		#endregion
 
 		#region Probe Integration
@@ -345,7 +356,7 @@ namespace ProbeNpp
 
 		public Bitmap CompileIcon
 		{
-			get { return Res.CompileIcon; }
+			get { return IconToBitmap(Res.CompileIcon); }
 		}
 
 		[NppDisplayName("Stop Compile")]
@@ -366,7 +377,7 @@ namespace ProbeNpp
 
 		public Bitmap StopCompileIcon
 		{
-			get { return Res.StopCompileIcon; }
+			get { return IconToBitmap(Res.StopCompileIcon); }
 		}
 
 		internal void SaveFilesInApp()
@@ -433,7 +444,7 @@ namespace ProbeNpp
 
 		public Bitmap ShowSettingsIcon
 		{
-			get { return Res.SettingsIcon; }
+			get { return IconToBitmap(Res.SettingsIcon); }
 		}
 
 		internal Settings Settings
@@ -467,7 +478,7 @@ namespace ProbeNpp
 
 		public Bitmap RunIcon
 		{
-			get { return Res.RunIcon; }
+			get { return IconToBitmap(Res.RunIcon); }
 		}
 		#endregion
 
@@ -517,7 +528,7 @@ namespace ProbeNpp
 
 		public Bitmap PstTableIcon
 		{
-			get { return Res.PstIcon; }
+			get { return IconToBitmap(Res.PstIcon); }
 		}
 		#endregion
 
@@ -565,7 +576,7 @@ namespace ProbeNpp
 
 		public Bitmap FecFileIcon
 		{
-			get { return Res.FecIcon; }
+			get { return IconToBitmap(Res.FecIcon); }
 		}
 
 		[NppDisplayName("FEC to Visual C")]
@@ -663,7 +674,7 @@ namespace ProbeNpp
 
 		public Bitmap AddFileHeaderIcon
 		{
-			get { return Res.AddFileHeaderIcon; }
+			get { return IconToBitmap(Res.AddFileHeaderIcon); }
 		}
 
 		internal string CreateFileHeaderText(string fileName)
@@ -764,7 +775,7 @@ namespace ProbeNpp
 
 		public Bitmap InsertDiagIcon
 		{
-			get { return Res.DiagIcon; }
+			get { return IconToBitmap(Res.DiagIcon); }
 		}
 
 		[NppDisplayName("&Tag Change")]
@@ -829,7 +840,7 @@ namespace ProbeNpp
 
 		public Bitmap TagChangeIcon
 		{
-			get { return Res.TagIcon; }
+			get { return IconToBitmap(Res.TagIcon); }
 		}
 
 		private enum TagChangeLine
@@ -894,7 +905,7 @@ namespace ProbeNpp
 
 		public Bitmap InsertDateIcon
 		{
-			get { return Res.DateIcon; }
+			get { return IconToBitmap(Res.DateIcon); }
 		}
 		#endregion
 
@@ -1008,7 +1019,7 @@ namespace ProbeNpp
 
 		public Bitmap MergeFileIcon
 		{
-			get { return Res.MergeIcon; }
+			get { return IconToBitmap(Res.MergeIcon); }
 		}
 		#endregion
 
@@ -1028,6 +1039,13 @@ namespace ProbeNpp
 			try
 			{
 				var form = new FindInProbeFilesDialog();
+
+				string selected = SelectedText;
+				if (!string.IsNullOrEmpty(selected) && !selected.Contains('\n'))
+				{
+					form.SearchText = selected;
+				}
+
 				if (form.ShowDialog(NppWindow) == DialogResult.OK)
 				{
 					if (_findInProbeFilesDock != null)
@@ -1064,9 +1082,8 @@ namespace ProbeNpp
 
 		public Bitmap FindInProbeFilesIcon
 		{
-			get { return Res.FindIcon; }
+			get { return IconToBitmap(Res.FindIcon); }
 		}
 		#endregion
-
 	}
 }

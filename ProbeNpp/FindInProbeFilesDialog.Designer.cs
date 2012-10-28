@@ -50,8 +50,8 @@
 			// 
 			// cmbSearchText
 			// 
-			this.cmbSearchText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.cmbSearchText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.cmbSearchText.FormattingEnabled = true;
 			this.cmbSearchText.Location = new System.Drawing.Point(74, 12);
 			this.cmbSearchText.Name = "cmbSearchText";
@@ -138,7 +138,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(342, 176);
+			this.ClientSize = new System.Drawing.Size(342, 172);
 			this.Controls.Add(this.chkOnlyProbeFiles);
 			this.Controls.Add(this.chkMatchWholeWord);
 			this.Controls.Add(this.chkMatchCase);
@@ -151,6 +151,7 @@
 			this.MaximumSize = new System.Drawing.Size(32767, 210);
 			this.MinimumSize = new System.Drawing.Size(350, 210);
 			this.Name = "FindInProbeFilesDialog";
+			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Find in Probe Files";
 			this.Load += new System.EventHandler(this.FindInProbeFilesDialog_Load);
 			this.ResumeLayout(false);

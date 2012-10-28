@@ -156,6 +156,22 @@
     <None Include="Images\Diag.png" />
     <None Include="Images\Merge.png" />
     <None Include="Images\Settings.png" />
+    <None Include="Images\AddFileHeader.ico" />
+    <None Include="Images\Compile.ico" />
+    <None Include="Images\Date.ico" />
+    <None Include="Images\Diag.ico" />
+    <None Include="Images\Error.ico" />
+    <None Include="Images\FEC.ico" />
+    <None Include="Images\File.ico" />
+    <None Include="Images\Find.ico" />
+    <None Include="Images\Folder.ico" />
+    <None Include="Images\Function.ico" />
+    <None Include="Images\Merge.ico" />
+    <None Include="Images\PST.ico" />
+    <None Include="Images\Run.ico" />
+    <None Include="Images\Settings.ico" />
+    <None Include="Images\StopCompile.ico" />
+    <None Include="Images\TagIcon.ico" />
     <Content Include="Probe Source.xml">
       <SubType>Designer</SubType>
     </Content>
