@@ -45,6 +45,7 @@ namespace ProbeNpp
 			public bool InitialsInDiags = true;
 			public bool FileNameInDiags = true;
 			public bool TodoAfterDiags = false;
+            public bool FunctionNameInDiags = true;
 
 			public bool TagDate = false;
 			public bool MultiLineTagsOnSeparateLines = true;

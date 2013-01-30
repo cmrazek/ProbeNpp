@@ -744,6 +744,19 @@ namespace ProbeNpp
 				sb.Append(": ");
 			}
 
+            if (Settings.Tagging.FunctionNameInDiags)
+            {
+                var line = CurrentLine;
+                var fp = new FunctionParser();
+                fp.Parse(GetText(Start, End));
+                var fn = (from f in fp.Functions where f.StartLine <= line select f).LastOrDefault();
+                if (fn != null)
+                {
+                    sb.Append(fn.Name);
+                    sb.Append("(): ");
+                }
+            }
+
 #if DOTNET4
 			if (!string.IsNullOrWhiteSpace(selText))
 #else

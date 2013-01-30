@@ -57,6 +57,7 @@ namespace ProbeNpp
 			chkTodoAfterDiags.Checked = settings.Tagging.TodoAfterDiags;
 			chkSurroundingTagsOnNewLines.Checked = settings.Tagging.MultiLineTagsOnSeparateLines;
 			chkTagDate.Checked = settings.Tagging.TagDate;
+            chkFnNameInDiags.Checked = settings.Tagging.FunctionNameInDiags;
 
 			// Misc
 			chkShowSidebarOnStartup.Checked = settings.Sidebar.ShowOnStartup;
@@ -83,6 +84,7 @@ namespace ProbeNpp
 			settings.Tagging.TodoAfterDiags = chkTodoAfterDiags.Checked;
 			settings.Tagging.MultiLineTagsOnSeparateLines = chkSurroundingTagsOnNewLines.Checked;
 			settings.Tagging.TagDate = chkTagDate.Checked;
+            settings.Tagging.FunctionNameInDiags = chkFnNameInDiags.Checked;
 
 			// Misc
 			settings.Sidebar.ShowOnStartup = chkShowSidebarOnStartup.Checked;
@@ -114,6 +116,7 @@ namespace ProbeNpp
 			if (chkTodoAfterDiags.Checked != settings.Tagging.TodoAfterDiags) return true;
 			if (chkSurroundingTagsOnNewLines.Checked != settings.Tagging.MultiLineTagsOnSeparateLines) return true;
 			if (chkTagDate.Checked != settings.Tagging.TagDate) return true;
+            if (chkFnNameInDiags.Checked != settings.Tagging.FunctionNameInDiags) return true;
 
 			// Misc
 			if (chkShowSidebarOnStartup.Checked != settings.Sidebar.ShowOnStartup) return true;
