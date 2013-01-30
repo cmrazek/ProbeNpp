@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ProbeNpp
 {
@@ -77,7 +78,7 @@ namespace ProbeNpp
 				case "switch":
 				case "while":
 					// Control statements that are always inside a function, and have '{' following.
-					var index = FindForward('{');
+					var index = FindForward('{', ';', '}');
 					if (index < 0) return false;
 					MoveTo(index + 1);
 					return true;
@@ -101,21 +102,20 @@ namespace ProbeNpp
 				{
 					break;
 				}
-				else if (ch == ';')
-				{
-					NextChar();
-					return true;
-				}
-				else if (ch == '(' || ch == '[')
-				{
-					if (!ParseNestable(false)) return false;
-					return false;
-				}
-				else
-				{
-					SkipToken();
-					SkipWhiteSpace();
-				}
+				else if (ch == ';' || ch == '}')
+                {
+                    return false;
+                }
+                else if (ch == '(' || ch == '[')
+                {
+                    if (!ParseNestable(false)) return false;
+                    return false;
+                }
+                else
+                {
+                    SkipToken();
+                    SkipWhiteSpace();
+                }
 			}
 			if (_pos >= _length) return false;
 
@@ -352,11 +352,12 @@ namespace ProbeNpp
 			get { return _funcs; }
 		}
 
-		int FindForward(char ch)
+		int FindForward(char ch, params char[] termChars)
 		{
 			for (var pos = _pos; pos < _length; pos++)
 			{
-				if (_fileData[pos] == ch) return pos;
+                if (_fileData[pos] == ch) return pos;
+                else if (termChars != null && termChars.Contains(_fileData[pos])) return -1;
 			}
 			return -1;
 		}
