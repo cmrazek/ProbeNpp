@@ -662,9 +662,7 @@ namespace ProbeNpp
 		{
 			try
 			{
-				GoTo(Start);
-				Insert(CreateFileHeaderText(ActiveFileName));
-				GoTo(GetLineEndPos(3));	// To enter file description.
+				CreateFileHeaderText(ActiveFileName);
 			}
 			catch (Exception ex)
 			{
@@ -677,7 +675,29 @@ namespace ProbeNpp
 			get { return IconToBitmap(Res.AddFileHeaderIcon); }
 		}
 
-		internal string CreateFileHeaderText(string fileName)
+		internal void CreateFileHeaderText(string fileName)
+		{
+			var ext = Path.GetExtension(fileName).ToLower();
+			switch (ext)
+			{
+				case ".xml":
+				case ".xsd":
+				case ".xslt":
+					CreateXmlFileHeaderText(fileName);
+					break;
+
+				case ".bat":
+				case ".cmd":
+					CreateBatchFileHeaderText(fileName);
+					break;
+
+				default:
+					CreateProbeFileHeaderText(fileName);
+					break;
+			}
+		}
+
+		private void CreateProbeFileHeaderText(string fileName)
 		{
 			var sb = new StringBuilder();
 			sb.AppendLine("// -------------------------------------------------------------------------------------------------");
@@ -695,11 +715,7 @@ namespace ProbeNpp
 			sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
 
 			var prob = Settings.Tagging.ProblemNumber;
-#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(prob))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(prob))
-#endif
 			{
 				sb.Append(prob);
 				sb.Append(" Created");
@@ -712,7 +728,87 @@ namespace ProbeNpp
 			sb.AppendLine("// -------------------------------------------------------------------------------------------------");
 			sb.AppendLine();
 
-			return sb.ToString();
+			GoTo(Start);
+			Insert(sb.ToString());
+			GoTo(GetLineEndPos(3));	// To enter file description.
+		}
+
+		private void CreateBatchFileHeaderText(string fileName)
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine(":: -------------------------------------------------------------------------------------------------");
+			sb.Append(":: File Name: ");
+			sb.AppendLine(Path.GetFileName(fileName));
+			sb.AppendLine("::\t");
+			sb.AppendLine("::");
+			sb.AppendLine(":: Modification History:");
+			sb.AppendLine("::\tDate        Who #       Description of Changes");
+			sb.AppendLine("::\t----------- --- ------- ------------------------------------------------------------------------");
+			sb.Append("::\t");
+			sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
+			sb.Append("   ");
+			sb.Append(Settings.Tagging.Initials.PadRight(4));
+			sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
+
+			var prob = Settings.Tagging.ProblemNumber;
+			if (!string.IsNullOrWhiteSpace(prob))
+			{
+				sb.Append(prob);
+				sb.Append(" Created");
+			}
+			else
+			{
+				sb.Append("Created");
+			}
+			sb.AppendLine();
+			sb.AppendLine(":: -------------------------------------------------------------------------------------------------");
+			sb.AppendLine();
+
+			var line1 = GetLineText(1);
+			var lineOffset = 0;
+			if (new Regex(@"^\@echo").IsMatch(line1)) lineOffset = 1;
+
+			GoToLine(1 + lineOffset);
+			Insert(sb.ToString());
+			GoTo(GetLineEndPos(3 + lineOffset));
+		}
+
+		private void CreateXmlFileHeaderText(string fileName)
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine("<!--");
+			sb.Append("File Name: ");
+			sb.AppendLine(Path.GetFileName(fileName));
+			sb.AppendLine("\t");
+			sb.AppendLine();
+			sb.AppendLine("Modification History:");
+			sb.AppendLine("Date        Who #       Description of Changes");
+			sb.AppendLine("=========== === ======= ============================================================================");
+			sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
+			sb.Append("   ");
+			sb.Append(Settings.Tagging.Initials.PadRight(4));
+			sb.Append(Settings.Tagging.WorkOrderNumber.PadRight(8));
+
+			var prob = Settings.Tagging.ProblemNumber;
+			if (!string.IsNullOrWhiteSpace(prob))
+			{
+				sb.Append(prob);
+				sb.Append(" Created");
+			}
+			else
+			{
+				sb.Append("Created");
+			}
+			sb.AppendLine();
+			sb.AppendLine("-->");
+
+			var line1 = GetLineText(1);
+			var lineOffset = 0;
+			if (new Regex(@"^\<\?xml\s+[^?]+\?\>\s*$").IsMatch(line1)) lineOffset = 1;
+
+			GoToLine(1 + lineOffset);
+			Insert(sb.ToString());
+			GoTo(GetLineEndPos(3 + lineOffset));
 		}
 
 		[NppDisplayName("Insert &Diag")]

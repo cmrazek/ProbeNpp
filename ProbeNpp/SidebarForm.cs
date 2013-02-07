@@ -536,14 +536,14 @@ namespace ProbeNpp
 					}
 					else
 					{
-						using (var stream = new StreamWriter(pathName, false, Encoding.ASCII))
+						using (var stream = File.Create(pathName))
 						{
-							stream.Write(_plugin.CreateFileHeaderText(pathName));
 						}
 						PopulateFileTree_AddFile(parentNode, pathName);
 						AddProbeFile(pathName);
 					}
 					_plugin.OpenFile(pathName);
+					_plugin.CreateFileHeaderText(pathName);
 				}
 			}
 		}
