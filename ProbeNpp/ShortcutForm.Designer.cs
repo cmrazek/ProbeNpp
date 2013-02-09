@@ -45,9 +45,9 @@
 			// 
 			// lstActions
 			// 
-			this.lstActions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.lstActions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.lstActions.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colKey,
             this.colAction});
@@ -55,7 +55,7 @@
 			this.lstActions.Location = new System.Drawing.Point(12, 25);
 			this.lstActions.MultiSelect = false;
 			this.lstActions.Name = "lstActions";
-			this.lstActions.Size = new System.Drawing.Size(260, 145);
+			this.lstActions.Size = new System.Drawing.Size(260, 175);
 			this.lstActions.TabIndex = 1;
 			this.lstActions.UseCompatibleStateImageBehavior = false;
 			this.lstActions.View = System.Windows.Forms.View.Details;
@@ -75,7 +75,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(284, 182);
+			this.ClientSize = new System.Drawing.Size(292, 216);
 			this.Controls.Add(this.lstActions);
 			this.Controls.Add(this.label1);
 			this.MinimumSize = new System.Drawing.Size(300, 220);
