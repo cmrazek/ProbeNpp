@@ -121,7 +121,10 @@ namespace ProbeNpp
 
 				var mru = new List<string>();
 				mru.Add(_searchText);
-				foreach (string item in cmbSearchText.Items) if (item != _searchText) mru.Add(item);
+				foreach (string item in cmbSearchText.Items)
+				{
+					if (item != _searchText && mru.Count < k_maxMru) mru.Add(item);
+				}
 				SaveMru(mru.ToArray());
 
 				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method = _method;
