@@ -315,6 +315,7 @@ namespace ProbeNpp
 			if (ch == '\"')
 			{
 				char chLast = '\0';
+                NextChar();
 				while (_pos < _length)
 				{
 					ch = _fileData[_pos];
@@ -324,6 +325,7 @@ namespace ProbeNpp
 						break;
 					}
 					chLast = ch;
+                    NextChar();
 				}
 				return;
 			}
@@ -331,6 +333,7 @@ namespace ProbeNpp
 			if (ch == '\'')
 			{
 				char chLast = '\0';
+                NextChar();
 				while (_pos < _length)
 				{
 					ch = _fileData[_pos];
@@ -340,6 +343,7 @@ namespace ProbeNpp
 						break;
 					}
 					chLast = ch;
+                    NextChar();
 				}
 				return;
 			}
