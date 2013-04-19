@@ -319,13 +319,26 @@ namespace ProbeNpp
 				while (_pos < _length)
 				{
 					ch = _fileData[_pos];
-					if (ch == '\"' && chLast != '\\')
-					{
-						NextChar();
-						break;
-					}
-					chLast = ch;
-                    NextChar();
+                    if (ch == '\\' && _pos + 1 < _length && _fileData[_pos + 1] == '\\')
+                    {
+                        NextChar();
+                        NextChar();
+                        chLast = '\0';
+                    }
+                    else if (ch == '\"' && chLast != '\\')
+                    {
+                        NextChar();
+                        break;
+                    }
+                    else if (ch == '\n' || ch == '\r')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        chLast = ch;
+                        NextChar();
+                    }
 				}
 				return;
 			}
@@ -337,13 +350,26 @@ namespace ProbeNpp
 				while (_pos < _length)
 				{
 					ch = _fileData[_pos];
-					if (ch == '\'' && chLast != '\\')
-					{
-						NextChar();
-						break;
-					}
-					chLast = ch;
-                    NextChar();
+                    if (ch == '\\' && _pos + 1 < _length && _fileData[_pos + 1] == '\\')
+                    {
+                        NextChar();
+                        NextChar();
+                        chLast = '\0';
+                    }
+                    else if (ch == '\'' && chLast != '\\')
+                    {
+                        NextChar();
+                        break;
+                    }
+                    else if (ch == '\n' || ch == '\r')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        chLast = ch;
+                        NextChar();
+                    }
 				}
 				return;
 			}
