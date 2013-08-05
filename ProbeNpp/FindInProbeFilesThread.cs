@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-#if DOTNET4
 using System.Linq;
-#endif
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;

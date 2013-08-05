@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.IO;
-using System.Xml;
-using System.Text.RegularExpressions;
 using System.Drawing;
-#if DOTNET4
+using System.IO;
 using System.Linq;
-#endif
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Xml;
 using NppSharp;
 
 // 10	Add File Header				(toolbar icon)
@@ -39,6 +38,7 @@ using NppSharp;
 namespace ProbeNpp
 {
 	[NppSortOrder(100)]
+	[NppMenu("Pr&obe", InsertBefore="Window")]
 	public class ProbeNppPlugin : NppScript
 	{
 		#region Static Instance
@@ -54,6 +54,9 @@ namespace ProbeNpp
 		private NativeWindow _nppWindow = null;
 		private Dictionary<uint, FileDetails> _fileDetails = new Dictionary<uint, FileDetails>();
 		private FileDetails _currentFile = null;
+		private object _currentFileLock = new object();
+		private BackgroundDeferrer _fileBackground = new BackgroundDeferrer();
+		private AutoCompletion.AutoCompletionManager _autoCompletionManager;
 
 		public const string k_appNameIdent = "ProbeNpp";
 
@@ -70,13 +73,19 @@ namespace ProbeNpp
 		{
 			Init(NppWindow);
 
+			_autoCompletionManager = new AutoCompletion.AutoCompletionManager(this);
+
 			Ready += new NppEventHandler(Plugin_Ready);
 			Shutdown += new NppEventHandler(Plugin_Shutdown);
 			FileOpened += new FileEventHandler(Plugin_FileOpened);
 			FileClosed += new FileEventHandler(Plugin_FileClosed);
 			FileActivated += new FileEventHandler(Plugin_FileActivated);
+			SelectionChanged += new NppEventHandler(Plugin_SelectionChanged);
+			Modification += new ModifiedEventHandler(Plugin_Modification);
 
 			CharAdded += new CharAddedEventHandler(ProbeNppPlugin_CharAdded);
+
+			_fileBackground.Execute += new EventHandler(FileBackground_Execute);
 		}
 
 		private void Plugin_Ready(object sender, EventArgs e)
@@ -107,6 +116,8 @@ namespace ProbeNpp
 				{
 					Errors.Show(_nppWindow, ex, "Exception when attempting to load ProbeNpp settings.");
 				}
+
+				LoadLexerConfig();
 
 				_env = new ProbeEnvironment();
 				_env.AppChanged += new EventHandler(_env_AppChanged);
@@ -161,18 +172,22 @@ namespace ProbeNpp
 		{
 			try
 			{
+				_fileBackground.Cancel();
+
 				FileDetails fd;
 				if (!_fileDetails.TryGetValue(e.BufferId, out fd))
 				{
 					fd = new FileDetails(e.BufferId);
 					_fileDetails.Add(e.BufferId, fd);
-					fd.lastProbeApp = _env.CurrentApp;
+					fd.LastProbeApp = _env.CurrentApp;
 				}
-				_currentFile = fd;
-				
-				if (!string.IsNullOrEmpty(fd.lastProbeApp) && fd.lastProbeApp != _env.CurrentApp)
+				CurrentFile = fd;
+				fd.OnActivated();
+
+				if (!string.IsNullOrEmpty(fd.LastProbeApp) && fd.LastProbeApp != _env.CurrentApp)
 				{
-					fd.lastProbeApp = _env.CurrentApp;
+					fd.LastProbeApp = _env.CurrentApp;
+					RefreshCustomLexers();
 				}
 				if (_sidebar != null) _sidebar.OnFileActivated(fd);
 			}
@@ -180,6 +195,58 @@ namespace ProbeNpp
 			{
 				Output.WriteLine(OutputStyle.Error, "Exception in FileOpened event: {0}", ex);
 			}
+		}
+
+		private void Plugin_SelectionChanged(object sender, EventArgs e)
+		{
+			try
+			{
+				if (_sidebar != null) _sidebar.OnSelectionChanged(CurrentLine);
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, "Exception in SelectionChanged event: {0}", ex);
+			}
+		}
+
+		private void Plugin_Modification(object sender, ModifiedEventArgs e)
+		{
+			try
+			{
+				if (_sidebar != null) _sidebar.OnModified(e);
+
+				var model = CurrentModel;
+				if (model != null)
+				{
+					model.Tracker.Modify(e.Location, e.Text.Text, e.ModificationType == ModificationType.Insert);
+				}
+
+				_fileBackground.OnActivity();
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, "Exception in Modification event: {0}", ex);
+			}
+		}
+
+		private void FileBackground_Execute(object sender, EventArgs e)
+		{
+			try
+			{
+				var file = CurrentFile;
+				if (file != null) file.OnIdle();
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+
+		void ProbeNppPlugin_CharAdded(object sender, CharAddedEventArgs e)
+		{
+			if (LanguageName != ProbeSourceLexer.Name) return;
+
+			_autoCompletionManager.OnCharAdded(e);
 		}
 
 		internal string ConfigDir
@@ -201,6 +268,31 @@ namespace ProbeNpp
 				g.DrawIcon(icon, new Rectangle(0, 0, icon.Width, icon.Height));
 			}
 			return bmp;
+		}
+
+		internal FileDetails CurrentFile
+		{
+			get
+			{
+				lock (_currentFileLock) { return _currentFile; }
+			}
+			set
+			{
+				lock (_currentFileLock) { _currentFile = value; }
+			}
+		}
+
+		internal CodeModel.CodeModel CurrentModel
+		{
+			get
+			{
+				var file = CurrentFile;
+				if (file != null)
+				{
+					return file.Model;
+				}
+				return null;
+			}
 		}
 		#endregion
 
@@ -254,7 +346,7 @@ namespace ProbeNpp
 				{
 					_sidebar = new SidebarForm(this);
 					_sidebarDock = DockWindow(_sidebar, "Probe Sidebar", DockWindowAlignment.Left, k_dockWindowId);
-					_sidebar.OnSidebarLoad(_currentFile);
+					_sidebar.OnSidebarLoad(CurrentFile);
 				}
 			}
 			catch (Exception ex)
@@ -263,7 +355,7 @@ namespace ProbeNpp
 			}
 		}
 
-		[NppDisplayName("Show File List")]
+		[NppDisplayName("Show &File List")]
 		[NppShortcut(true, false, true, Keys.F11)]
 		[NppSortOrder(70)]
 		public void ShowSidebarFileList()
@@ -279,7 +371,7 @@ namespace ProbeNpp
 			}
 		}
 
-		[NppDisplayName("Show Function List")]
+		[NppDisplayName("Show Function &List")]
 		[NppShortcut(true, false, true, Keys.F12)]
 		[NppSortOrder(75)]
 		public void ShowSidebarFunctionList()
@@ -336,7 +428,7 @@ namespace ProbeNpp
 			if (_compilePanelDock != null) _compilePanelDock.Hide();
 		}
 
-		[NppDisplayName("Compile")]
+		[NppDisplayName("&Compile")]
 		[NppShortcut(true, false, true, Keys.F7)]
 		[NppSortOrder(90)]
 		[NppSeparator]
@@ -655,7 +747,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region Tagging
-		[NppDisplayName("Add File Header")]
+		[NppDisplayName("Add File &Header")]
 		[NppSortOrder(10)]
 		[NppToolbarIcon(Property = "AddFileHeaderIcon")]
 		public void AddFileHeader()
@@ -822,13 +914,7 @@ namespace ProbeNpp
 
 			var sb = new StringBuilder();
 			sb.Append("diag(\"");
-			if (Settings.Tagging.InitialsInDiags &&
-#if DOTNET4
-				!string.IsNullOrWhiteSpace(Settings.Tagging.Initials)
-#else
-				!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.Initials)
-#endif
-				)
+			if (Settings.Tagging.InitialsInDiags && !string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
 			{
 				sb.Append(Settings.Tagging.Initials);
 				sb.Append(": ");
@@ -840,24 +926,20 @@ namespace ProbeNpp
 				sb.Append(": ");
 			}
 
-            if (Settings.Tagging.FunctionNameInDiags)
-            {
-                var line = CurrentLine;
-                var fp = new FunctionParser();
-                fp.Parse(GetText(Start, End));
-                var fn = (from f in fp.Functions where f.StartLine <= line select f).LastOrDefault();
-                if (fn != null)
-                {
-                    sb.Append(fn.Name);
-                    sb.Append("(): ");
-                }
-            }
+			if (Settings.Tagging.FunctionNameInDiags)
+			{
+				var line = CurrentLine;
+				var fp = new FunctionParser();
+				var parsedFuncs = fp.Parse(GetText(Start, End));
+				var fn = (from f in parsedFuncs where f.StartLine <= line select f).LastOrDefault();
+				if (fn != null)
+				{
+					sb.Append(fn.Name);
+					sb.Append("(): ");
+				}
+			}
 
-#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(selText))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(selText))
-#endif
 			{
 				sb.Append(ProbeEnvironment.StringEscape(selText));
 				sb.Append(" [\", ");
@@ -872,11 +954,7 @@ namespace ProbeNpp
 
 			Insert(sb.ToString());
 
-#if DOTNET4
 			if (string.IsNullOrWhiteSpace(selText))
-#else
-			if (StringUtil.IsNullOrWhiteSpace(selText))
-#endif
 			{
 				GoTo(CurrentLocation - (sb.Length - lengthBefore));
 			}
@@ -899,11 +977,7 @@ namespace ProbeNpp
 			var endLine = selEnd.Line;
 
 			var sb = new StringBuilder();
-#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.Initials))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.Initials))
-#endif
 			{
 				sb.Append(Settings.Tagging.Initials);
 			}
@@ -914,21 +988,13 @@ namespace ProbeNpp
 				sb.Append(DateTime.Now.ToString("ddMMMyyyy"));
 			}
 
-#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.WorkOrderNumber))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.WorkOrderNumber))
-#endif
 			{
 				if (sb.Length > 0) sb.Append(" ");
 				sb.Append(Settings.Tagging.WorkOrderNumber);
 			}
 
-#if DOTNET4
 			if (!string.IsNullOrWhiteSpace(Settings.Tagging.ProblemNumber))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(Settings.Tagging.ProblemNumber))
-#endif
 			{
 				if (sb.Length > 0) sb.Append(" ");
 				sb.Append(Settings.Tagging.ProblemNumber);
@@ -992,7 +1058,7 @@ namespace ProbeNpp
 
 		private TextLocation GetIndentPosOnLine(int line)
 		{
-		    var pos = new TextLocation(line, 1);
+			var pos = new TextLocation(line, 1);
 			while (true)
 			{
 				var ch = GetText(pos, 1);
@@ -1003,7 +1069,7 @@ namespace ProbeNpp
 			return new TextLocation(line, 1);
 		}
 
-		[NppDisplayName("Insert Date")]
+		[NppDisplayName("Insert &Date")]
 		[NppShortcut(true, false, true, Keys.Y)]
 		[NppSortOrder(30)]
 		[NppToolbarIcon(Property = "InsertDateIcon")]
@@ -1015,47 +1081,6 @@ namespace ProbeNpp
 		public Bitmap InsertDateIcon
 		{
 			get { return IconToBitmap(Res.DateIcon); }
-		}
-		#endregion
-
-		#region AutoCompletion
-		void ProbeNppPlugin_CharAdded(object sender, CharAddedEventArgs e)
-		{
-			if (e.Character == '.' && LanguageName == ProbeSourceLexer.Name)
-			{
-				CheckAutoCompletion();
-			}
-		}
-
-		private void CheckAutoCompletion()
-		{
-			var wordEnd = CurrentLocation - 1;
-			var wordStart = GetWordStartPos(wordEnd, false);
-			var word = GetText(wordStart, wordEnd);
-
-#if DOTNET4
-			if (!string.IsNullOrWhiteSpace(word))
-#else
-			if (!StringUtil.IsNullOrWhiteSpace(word))
-#endif
-			{
-				var table = _env.GetTable(word);
-				if (table == null) return;
-
-#if DOTNET4
-				var fields = table.Fields;
-				if (!fields.Any()) return;
-				ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
-#else
-				var fields = new List<string>();
-				foreach (var field in table.Fields)
-				{
-					fields.Add(field.Name);
-				}
-				fields.Sort(new StringComparerIgnoreCase());
-				ShowAutoCompletion(0, fields, true);
-#endif
-			}
 		}
 		#endregion
 
@@ -1078,7 +1103,6 @@ namespace ProbeNpp
 					Path.GetExtension(fileName)))
 				{
 					var errors = cp.Errors;
-#if DOTNET4
 					if (errors.Any())
 					{
 						tempFileOutput.WriteLine("// Errors encountered during processing:");
@@ -1089,29 +1113,9 @@ namespace ProbeNpp
 						}
 						tempFileOutput.WriteLine(string.Empty);
 					}
-#else
-					var firstError = true;
-					foreach (var error in errors)
-					{
-						if (firstError)
-						{
-							tempFileOutput.WriteLine("// Errors encountered during processing:");
-							firstError = false;
-						}
-
-						if (error.Line != null && error.Line.File != null) tempFileOutput.WriteLine(string.Format("// {0}({1}): {2}", error.Line.FileName, error.Line.LineNum, error.Message));
-						else tempFileOutput.WriteLine(error.Message);
-					}
-					if (!firstError)
-					{
-						tempFileOutput.WriteLine(string.Empty);
-					}
-#endif
 
 					foreach (var line in cp.Lines)
 					{
-						//if (line.File != null) tempFileOutput.WriteLine(string.Format("/*{0}({1})*/ {2}", line.FileName, line.LineNum, line.Text));
-						//else
 						tempFileOutput.WriteLine(line.Text);
 					}
 
@@ -1192,6 +1196,45 @@ namespace ProbeNpp
 		public Bitmap FindInProbeFilesIcon
 		{
 			get { return IconToBitmap(Res.FindIcon); }
+		}
+		#endregion
+
+		#region Lexer Config
+		public HashSet<string> SourceKeywords = new HashSet<string>();
+		public HashSet<string> DictKeywords = new HashSet<string>();
+		public HashSet<string> DataTypes = new HashSet<string>();
+		public readonly string OperatorChars = Res.ProbeOperatorChars;
+		public HashSet<string> UserConstants = new HashSet<string>();
+		public Dictionary<string, string> FunctionSignatures = new Dictionary<string, string>();
+
+		private void LoadLexerConfig()
+		{
+			SourceKeywords = Util.ParseWordList(Res.ProbeSourceKeywords);
+			DictKeywords = Util.ParseWordList(Res.ProbeDictKeywords);
+			DataTypes = Util.ParseWordList(Res.ProbeDataTypeKeywords);
+
+			var fileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ProbeNppLexer.xml");
+			if (File.Exists(fileName))
+			{
+				var xmlDoc = new XmlDocument();
+				xmlDoc.Load(fileName);
+
+				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Constants"))
+				{
+					foreach (var str in Util.ParseWordList(element.InnerText)) UserConstants.Add(str);
+				}
+
+				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/FunctionSignature"))
+				{
+					var funcName = element.GetAttribute("Name");
+					if (string.IsNullOrWhiteSpace(funcName)) continue;
+
+					var sig = element.InnerText.Trim();
+					if (string.IsNullOrWhiteSpace(sig)) continue;
+
+					FunctionSignatures[funcName] = sig;
+				}
+			}
 		}
 		#endregion
 	}

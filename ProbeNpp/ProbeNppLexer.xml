@@ -1,74 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ProbeNpp>
-	<SourceKeywords>
-		after all and asc
-		before break button by
-		comment case col colff cols continue
-		default desc
-		each else extern extract
-		for format from
-		group
-		header
-		if
-		of or order outfile
-		permanent prompt
-		return row rows
-		select static switch
-		where while widthof
-	</SourceKeywords>
-	<DictKeywords>
-		after asc
-		before button by
-		comment col create
-		desc display
-		endgroup
-		form
-		group
-		index
-		many
-		nopick
-		on one order
-		prompt
-		relationship row
-		snapshot
-		table to unique
-		updates
-		zoom
-	</DictKeywords>
-	<Functions>
-		abs action asof
-		backsnap beginwork
-		callform charchng clearbuf clearcnt ClearPROBELocale closef closeform clrrownoreq commit compareoldbuf count
-		day _delete diag dispflds dbdate dbdateRefresh dbtoset
-		EarliestEffective encpwd endmarker errmsg
-		fieldcomment fieldname fieldprompt find finddate formcomment formname formpageno
-		formprompt freenotebuf freeoldbuf
-		genpwd getcnt getmsg getmulti getwarehoused gofield
-		hour
-		incdate insert insrel inssnap integ isident
-		listupdates logten
-		makedate makestring maketime minute month
-		notebuf noterec noterow nullstr
-		oldvalue openf openform
-		pageno pagerow pendchar pointbuf pointrec pointrow power print puts _putts
-		pwordget pwordkey
-		qaction qbufreq qbufsend qcheck qcolsend qcompareoldbuf qdelete qfind qgetcur qinit
-		qinitdos qinsert qinsrel qkeysend qlistingreq qrecnoreq qrecnosend qroom
-		qrownoreq qrownosend qsend qsendnw qsetoldbuf qupdate qupdrel
-		rbc rbn recmarker remote_message_to_file remote_message_to_string revoke rfiller rn0
-		rn1 rn2 rn3 rollback rowmarker rpe0 rpe1 rpe2 rpe3 rraw rs runtriggers
-		update updrel
-		second select_action select_listing select_menu send_file_to_remote
-		send_string_to_remote sesprio SetAccessMode setdelim
-		setkilltime SetMessage setmsg setoldbuf SetPROBELocale setsnap snappod
-		snapshot
-		statusf strcap strchng strlen strlwr strsrch strstrip strwords strupr sum sysdate
-		systemrl systime systemex
-		_tcslen _tcslwr _tcsupr
-		unpackf UNREFERENCED_PARAMETER
-		waitfor wbc wbn weekday wfiller wn0 wn1 wn2 wn3 wordpos wordrepl wordstrip ws wsname
-		year
-	</Functions>
 	<Constants>
 		ALLCAPS ASCII AUTOCAPS
 		BACKDATE BINARY BINARYI BOD
@@ -91,13 +22,6 @@
 		WAIT WAREHOUSED WEEKS weeks WRITE
 		YEARS years yes
 	</Constants>
-	<DataTypes>
-		action_t bool char currency date edits_t enum int
-		like long
-		notebuf_t noterow_t noyes_t numeric recalc_t string time
-		unsigned void yesno_t
-	</DataTypes>
-	<Operators>
-		( ) { } | + - * / % ? : &lt; &gt; = ! . , &amp;
-	</Operators>
+	<FunctionSignature Name="makestring">char(255) makestring(expressions ...)</FunctionSignature>
+	<FunctionSignature Name="diag">void diag(expressions ...)</FunctionSignature>
 </ProbeNpp>

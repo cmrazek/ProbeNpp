@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Data;
-#if DOTNET4
 using System.Linq;
-#endif
 using System.Text;
 using System.Windows.Forms;
 
@@ -38,11 +36,7 @@ namespace ProbeNpp
 				int index = lstOutput.Items.Add(obj);
 				if (scrollToBottom)
 				{
-#if DOTNET4
 					foreach (var i in lstOutput.SelectedIndices.Cast<int>()) lstOutput.SetSelected(i, false);
-#else
-					foreach (int i in lstOutput.SelectedIndices) lstOutput.SetSelected(i, false);
-#endif
 					lstOutput.SetSelected(index, true);
 					lstOutput.SetSelected(index, false);
 				}

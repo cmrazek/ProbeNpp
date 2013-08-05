@@ -151,6 +151,27 @@
   <data name="MergeIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Images\Merge.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="ProbeDataTypeKeywords" xml:space="preserve">
+    <value>alternate bool char currency date enum int LEADINGZEROS like local_currency long longform nowarn numeric proto shortform string time unsigned void</value>
+  </data>
+  <data name="ProbeDictKeywords" xml:space="preserve">
+    <value>after asc before button by comment col create desc display endgroup form group index many nopick on one order prompt relationship row snapshot table to unique updates zoom</value>
+  </data>
+  <data name="ProbeDictLanguageName" xml:space="preserve">
+    <value>Probe Table</value>
+  </data>
+  <data name="ProbeKeywords" xml:space="preserve">
+    <value>after all and asc before break button by comment case col colff cols continue create default display desc each else extern extract for form format from group header if index many nopick of on one or order outfile permanent prompt relationship return row rows select snapshot static switch table to unique updates where while widthof zoom</value>
+  </data>
+  <data name="ProbeOperatorChars" xml:space="preserve">
+    <value>(){}|+-*/%?:&lt;&gt;=!.,&amp;</value>
+  </data>
+  <data name="ProbeSourceKeywords" xml:space="preserve">
+    <value>after all and asc before break button by comment case col colff cols continue default desc each else extern extract for format from group header if of or order outfile permanent prompt return row rows select static switch where while widthof</value>
+  </data>
+  <data name="ProbeSourceLanguageName" xml:space="preserve">
+    <value>Probe Source</value>
+  </data>
   <data name="PstIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Images\PST.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

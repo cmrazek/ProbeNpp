@@ -4,16 +4,11 @@ using System.Text;
 
 namespace ProbeNpp
 {
-	internal class StringUtil
+	internal static class StringUtil
 	{
-		public static bool IsNullOrWhiteSpace(string str)
+		public static bool IsEndOfLineChar(this char ch)
 		{
-			if (str == null) return true;
-			foreach (char ch in str)
-			{
-				if (!Char.IsWhiteSpace(ch)) return false;
-			}
-			return true;
+			return ch == '\r' || ch == '\n';
 		}
 	}
 

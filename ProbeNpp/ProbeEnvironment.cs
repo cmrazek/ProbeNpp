@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using NppSharp;
-
-#if DOTNET4
 using System.Linq;
-#endif
+using System.IO;
+using System.Text;
+using NppSharp;
 
 namespace ProbeNpp
 {
@@ -297,6 +294,25 @@ namespace ProbeNpp
 			ProbeTable table;
 			return _tables.TryGetValue(tableName, out table) ? table : null;
 		}
+
+		private CodeModel.AutoCompletionItem[] _autoCompletionTables = null;
+		public IEnumerable<CodeModel.AutoCompletionItem> AutoCompletionTables
+		{
+			get
+			{
+				if (_autoCompletionTables == null)
+				{
+					var list = new List<CodeModel.AutoCompletionItem>();
+					foreach (var table in _tables.Values)
+					{
+						var desc = string.Format("Prompt: {0}", table.Prompt.Trim());
+						list.Add(new CodeModel.AutoCompletionItem(table.Name, table.Name, desc, CodeModel.AutoCompletionType.Table));
+					}
+					_autoCompletionTables = list.ToArray();
+				}
+				return _autoCompletionTables;
+			}
+		}
 		#endregion
 
 		#region File Paths
@@ -395,23 +411,10 @@ namespace ProbeNpp
 			// Populate the probe extension list, if it hasn't been already.
 			if (_probeExtensions == null)
 			{
-#if DOTNET4
 				_probeExtensions = (from e in string.Concat(ProbeNppPlugin.Instance.Settings.Probe.SourceExtensions,
 									 " ", ProbeNppPlugin.Instance.Settings.Probe.DictExtensions).Split(' ')
 									where !string.IsNullOrWhiteSpace(e)
 									select (e.StartsWith(".") ? e.ToLower() : string.Concat(".", e.ToLower()))).ToArray();
-#else
-				var extList = new List<string>();
-				foreach (var ext in string.Concat(ProbeNppPlugin.Instance.Settings.Probe.SourceExtensions,
-									 " ", ProbeNppPlugin.Instance.Settings.Probe.DictExtensions).Split(' '))
-				{
-					if (!StringUtil.IsNullOrWhiteSpace(ext))
-					{
-						extList.Add(ext.StartsWith(".") ? ext.ToLower() : string.Concat(".", ext.ToLower()));
-					}
-				}
-				_probeExtensions = extList.ToArray();
-#endif
 			}
 
 			// Special exception for dictionary files.
@@ -424,15 +427,7 @@ namespace ProbeNpp
 
 			// Search the file extension list.
 			var fileExt = Path.GetExtension(pathName);
-#if DOTNET4
 			return _probeExtensions.Contains(fileExt.ToLower());
-#else
-			foreach (string e in _probeExtensions)
-			{
-				if (e.Equals(fileExt, StringComparison.OrdinalIgnoreCase)) return true;
-			}
-			return false;
-#endif
 		}
 		#endregion
 
@@ -501,15 +496,7 @@ namespace ProbeNpp
 
 			foreach (var ch in str)
 			{
-#if DOTNET4
 				if (badPathChars.Contains(ch) || Char.IsWhiteSpace(ch)) return false;
-#else
-				if (Char.IsWhiteSpace(ch)) return false;
-				foreach (var bpc in badPathChars)
-				{
-					if (bpc == ch) return false;
-				}
-#endif
 			}
 
 			return true;

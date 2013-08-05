@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using NppSharp;
 
 namespace ProbeNpp
 {
@@ -9,18 +10,27 @@ namespace ProbeNpp
 	internal class Function
 	{
 		private string _name = "";
-		private string _uniqueName = "";
+		private string _id = "";
 		private int _startLine = 0;
 		private int _endLine = 0;
 		private ListViewItem _lvi = null;
-		private bool _used = false;
+		private string _signature = "";
 
 		internal Function(string name, string uniqueName, int startLine, int endLine)
 		{
 			_name = name;
-			_uniqueName = uniqueName;
+			_id = uniqueName;
 			_startLine = startLine;
 			_endLine = endLine;
+		}
+
+		public void Update(Function func)
+		{
+			_name = func._name;
+			_id = func._id;
+			_startLine = func._startLine;
+			_endLine = func._endLine;
+			_signature = func._signature;
 		}
 
 		public string Name
@@ -28,19 +38,21 @@ namespace ProbeNpp
 			get { return _name; }
 		}
 
-		public string UniqueName
+		public string Id
 		{
-			get { return _uniqueName; }
+			get { return _id; }
 		}
 
 		public int StartLine
 		{
 			get { return _startLine; }
+			set { _startLine = value; }
 		}
 
 		public int EndLine
 		{
 			get { return _endLine; }
+			set { _endLine = value; }
 		}
 
 		internal ListViewItem LVI
@@ -49,17 +61,10 @@ namespace ProbeNpp
 			set { _lvi = value; }
 		}
 
-		internal bool Used
+		public string Signature
 		{
-			get { return _used; }
-			set { _used = value; }
-		}
-
-		public void Update(Function f)
-		{
-			_name = f._name;
-			_startLine = f._startLine;
-			_endLine = f._endLine;
+			get { return _signature; }
+			set { _signature = value; }
 		}
 	}
 }

@@ -31,8 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NppSharpInterface">
-      <HintPath>..\Ref\NppSharpInterface.dll</HintPath>
+    <Reference Include="NppSharpInterface, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files\Notepad++\NppSharpInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,6 +46,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoCompletion\AutoCompletionManager.cs" />
+    <Compile Include="AutoCompletion\FunctionSignatureParser.cs" />
+    <Compile Include="CodeModel\Tracker.cs" />
+    <Compile Include="BackgroundDeferrer.cs" />
+    <Compile Include="CodeModel\Tokens\CodeFile.cs" />
+    <Compile Include="CodeModel\CodeModel.cs" />
+    <Compile Include="CodeModel\IAutoCompletionSource.cs" />
+    <Compile Include="CodeModel\IBraceMatchingToken.cs" />
+    <Compile Include="CodeModel\IFunctionSignatureSource.cs" />
+    <Compile Include="CodeModel\IGroupToken.cs" />
+    <Compile Include="CodeModel\Position.cs" />
+    <Compile Include="CodeModel\Scope.cs" />
+    <Compile Include="CodeModel\Span.cs" />
+    <Compile Include="CodeModel\Tokens\ArrayBracesToken.cs" />
+    <Compile Include="CodeModel\Tokens\ArrayBraceToken.cs" />
+    <Compile Include="CodeModel\Tokens\BracesToken.cs" />
+    <Compile Include="CodeModel\Tokens\BraceToken.cs" />
+    <Compile Include="CodeModel\Tokens\BracketsToken.cs" />
+    <Compile Include="CodeModel\Tokens\BracketToken.cs" />
+    <Compile Include="CodeModel\Tokens\CommentToken.cs" />
+    <Compile Include="CodeModel\Tokens\DataTypeKeywordToken.cs" />
+    <Compile Include="CodeModel\Tokens\DataTypeToken.cs" />
+    <Compile Include="CodeModel\Tokens\DefineToken.cs" />
+    <Compile Include="CodeModel\Tokens\DelimiterToken.cs" />
+    <Compile Include="CodeModel\Tokens\DotToken.cs" />
+    <Compile Include="CodeModel\Tokens\ExternFunctionToken.cs" />
+    <Compile Include="CodeModel\Tokens\ExternVariableToken.cs" />
+    <Compile Include="CodeModel\Tokens\FunctionCallToken.cs" />
+    <Compile Include="CodeModel\Tokens\FunctionToken.cs" />
+    <Compile Include="CodeModel\Tokens\IdentifierToken.cs" />
+    <Compile Include="CodeModel\Tokens\IfStatementToken.cs" />
+    <Compile Include="CodeModel\Tokens\IncludeToken.cs" />
+    <Compile Include="CodeModel\Tokens\InsertToken.cs" />
+    <Compile Include="CodeModel\Tokens\KeywordToken.cs" />
+    <Compile Include="CodeModel\Tokens\NumberToken.cs" />
+    <Compile Include="CodeModel\Tokens\OperatorToken.cs" />
+    <Compile Include="CodeModel\Tokens\PreprocessorToken.cs" />
+    <Compile Include="CodeModel\Tokens\ReplaceSetToken.cs" />
+    <Compile Include="CodeModel\Tokens\StatementEndToken.cs" />
+    <Compile Include="CodeModel\Tokens\StringLiteralToken.cs" />
+    <Compile Include="CodeModel\Tokens\Token.cs" />
+    <Compile Include="CodeModel\Tokens\UnknownToken.cs" />
+    <Compile Include="CodeModel\Tokens\VariableDeclarationToken.cs" />
+    <Compile Include="CodeModel\Tokens\WhiteSpaceToken.cs" />
+    <Compile Include="CodeModel\Tokens\WordToken.cs" />
     <Compile Include="CodeProcessing\CodeError.cs" />
     <Compile Include="CodeProcessing\CodeFile.cs" />
     <Compile Include="CodeProcessing\CodeLine.cs" />
@@ -58,9 +104,10 @@
     </Compile>
     <Compile Include="CompileRef.cs" />
     <Compile Include="EnumUtil.cs" />
-    <Compile Include="DelegateUtil.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="FileDetails.cs" />
+    <Compile Include="FileMergeException.cs" />
+    <Compile Include="FileMerger.cs" />
     <Compile Include="FindInProbeFilesDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -74,9 +121,11 @@
       <DependentUpon>FindInProbeFilesPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="FindInProbeFilesThread.cs" />
+    <Compile Include="Function Parser\CodeStringBuilder.cs" />
     <Compile Include="Function Parser\Function.cs" />
     <Compile Include="Function Parser\FunctionCollection.cs" />
     <Compile Include="Function Parser\FunctionParser.cs" />
+    <Compile Include="TokenParser.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="ListViewUtil.cs" />
     <Compile Include="Output.cs" />
@@ -141,6 +190,7 @@
     <Compile Include="TagString.cs" />
     <Compile Include="TempManager.cs" />
     <Compile Include="TextFilter.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>

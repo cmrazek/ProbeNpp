@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.IO;
 using NppSharp;
-
-#if DOTNET4
-using System.Linq;
-#endif
 
 namespace ProbeNpp
 {
@@ -19,6 +16,8 @@ namespace ProbeNpp
 		private ProbeNppPlugin _plugin;
 		private FileDetails _file = null;
 		private bool _loaded = false;
+		private int _functionSelectedLine = -1;
+		private BackgroundDeferrer _functionListWait;
 
 		private const int k_imgFolder = 0;
 		private const int k_imgFile = 1;
@@ -35,6 +34,9 @@ namespace ProbeNpp
 			if (_plugin.Settings.FileListView.DirColumnWidth > 0) colFileDir.Width = _plugin.Settings.FileListView.DirColumnWidth;
 
 			if (_plugin.Settings.FunctionListView.FunctionColumnWidth > 0) colFunctionName.Width = _plugin.Settings.FunctionListView.FunctionColumnWidth;
+
+			_functionListWait = new BackgroundDeferrer();
+			_functionListWait.Execute += new EventHandler(FunctionListWait_Execute);
 
 			_loaded = true;
 		}
@@ -69,13 +71,27 @@ namespace ProbeNpp
 			try
 			{
 				_file = fd;
-				if (fd.functions == null) ParseFunctions();
-				PopulateFunctionList();
+				_functionListWait.Cancel();
+				InitializeFunctionList();
 			}
 			catch (Exception ex)
 			{
 				Errors.Show(this, ex);
 			}
+		}
+
+		public void OnSelectionChanged(int lineNum)
+		{
+			if (lineNum != _functionSelectedLine)
+			{
+				SelectFunction(lineNum);
+				_functionSelectedLine = lineNum;
+			}
+		}
+
+		public void OnModified(ModifiedEventArgs e)
+		{
+			_functionListWait.OnActivity();
 		}
 
 		public void OnAppChanged()
@@ -306,14 +322,7 @@ namespace ProbeNpp
 		private void AddProbeFile(string pathName)
 		{
 			// Protect against duplicate files.
-#if DOTNET4
 			if (_files.Any(f => f.pathName.Equals(pathName, StringComparison.OrdinalIgnoreCase))) return;
-#else
-			foreach (var f in _files)
-			{
-				if (f.pathName.Equals(pathName, StringComparison.OrdinalIgnoreCase)) return;
-			}
-#endif
 
 			ProbeFile pf = new ProbeFile();
 			pf.pathName = pathName;
@@ -441,7 +450,6 @@ namespace ProbeNpp
 			tabControl.SelectedTab = tabFiles;
 			txtFileFilter.Focus();
 
-#if DOTNET4
 			if (!string.IsNullOrEmpty(selectedText) &&
 				ProbeEnvironment.IsValidFileName(selectedText) &&
 				_files.Any(x => x.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase)))
@@ -452,30 +460,6 @@ namespace ProbeNpp
 			{
 				txtFileFilter.SelectAll();
 			}
-#else
-			var useFilter = false;
-
-			if (!string.IsNullOrEmpty(selectedText) &&
-				ProbeEnvironment.IsValidFileName(selectedText))
-			{
-				foreach (var file in _files)
-				{
-					if (file.title.Equals(selectedText, StringComparison.OrdinalIgnoreCase))
-					{
-						useFilter = true;
-						break;
-					}
-				}
-			}
-			if (useFilter)
-			{
-				txtFileFilter.Text = selectedText;
-			}
-			else
-			{
-				txtFileFilter.SelectAll();
-			}
-#endif
 		}
 
 		private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -550,26 +534,19 @@ namespace ProbeNpp
 		#endregion
 
 		#region Function List
-		private void ParseFunctions()
+		private void InitializeFunctionList()
 		{
-			_file.functions = new List<Function>();
-			if (_plugin.Length <= k_maxFileParseLength)
+			if (_file == null)
 			{
-				FunctionParser parser = new FunctionParser();
-				parser.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
-				_file.functions.AddRange(parser.Functions);
+				lstFunctions.Items.Clear();
+				return;
 			}
-		}
-
-		private void PopulateFunctionList()
-		{
-			if (_file == null) return;
 
 			TextFilter tf = new TextFilter(txtFunctionFilter.Text);
 
 			lstFunctions.Items.Clear();
 
-			foreach (Function func in _file.functions)
+			foreach (Function func in _file.Functions)
 			{
 				if (tf.Match(func.Name))
 				{
@@ -580,11 +557,20 @@ namespace ProbeNpp
 
 		private ListViewItem CreateFunctionLvi(Function func)
 		{
-			ListViewItem lvi = new ListViewItem(func.Name);
+			ListViewItem lvi = new ListViewItem(func.Signature);
 			lvi.Tag = func;
 			lvi.ImageIndex = 0;
 			func.LVI = lvi;
 			return lvi;
+		}
+
+		private void UpdateFunctionLvi(ListViewItem lvi, Function func, Function newFunc)
+		{
+			lvi.Text = func.Signature;
+			lvi.Tag = func;
+			lvi.ImageIndex = 0;
+			func.LVI = lvi;
+			func.Update(newFunc);
 		}
 
 		private void lstFunctions_ItemActivate(object sender, EventArgs e)
@@ -611,60 +597,54 @@ namespace ProbeNpp
 
 		private void UpdateFunctionList()
 		{
-			if (_file == null) return;
+			if (_file == null)
+			{
+				lstFunctions.Items.Clear();
+				return;
+			}
 
 			TextFilter tf = new TextFilter(txtFunctionFilter.Text);
 
-			foreach (Function func in _file.functions) func.Used = false;
-
 			// Get a list of the functions, and where they are in the file now.
 			FunctionParser fp = new FunctionParser();
-			fp.Parse(_plugin.GetText(_plugin.Start, _plugin.End));
+			var parsedFuncs = fp.Parse(_plugin.GetText(_plugin.Start, _plugin.End)).ToArray();
+			var listFuncs = (from i in lstFunctions.Items.Cast<ListViewItem>() select i.Tag as Function).ToArray();
+			var fileFuncs = _file.Functions.ToArray();
 
-			// Refresh the visible function list.
-			List<Function> newFuncs = new List<Function>();
-			foreach (Function newFunc in fp.Functions)
+			var newFuncs = (from func in parsedFuncs where !_file.FunctionIdExists(func.Id) select func).ToArray();
+			var updatedFuncs = (from func in parsedFuncs where _file.FunctionIdExists(func.Id) select _file.GetFunction(func.Id)).ToArray();
+			var deletedFuncs = (from name in _file.FunctionIds where !parsedFuncs.Any(f => f.Id == name) select _file.GetFunction(name)).ToArray();
+
+			Action updateAction = () =>
 			{
-				newFunc.Used = true;
-
-				foreach (Function func in _file.functions)
+				lstFunctions.BeginUpdate();
+				try
 				{
-					if (func.Used) continue;
-					if (func.UniqueName == newFunc.UniqueName)
-					{
-						func.Update(newFunc);
-						func.Used = true;
-						newFunc.Used = false;
-						break;
-					}
-				}
-
-				if (newFunc.Used && tf.Match(newFunc.Name)) newFuncs.Add(newFunc);
-			}
-
-			lstFunctions.BeginUpdate();
-			try
-			{
-				// Delete any missing functions from the listview.
-				foreach (Function func in _file.functions)
-				{
-					if (!func.Used && func.LVI != null)
+					foreach (var func in deletedFuncs)
 					{
 						func.LVI.Remove();
-						func.LVI = null;
+						_file.RemoveFunction(func.Id);
+					}
+
+					foreach (var func in newFuncs)
+					{
+						var lvi = CreateFunctionLvi(func);
+						lstFunctions.Items.Add(lvi);
+						_file.AddFunction(func);
+					}
+
+					foreach (var func in updatedFuncs)
+					{
+						UpdateFunctionLvi(func.LVI, func, (from f in parsedFuncs where f.Id == func.Id select f).FirstOrDefault());
 					}
 				}
-
-				// Add any new functions into the listview.
-				foreach (Function func in newFuncs)
+				finally
 				{
-					if (func.Used) lstFunctions.Items.Add(CreateFunctionLvi(func));
+					lstFunctions.EndUpdate();
 				}
-			}
-			finally
-			{
-				lstFunctions.EndUpdate();
-			}
+			};
+			if (lstFunctions.InvokeRequired) lstFunctions.BeginInvoke(updateAction);
+			else updateAction();
 		}
 
 		private void ciRefreshFunctions_Click(object sender, EventArgs e)
@@ -673,8 +653,9 @@ namespace ProbeNpp
 			{
 				if (_file != null)
 				{
-					ParseFunctions();
-					PopulateFunctionList();
+					var source = _plugin.GetText(_plugin.Start, _plugin.End);
+					_file.ParseFunctions(source);
+					InitializeFunctionList();
 				}
 			}
 			catch (Exception ex)
@@ -687,7 +668,7 @@ namespace ProbeNpp
 		{
 			try
 			{
-				PopulateFunctionList();
+				InitializeFunctionList();
 			}
 			catch (Exception ex)
 			{
@@ -759,18 +740,16 @@ namespace ProbeNpp
 		{
 			if (_file != null)
 			{
-				ParseFunctions();
-				PopulateFunctionList();
+				InitializeFunctionList();
 			}
 
 			tabControl.SelectedTab = tabFunctions;
 			txtFunctionFilter.Focus();
 
-#if DOTNET4
 			if (_file != null &&
 				!string.IsNullOrEmpty(selectedText) &&
 				ProbeEnvironment.IsValidFunctionName(selectedText) &&
-				_file.functions.Any(x => x.Name == selectedText))
+				_file.GetFunctionsWithName(selectedText).Any())
 			{
 				txtFunctionFilter.Text = selectedText;
 			}
@@ -778,31 +757,34 @@ namespace ProbeNpp
 			{
 				txtFunctionFilter.SelectAll();
 			}
-#else
-			var useFilter = false;
+		}
 
-			if (_file != null &&
-				!string.IsNullOrEmpty(selectedText) &&
-				ProbeEnvironment.IsValidFunctionName(selectedText))
+		private void SelectFunction(int lineNum)
+		{
+			if (_file != null)
 			{
-				foreach (var func in _file.functions)
+				var func = _file.GetFunctionForLineNum(lineNum);
+				if (func != null)
 				{
-					if (func.Name == selectedText)
+					foreach (ListViewItem lvi in lstFunctions.Items)
 					{
-						useFilter = true;
-						break;
+						if (lvi.Tag == func)
+						{
+							lvi.Selected = true;
+							lvi.EnsureVisible();
+						}
+						else
+						{
+							lvi.Selected = false;
+						}
 					}
 				}
 			}
-			if (useFilter)
-			{
-				txtFunctionFilter.Text = selectedText;
-			}
-			else
-			{
-				txtFunctionFilter.SelectAll();
-			}
-#endif
+		}
+
+		void FunctionListWait_Execute(object sender, EventArgs e)
+		{
+			System.Threading.ThreadPool.QueueUserWorkItem(x => { UpdateFunctionList(); });
 		}
 		#endregion
 	}

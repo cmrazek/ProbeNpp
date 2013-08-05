@@ -2,16 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using System.Threading;
-using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
-#if DOTNET4
 using System.Linq;
-#endif
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
 using NppSharp;
 
 namespace ProbeNpp
@@ -382,17 +380,9 @@ namespace ProbeNpp
 				int index = lstHistory.Items.Add(obj);
 				if (scrollToBottom)
 				{
-#if DOTNET4
 					foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
-#else
-					foreach (int i in lstHistory.SelectedIndices)
-					{
-						lstHistory.SetSelected(i, false);
-					}
-#endif
 					lstHistory.SetSelected(index, true);
 					lstHistory.SetSelected(index, false);
-					
 				}
 			}
 			catch (Exception)
@@ -457,14 +447,7 @@ namespace ProbeNpp
 
 							if (selIndex >= 0)
 							{
-#if DOTNET4
 								foreach (var i in lstHistory.SelectedIndices.Cast<int>()) lstHistory.SetSelected(i, false);
-#else
-								foreach (int i in lstHistory.SelectedIndices)
-								{
-									lstHistory.SetSelected(i, false);
-								}
-#endif
 								lstHistory.SelectedIndex = selIndex;
 							}
 						}

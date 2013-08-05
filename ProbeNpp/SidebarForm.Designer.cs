@@ -117,6 +117,7 @@ namespace ProbeNpp
 			this.lstFiles.ContextMenuStrip = this.cmFiles;
 			this.lstFiles.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.lstFiles.FullRowSelect = true;
+			this.lstFiles.HideSelection = false;
 			this.lstFiles.Location = new System.Drawing.Point(3, 23);
 			this.lstFiles.MultiSelect = false;
 			this.lstFiles.Name = "lstFiles";
@@ -212,6 +213,7 @@ namespace ProbeNpp
 			this.lstFunctions.ContextMenuStrip = this.cmFunctions;
 			this.lstFunctions.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.lstFunctions.FullRowSelect = true;
+			this.lstFunctions.HideSelection = false;
 			this.lstFunctions.Location = new System.Drawing.Point(3, 23);
 			this.lstFunctions.MultiSelect = false;
 			this.lstFunctions.Name = "lstFunctions";

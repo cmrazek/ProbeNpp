@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-#if DOTNET4
-using System.Linq;
-#endif
-using System.Text;
 using System.Drawing;
-using System.Xml;
-using System.Reflection;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Xml;
 using NppSharp;
 
 namespace ProbeNpp
@@ -56,6 +54,7 @@ namespace ProbeNpp
 	public abstract class ProbeLexer : ILexer
 	{
 		ProbeLexerType _type;
+		ProbeNppPlugin _app;
 
 		public IEnumerable<string> Extensions
 		{
@@ -80,69 +79,10 @@ namespace ProbeNpp
 		LexerStyle _replacedStyle = new LexerStyle("Replaced", Color.DarkGray);
 		LexerStyle _errorStyle = new LexerStyle("Error", Color.Red, "", FontStyle.Bold);
 
-#if DOTNET4
-		private HashSet<string> _keywords  = new HashSet<string>();
-		private HashSet<string> _functions = new HashSet<string>();
-		private HashSet<string> _constants = new HashSet<string>();
-		private HashSet<string> _dataTypes = new HashSet<string>();
-		private HashSet<string> _operators = new HashSet<string>();
-#else
-		private List<string> _keywords = new List<string>();
-		private List<string> _functions = new List<string>();
-		private List<string> _constants = new List<string>();
-		private List<string> _dataTypes = new List<string>();
-		private List<string> _operators = new List<string>();
-#endif
-
 		internal ProbeLexer(ProbeLexerType type)
 		{
 			_type = type;
-			LoadConfig();
-		}
-
-		private void LoadConfig()
-		{
-			var fileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ProbeNppLexer.xml");
-			if (File.Exists(fileName))
-			{
-				var xmlDoc = new XmlDocument();
-				xmlDoc.Load(fileName);
-
-				if (_type == ProbeLexerType.Source)
-				{
-					foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/SourceKeywords"))
-					{
-						ParseWordList(element.InnerText, _keywords);
-					}
-				}
-				else
-				{
-					foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/DictKeywords"))
-					{
-						ParseWordList(element.InnerText, _keywords);
-					}
-				}
-
-				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Functions"))
-				{
-					ParseWordList(element.InnerText, _functions);
-				}
-
-				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Constants"))
-				{
-					ParseWordList(element.InnerText, _constants);
-				}
-
-				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/DataTypes"))
-				{
-					ParseWordList(element.InnerText, _dataTypes);
-				}
-
-				foreach (XmlElement element in xmlDoc.SelectNodes("/ProbeNpp/Operators"))
-				{
-					ParseWordList(element.InnerText, _operators);
-				}
-			}
+			_app = ProbeNppPlugin.Instance;
 		}
 
 		public IEnumerable<LexerStyle> Styles
@@ -165,7 +105,7 @@ namespace ProbeNpp
 		}
 
 		// State bits
-		private const int State_InsideComment = 0x01;
+		public const int State_InsideComment = 0x01;
 		private const int State_InsideReplace = 0x02;
 		private const int State_InsideReplaceWith = 0x04;
 		private const int State_InsideInsert = 0x08;
@@ -192,6 +132,7 @@ namespace ProbeNpp
 		private int _state = 0;
 		private int _tokenCount = 0;
 		private string _table = string.Empty;	// Used to validate table.field.
+		private CodeModel.CodeModel _model = null;
 
 		private int GetLastToken()
 		{
@@ -219,6 +160,7 @@ namespace ProbeNpp
 			_state = state;
 			_tokenCount = 0;
 			_table = string.Empty;
+			_model = null;
 
 			char nextCh;
 			int lastPos = -1;
@@ -320,7 +262,7 @@ namespace ProbeNpp
 						SetLastToken(State_Token_Operator);
 					}
 				}
-				else if (_operators.Contains(nextCh.ToString()))
+				else if (_app.OperatorChars.Contains(nextCh))
 				{
 					line.Style(_operatorStyle);
 					SetLastToken(State_Token_Operator);
@@ -347,7 +289,7 @@ namespace ProbeNpp
 			{
 				if (!string.IsNullOrEmpty(_table))
 				{
-					var env = ProbeNppPlugin.Instance.Environment;
+					var env = _app.Environment;
 					var table = env.GetTable(_table);
 					if (table != null && table.IsField(token))
 					{
@@ -359,7 +301,7 @@ namespace ProbeNpp
 			}
 			else
 			{
-				var env = ProbeNppPlugin.Instance.Environment;
+				var env = _app.Environment;
 				if (env.IsProbeTable(token))
 				{
 					_line.Style(_tableStyle, token.Length);
@@ -369,35 +311,34 @@ namespace ProbeNpp
 				}
 			}
 
-			if (_keywords.Contains(token))
+			if ((_type == ProbeLexerType.Source && _app.SourceKeywords.Contains(token)) ||
+				(_type == ProbeLexerType.Dict && _app.DictKeywords.Contains(token)))
 			{
 				_line.Style(_keywordStyle, token.Length);
 				SetLastToken(State_Token_Keyword);
 				return;
 			}
 
-			if (_functions.Contains(token))
+			if (_app.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token))
 			{
 				_line.Style(_functionStyle, token.Length);
 				SetLastToken(State_Token_Function);
 				return;
 			}
 
-			if (_constants.Contains(token))
+			if (_app.UserConstants.Contains(token) || GetConstantNames().Contains(token))
 			{
-				_line.Style(_constantStyle, token.Length);
-				SetLastToken(State_Token_Constant);
-				return;
+			    _line.Style(_constantStyle, token.Length);
+			    SetLastToken(State_Token_Constant);
+			    return;
 			}
 
-			if (_dataTypes.Contains(token))
+			if (_app.DataTypes.Contains(token) || GetDataTypeNames().Contains(token))
 			{
 				_line.Style(_dataTypeStyle, token.Length);
 				SetLastToken(State_Token_DataType);
 				return;
 			}
-
-			
 
 			_line.Style(_defaultStyle, token.Length);
 			SetLastToken(State_Token_UnknownIdent);
@@ -582,13 +523,7 @@ namespace ProbeNpp
 			return false;
 		}
 
-		private void ParseWordList(string text,
-#if DOTNET4
-			HashSet<string> wordList
-#else
-			List<string> wordList
-#endif
-			)
+		private void ParseWordList(string text, HashSet<string> wordList)
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -597,16 +532,33 @@ namespace ProbeNpp
 				if (Char.IsWhiteSpace(ch))
 				{
 					if (sb.Length > 0) wordList.Add(sb.ToString());
-#if DOTNET4
 					sb.Clear();
-#else
-					sb.Remove(0, sb.Length);
-#endif
 				}
 				else sb.Append(ch);
 			}
 
 			if (sb.Length > 0) wordList.Add(sb.ToString());
+		}
+
+		private IEnumerable<string> GetFunctionList()
+		{
+			if (_model == null) _model = _app.CurrentModel;
+			if (_model != null) return _model.FunctionNames;
+			return new string[0];
+		}
+
+		private IEnumerable<string> GetConstantNames()
+		{
+			if (_model == null) _model = _app.CurrentModel;
+			if (_model != null) return _model.ConstantNames;
+			return new string[0];
+		}
+
+		private IEnumerable<string> GetDataTypeNames()
+		{
+			if (_model == null) _model = _app.CurrentModel;
+			if (_model != null) return _model.DataTypeNames;
+			return new string[0];
 		}
 	}
 }

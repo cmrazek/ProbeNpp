@@ -47,6 +47,7 @@
             this.colContext});
 			this.lstMatches.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.lstMatches.FullRowSelect = true;
+			this.lstMatches.HideSelection = false;
 			this.lstMatches.Location = new System.Drawing.Point(0, 0);
 			this.lstMatches.Name = "lstMatches";
 			this.lstMatches.Size = new System.Drawing.Size(542, 137);

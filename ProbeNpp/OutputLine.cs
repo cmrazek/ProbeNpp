@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-#if DOTNET4
 using System.Linq;
-#endif
 using System.Text;
 
 namespace ProbeNpp
