@@ -45,7 +45,7 @@ namespace ProbeNpp
 			this.treeFiles = new System.Windows.Forms.TreeView();
 			this.imgFiles = new System.Windows.Forms.ImageList(this.components);
 			this.tabFunctions = new System.Windows.Forms.TabPage();
-			this.lstFunctions = new System.Windows.Forms.ListView();
+			this.lstFunctions = new ProbeNpp.ProbeNppListView();
 			this.colFunctionName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.cmFunctions = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.ciRefreshFunctions = new System.Windows.Forms.ToolStripMenuItem();
@@ -173,9 +173,9 @@ namespace ProbeNpp
 			// 
 			// treeFiles
 			// 
-			this.treeFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.treeFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.treeFiles.ContextMenuStrip = this.cmFiles;
 			this.treeFiles.ImageIndex = 0;
 			this.treeFiles.ImageList = this.imgFiles;
@@ -217,6 +217,7 @@ namespace ProbeNpp
 			this.lstFunctions.Location = new System.Drawing.Point(3, 23);
 			this.lstFunctions.MultiSelect = false;
 			this.lstFunctions.Name = "lstFunctions";
+			this.lstFunctions.OwnerDraw = true;
 			this.lstFunctions.Size = new System.Drawing.Size(191, 454);
 			this.lstFunctions.SmallImageList = this.imgFunctions;
 			this.lstFunctions.Sorting = System.Windows.Forms.SortOrder.Ascending;
@@ -226,6 +227,7 @@ namespace ProbeNpp
 			this.lstFunctions.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.lstFunctions_ColumnWidthChanged);
 			this.lstFunctions.ItemActivate += new System.EventHandler(this.lstFunctions_ItemActivate);
 			this.lstFunctions.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lstFunctions_KeyDown);
+			this.lstFunctions.SystemColorsChanged += new System.EventHandler(this.lstFunctions_SystemColorsChanged);
 			// 
 			// colFunctionName
 			// 
@@ -294,7 +296,7 @@ namespace ProbeNpp
 		private System.Windows.Forms.ColumnHeader colFileTitle;
 		private System.Windows.Forms.ColumnHeader colFileDir;
 		private System.Windows.Forms.TabPage tabFunctions;
-		private System.Windows.Forms.ListView lstFunctions;
+		private ProbeNppListView lstFunctions;
 		private System.Windows.Forms.ColumnHeader colFunctionName;
 		private System.Windows.Forms.ImageList imgFiles;
 		private System.Windows.Forms.ContextMenuStrip cmFunctions;

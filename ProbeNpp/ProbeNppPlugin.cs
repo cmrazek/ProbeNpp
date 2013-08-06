@@ -80,6 +80,7 @@ namespace ProbeNpp
 			FileOpened += new FileEventHandler(Plugin_FileOpened);
 			FileClosed += new FileEventHandler(Plugin_FileClosed);
 			FileActivated += new FileEventHandler(Plugin_FileActivated);
+			LanguageChanged += new LanguageTypeEventHandler(Plugin_LanguageChanged);
 			SelectionChanged += new NppEventHandler(Plugin_SelectionChanged);
 			Modification += new ModifiedEventHandler(Plugin_Modification);
 
@@ -148,7 +149,11 @@ namespace ProbeNpp
 		{
 			try
 			{
-				if (!_fileDetails.ContainsKey(e.BufferId)) _fileDetails.Add(e.BufferId, new FileDetails(e.BufferId));
+				if (IsProbeLanguage)
+				{
+					if (!_fileDetails.ContainsKey(e.BufferId)) _fileDetails.Add(e.BufferId, new FileDetails(e.BufferId));
+					_fileBackground.OnActivity();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -172,13 +177,25 @@ namespace ProbeNpp
 		{
 			try
 			{
-				_fileBackground.Cancel();
+				OnFileActivated(e.BufferId);
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+
+		private void OnFileActivated(uint bufferId)
+		{
+			if (IsProbeLanguage)
+			{
+				_fileBackground.OnActivity();
 
 				FileDetails fd;
-				if (!_fileDetails.TryGetValue(e.BufferId, out fd))
+				if (!_fileDetails.TryGetValue(bufferId, out fd))
 				{
-					fd = new FileDetails(e.BufferId);
-					_fileDetails.Add(e.BufferId, fd);
+					fd = new FileDetails(bufferId);
+					_fileDetails.Add(bufferId, fd);
 					fd.LastProbeApp = _env.CurrentApp;
 				}
 				CurrentFile = fd;
@@ -187,21 +204,22 @@ namespace ProbeNpp
 				if (!string.IsNullOrEmpty(fd.LastProbeApp) && fd.LastProbeApp != _env.CurrentApp)
 				{
 					fd.LastProbeApp = _env.CurrentApp;
-					RefreshCustomLexers();
+					//RefreshCustomLexers();
 				}
+
 				if (_sidebar != null) _sidebar.OnFileActivated(fd);
 			}
-			catch (Exception ex)
-			{
-				Output.WriteLine(OutputStyle.Error, "Exception in FileOpened event: {0}", ex);
-			}
+			else if (_sidebar != null) _sidebar.OnNonProbeFileActivated();
 		}
 
 		private void Plugin_SelectionChanged(object sender, EventArgs e)
 		{
 			try
 			{
-				if (_sidebar != null) _sidebar.OnSelectionChanged(CurrentLine);
+				if (IsProbeLanguage)
+				{
+					if (_sidebar != null) _sidebar.OnSelectionChanged(CurrentLine);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -213,15 +231,18 @@ namespace ProbeNpp
 		{
 			try
 			{
-				if (_sidebar != null) _sidebar.OnModified(e);
-
-				var model = CurrentModel;
-				if (model != null)
+				if (IsProbeLanguage)
 				{
-					model.Tracker.Modify(e.Location, e.Text.Text, e.ModificationType == ModificationType.Insert);
-				}
+					if (_sidebar != null) _sidebar.OnModified(e);
 
-				_fileBackground.OnActivity();
+					var model = CurrentModel;
+					if (model != null)
+					{
+						model.Tracker.Modify(e.Location, e.Text.Text, e.ModificationType == ModificationType.Insert);
+					}
+
+					_fileBackground.OnActivity();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -244,9 +265,31 @@ namespace ProbeNpp
 
 		void ProbeNppPlugin_CharAdded(object sender, CharAddedEventArgs e)
 		{
-			if (LanguageName != ProbeSourceLexer.Name) return;
+			try
+			{
+				if (IsProbeLanguage)
+				{
+					if (LanguageName != ProbeSourceLexer.Name) return;
 
-			_autoCompletionManager.OnCharAdded(e);
+					_autoCompletionManager.OnCharAdded(e);
+				}
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+
+		void Plugin_LanguageChanged(object sender, LanguageTypeEventArgs e)
+		{
+			try
+			{
+				OnFileActivated(e.BufferId);
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
 		}
 
 		internal string ConfigDir
@@ -292,6 +335,15 @@ namespace ProbeNpp
 					return file.Model;
 				}
 				return null;
+			}
+		}
+
+		public bool IsProbeLanguage
+		{
+			get
+			{
+				var langName = LanguageName;
+				return langName == Res.ProbeSourceLanguageName || langName == Res.ProbeDictLanguageName;
 			}
 		}
 		#endregion

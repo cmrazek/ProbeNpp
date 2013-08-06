@@ -38,6 +38,10 @@ namespace ProbeNpp
 			_functionListWait = new BackgroundDeferrer();
 			_functionListWait.Execute += new EventHandler(FunctionListWait_Execute);
 
+			lstFunctions.DrawItem += new DrawListViewItemEventHandler(lstFunctions_DrawItem);
+			lstFunctions.DrawSubItem += new DrawListViewSubItemEventHandler(lstFunctions_DrawSubItem);
+			lstFunctions.DrawColumnHeader += new DrawListViewColumnHeaderEventHandler(lstFunctions_DrawColumnHeader);
+
 			_loaded = true;
 		}
 
@@ -73,6 +77,18 @@ namespace ProbeNpp
 				_file = fd;
 				_functionListWait.Cancel();
 				InitializeFunctionList();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(this, ex);
+			}
+		}
+
+		public void OnNonProbeFileActivated()
+		{
+			try
+			{
+				lstFunctions.Items.Clear();
 			}
 			catch (Exception ex)
 			{
@@ -534,6 +550,9 @@ namespace ProbeNpp
 		#endregion
 
 		#region Function List
+		private SolidBrush _argsBrush = null;
+		private SolidBrush _argsBrushHighlight = null;
+
 		private void InitializeFunctionList()
 		{
 			if (_file == null)
@@ -608,15 +627,16 @@ namespace ProbeNpp
 			// Get a list of the functions, and where they are in the file now.
 			FunctionParser fp = new FunctionParser();
 			var parsedFuncs = fp.Parse(_plugin.GetText(_plugin.Start, _plugin.End)).ToArray();
-			var listFuncs = (from i in lstFunctions.Items.Cast<ListViewItem>() select i.Tag as Function).ToArray();
-			var fileFuncs = _file.Functions.ToArray();
-
-			var newFuncs = (from func in parsedFuncs where !_file.FunctionIdExists(func.Id) select func).ToArray();
-			var updatedFuncs = (from func in parsedFuncs where _file.FunctionIdExists(func.Id) select _file.GetFunction(func.Id)).ToArray();
-			var deletedFuncs = (from name in _file.FunctionIds where !parsedFuncs.Any(f => f.Id == name) select _file.GetFunction(name)).ToArray();
 
 			Action updateAction = () =>
 			{
+				var listFuncs = (from i in lstFunctions.Items.Cast<ListViewItem>() select i.Tag as Function).ToArray();
+				var fileFuncs = _file.Functions.ToArray();
+
+				var newFuncs = (from func in parsedFuncs where !_file.FunctionIdExists(func.Id) select func).ToArray();
+				var updatedFuncs = (from func in parsedFuncs where _file.FunctionIdExists(func.Id) select _file.GetFunction(func.Id)).ToArray();
+				var deletedFuncs = (from name in _file.FunctionIds where !parsedFuncs.Any(f => f.Id == name) select _file.GetFunction(name)).ToArray();
+
 				lstFunctions.BeginUpdate();
 				try
 				{
@@ -784,8 +804,99 @@ namespace ProbeNpp
 
 		void FunctionListWait_Execute(object sender, EventArgs e)
 		{
-			System.Threading.ThreadPool.QueueUserWorkItem(x => { UpdateFunctionList(); });
+			System.Threading.ThreadPool.QueueUserWorkItem(x =>
+			{
+				try
+				{
+					UpdateFunctionList();
+				}
+				catch (Exception ex)
+				{
+					ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.Error, "Exception in function list update background thread: {0}", ex);
+				}
+			});
+		}
+
+		void lstFunctions_DrawItem(object sender, DrawListViewItemEventArgs e)
+		{
+			var tag = e.Item.Tag;
+			if (tag == null || tag.GetType() != typeof(Function))
+			{
+			    e.DrawDefault = true;
+			}
+			else
+			{
+			    e.DrawBackground();
+			}
+		}
+
+		void lstFunctions_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+		{
+			if (_argsBrush == null) _argsBrush = new SolidBrush(Util.MixColor(SystemColors.Window, SystemColors.WindowText, .5f));
+			if (_argsBrushHighlight == null) _argsBrushHighlight = new SolidBrush(Util.MixColor(SystemColors.Highlight, SystemColors.HighlightText, .5f));
+
+			if (e.ColumnIndex != 0 || e.Item == null || e.Item.Tag == null || e.Item.Tag.GetType() != typeof(Function))
+			{
+				e.DrawDefault = true;
+			}
+			else
+			{
+				e.DrawDefault = false;
+
+				var func = e.Item.Tag as Function;
+				var selected = e.Item.Selected;
+
+				const int k_iconSize = 16;
+				const int k_spacer = 2;
+				var iconRect = new Rectangle(e.Bounds.Left + k_spacer, e.Bounds.Top + (e.Bounds.Height - k_iconSize) / 2, k_iconSize, k_iconSize);
+				var textRect = new Rectangle(iconRect.Right + k_spacer, e.Bounds.Top, e.Bounds.Right - (iconRect.Right + k_spacer), e.Bounds.Height);
+
+				var sf = new StringFormat();
+				sf.FormatFlags = StringFormatFlags.NoWrap;
+				sf.LineAlignment = StringAlignment.Center;
+
+				e.Graphics.FillRectangle(selected ? SystemBrushes.Highlight : SystemBrushes.Window, textRect);
+				e.Graphics.DrawIcon(Res.FunctionIcon, iconRect);
+
+				if (e.Item.Text.StartsWith(func.Name))
+				{
+					e.Graphics.DrawString(func.Name, lstFunctions.Font,
+						selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText, textRect, sf);
+
+					if (e.Item.Text.Length > func.Name.Length)
+					{
+						var size = Util.MeasureString(e.Graphics, func.Name, lstFunctions.Font, textRect, sf);
+						var argsRect = new RectangleF(textRect.Left + size.Width, textRect.Top, textRect.Width - size.Width, textRect.Height);
+						if (!argsRect.IsEmpty)
+						{
+							e.Graphics.DrawString(e.Item.Text.Substring(func.Name.Length), lstFunctions.Font,
+								selected ? _argsBrushHighlight : _argsBrush, argsRect, sf);
+						}
+					}
+				}
+				else
+				{
+					e.Graphics.DrawString(e.Item.Text, lstFunctions.Font,
+						selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText,
+						textRect, sf);
+				}
+
+				e.DrawFocusRectangle(e.Bounds);
+			}
+		}
+
+		void lstFunctions_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+		{
+			e.DrawDefault = true;
+		}
+
+		private void lstFunctions_SystemColorsChanged(object sender, EventArgs e)
+		{
+			_argsBrush = null;
+			_argsBrushHighlight = null;
 		}
 		#endregion
+
+		
 	}
 }

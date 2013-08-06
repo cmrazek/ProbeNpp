@@ -54,7 +54,6 @@ namespace ProbeNpp
 	public abstract class ProbeLexer : ILexer
 	{
 		ProbeLexerType _type;
-		ProbeNppPlugin _app;
 
 		public IEnumerable<string> Extensions
 		{
@@ -82,7 +81,6 @@ namespace ProbeNpp
 		internal ProbeLexer(ProbeLexerType type)
 		{
 			_type = type;
-			_app = ProbeNppPlugin.Instance;
 		}
 
 		public IEnumerable<LexerStyle> Styles
@@ -262,7 +260,7 @@ namespace ProbeNpp
 						SetLastToken(State_Token_Operator);
 					}
 				}
-				else if (_app.OperatorChars.Contains(nextCh))
+				else if (ProbeNppPlugin.Instance.OperatorChars.Contains(nextCh))
 				{
 					line.Style(_operatorStyle);
 					SetLastToken(State_Token_Operator);
@@ -289,7 +287,7 @@ namespace ProbeNpp
 			{
 				if (!string.IsNullOrEmpty(_table))
 				{
-					var env = _app.Environment;
+					var env = ProbeNppPlugin.Instance.Environment;
 					var table = env.GetTable(_table);
 					if (table != null && table.IsField(token))
 					{
@@ -301,7 +299,7 @@ namespace ProbeNpp
 			}
 			else
 			{
-				var env = _app.Environment;
+				var env = ProbeNppPlugin.Instance.Environment;
 				if (env.IsProbeTable(token))
 				{
 					_line.Style(_tableStyle, token.Length);
@@ -311,29 +309,29 @@ namespace ProbeNpp
 				}
 			}
 
-			if ((_type == ProbeLexerType.Source && _app.SourceKeywords.Contains(token)) ||
-				(_type == ProbeLexerType.Dict && _app.DictKeywords.Contains(token)))
+			if ((_type == ProbeLexerType.Source && ProbeNppPlugin.Instance.SourceKeywords.Contains(token)) ||
+				(_type == ProbeLexerType.Dict && ProbeNppPlugin.Instance.DictKeywords.Contains(token)))
 			{
 				_line.Style(_keywordStyle, token.Length);
 				SetLastToken(State_Token_Keyword);
 				return;
 			}
 
-			if (_app.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token))
+			if (ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token))
 			{
 				_line.Style(_functionStyle, token.Length);
 				SetLastToken(State_Token_Function);
 				return;
 			}
 
-			if (_app.UserConstants.Contains(token) || GetConstantNames().Contains(token))
+			if (ProbeNppPlugin.Instance.UserConstants.Contains(token) || GetConstantNames().Contains(token))
 			{
 			    _line.Style(_constantStyle, token.Length);
 			    SetLastToken(State_Token_Constant);
 			    return;
 			}
 
-			if (_app.DataTypes.Contains(token) || GetDataTypeNames().Contains(token))
+			if (ProbeNppPlugin.Instance.DataTypes.Contains(token) || GetDataTypeNames().Contains(token))
 			{
 				_line.Style(_dataTypeStyle, token.Length);
 				SetLastToken(State_Token_DataType);
@@ -542,21 +540,21 @@ namespace ProbeNpp
 
 		private IEnumerable<string> GetFunctionList()
 		{
-			if (_model == null) _model = _app.CurrentModel;
+			if (_model == null) _model = ProbeNppPlugin.Instance.CurrentModel;
 			if (_model != null) return _model.FunctionNames;
 			return new string[0];
 		}
 
 		private IEnumerable<string> GetConstantNames()
 		{
-			if (_model == null) _model = _app.CurrentModel;
+			if (_model == null) _model = ProbeNppPlugin.Instance.CurrentModel;
 			if (_model != null) return _model.ConstantNames;
 			return new string[0];
 		}
 
 		private IEnumerable<string> GetDataTypeNames()
 		{
-			if (_model == null) _model = _app.CurrentModel;
+			if (_model == null) _model = ProbeNppPlugin.Instance.CurrentModel;
 			if (_model != null) return _model.DataTypeNames;
 			return new string[0];
 		}

@@ -107,6 +107,7 @@ namespace ProbeNpp.TokenParser
 				{
 					var startCh = ch;
 					_tokenText.Append(ch);
+					MoveNext();
 					while (_pos < _length)
 					{
 						ch = _source[_pos];
@@ -390,6 +391,21 @@ namespace ProbeNpp.TokenParser
 		{
 			if (startIndex < 0 || startIndex + length > _length) throw new ArgumentOutOfRangeException();
 			return _source.Substring(startIndex, length);
+		}
+
+		public bool Peek()
+		{
+			var pos = Position;
+			if (!Read()) return false;
+			Position = pos;
+			return true;
+		}
+
+		public void ResetPosition()
+		{
+			_pos = 0;
+			_lineNum = 1;
+			_linePos = 1;
 		}
 	}
 

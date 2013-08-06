@@ -21,11 +21,39 @@ namespace ProbeNpp
 			while (!_parser.EndOfFile)
 			{
 				var startPos = _parser.Position;
+				var checkForFunctionDef = true;
 
-				if (!ProcessDefine() && !ProcessFunction())
+				if (!_parser.Peek()) break;
+				if (_parser.TokenType == TokenParser.TokenType.Word)
 				{
-					// Unable to find any recognizable pattern, so just skip the next token.
-					_parser.Read();
+					switch (_parser.TokenText)
+					{
+						case "for":
+						case "if":
+						case "select":
+						case "switch":
+						case "while":
+							// Functions will never be defined inside the conditions for these control statements.
+							while (_parser.Read())
+							{
+								if (_parser.TokenType == TokenParser.TokenType.Operator &&
+									(_parser.TokenText == "{" || _parser.TokenText == ";" || _parser.TokenText == ":"))
+								{
+									break;
+								}
+							}
+							checkForFunctionDef = false;
+							break;
+					}
+				}
+
+				if (checkForFunctionDef)
+				{
+					if (!ProcessDefine() && !ProcessFunction())
+					{
+						// Unable to find any recognizable pattern, so just skip the next token.
+						_parser.Read();
+					}
 				}
 			}
 
@@ -39,6 +67,8 @@ namespace ProbeNpp
 				}
 				lastFunc = func;
 			}
+
+			if (lastFunc != null) lastFunc.EndLine = source.Count(c => c == '\n') + 1;
 
 			return _funcs;
 		}
@@ -85,7 +115,7 @@ namespace ProbeNpp
 				{
 					if (_parser.TokenText == "{") break;
 
-					sig.Append(_parser);
+					//sig.Append(_parser);
 
 					switch (_parser.TokenText)
 					{

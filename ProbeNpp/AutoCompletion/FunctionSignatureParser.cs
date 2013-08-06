@@ -67,7 +67,31 @@ namespace ProbeNpp.AutoCompletion
 
 		private ParseState ParseFunctionSigFromSource()
 		{
+			var startPos = _source.Length;
 			var parser = new TokenParser.Parser(_source.ToString());
+			var retVal = ParseState.NotEnoughSource;
+
+			// Find the last token before startPos.
+			while (startPos > 0)
+			{
+				var newStartPos = 0;
+				parser.ResetPosition();
+				while (parser.Position.Offset < startPos)
+				{
+					newStartPos = parser.Position.Offset;
+					if (!parser.Read()) break;
+				}
+
+				startPos = newStartPos;
+				if ((retVal = ParseFunctionSigFromSource(startPos)) == ParseState.Found) return retVal;
+			}
+
+			return retVal;
+		}
+
+		private ParseState ParseFunctionSigFromSource(int startPos)
+		{
+			var parser = new TokenParser.Parser(_source.ToString().Substring(startPos));
 			var lastTokenText = "";
 			TokenParser.TokenType lastTokenType = TokenParser.TokenType.Unknown;
 

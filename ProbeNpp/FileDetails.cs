@@ -11,6 +11,7 @@ namespace ProbeNpp
 	{
 		private uint _id = 0;
 		private string _lastProbeApp = "";
+		private bool _doneInitialUpdate = false;
 
 		public FileDetails(uint id)
 		{
@@ -31,7 +32,11 @@ namespace ProbeNpp
 			var lang = ProbeNppPlugin.Instance.LanguageName;
 			if (lang == Res.ProbeSourceLanguageName || lang == Res.ProbeDictLanguageName)
 			{
-				CreateModel();
+				if (!_doneInitialUpdate)
+				{
+					_doneInitialUpdate = true;
+					ModelIdle();
+				}
 			}
 		}
 
@@ -180,10 +185,17 @@ namespace ProbeNpp
 				{
 					ThreadPool.QueueUserWorkItem(obj =>
 					{
-						if (this == ProbeNppPlugin.Instance.CurrentFile)
+						try
 						{
-							CreateModel();
-							ProbeNppPlugin.Instance.RefreshCustomLexers();
+							if (this == ProbeNppPlugin.Instance.CurrentFile)
+							{
+								CreateModel();
+								ProbeNppPlugin.Instance.RefreshCustomLexers();
+							}
+						}
+						catch (Exception ex)
+						{
+							ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.Error, "Exception in code model background update thread: {0}", ex);
 						}
 					});
 				}

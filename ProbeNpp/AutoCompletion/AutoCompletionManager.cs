@@ -173,23 +173,48 @@ namespace ProbeNpp.AutoCompletion
 			var model = _app.CurrentModel;
 			if (model != null)
 			{
-				var list = new List<string>();
+				var list = new SortedSet<string>();
 
 				var modelLoc = location;
 				model.Tracker.TranslateToSnapshot(ref modelLoc);
 				var pos = model.GetPosition(modelLoc);
 
-				list.AddRange(from i in model.GetAutoCompletionItems(pos) where i.Text.StartsWith(startsWith) select i.Text);
-				list.AddRange(from t in _app.Environment.AutoCompletionTables where t.Text.StartsWith(startsWith) select t.Text);
+				foreach (var item in (from i in model.GetAutoCompletionItems(pos) where i.Text.StartsWith(startsWith) select i.Text))
+				{
+					list.Add(item);
+				}
 
-				if (_app.LanguageName == Res.ProbeSourceLanguageName) list.AddRange(from k in _app.SourceKeywords where k.StartsWith(startsWith) select k);
-				else if (_app.LanguageName == Res.ProbeDictLanguageName) list.AddRange(from k in _app.DictKeywords where k.StartsWith(startsWith) select k);
+				foreach (var item in (from t in _app.Environment.AutoCompletionTables where t.Text.StartsWith(startsWith) select t.Text))
+				{
+					list.Add(item);
+				}
 
-				list.AddRange(from f in _app.FunctionSignatures.Keys where f.StartsWith(startsWith) select f);
+				if (_app.LanguageName == Res.ProbeSourceLanguageName)
+				{
+					foreach (var item in (from k in _app.SourceKeywords where k.StartsWith(startsWith) select k))
+					{
+						list.Add(item);
+					}
+				}
+				else if (_app.LanguageName == Res.ProbeDictLanguageName)
+				{
+					foreach (var item in (from k in _app.DictKeywords where k.StartsWith(startsWith) select k))
+					{
+						list.Add(item);
+					}
+				}
 
-				list.AddRange(from k in _app.DataTypes where k.StartsWith(startsWith) select k);
+				foreach (var item in (from f in _app.FunctionSignatures.Keys where f.StartsWith(startsWith) select f))
+				{
+					list.Add(item);
+				}
 
-				list.Sort((a, b) => string.Compare(a, b, true));
+				foreach (var item in (from k in _app.DataTypes where k.StartsWith(startsWith) select k))
+				{
+					list.Add(item);
+				}
+
+				//list.Sort((a, b) => string.Compare(a, b, true));
 				return list;
 			}
 
