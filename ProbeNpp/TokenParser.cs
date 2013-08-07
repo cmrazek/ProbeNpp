@@ -238,7 +238,7 @@ namespace ProbeNpp.TokenParser
 			}
 
 			// End of file
-			_tokenType = TokenType.Unknown;
+			_tokenType = TokenType.WhiteSpace;
 			_tokenText.Clear();
 			return false;
 		}
@@ -286,6 +286,7 @@ namespace ProbeNpp.TokenParser
 					_linePos = 1;
 				}
 				_pos++;
+				_linePos++;
 			}
 		}
 
@@ -406,6 +407,28 @@ namespace ProbeNpp.TokenParser
 			_pos = 0;
 			_lineNum = 1;
 			_linePos = 1;
+		}
+
+		public void SetOffset(int offset)
+		{
+			if (_pos > offset)
+			{
+				_pos = 0;
+				_lineNum = 1;
+				_linePos = 1;
+			}
+
+			var stop = _length < offset ? _length : offset;
+			while (_pos < stop)
+			{
+				if (_source[_pos] == '\n')
+				{
+					_lineNum++;
+					_linePos = 1;
+				}
+				_pos++;
+				_linePos++;
+			}
 		}
 	}
 

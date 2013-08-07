@@ -21,6 +21,8 @@ namespace ProbeNpp.AutoCompletion
 
 		public void OnCharAdded(CharAddedEventArgs e)
 		{
+			if (!IsAutoCompletionAllowedHere(_app.CurrentLocation)) return;
+
 			if (e.Character == '.')
 			{
 				var wordEnd = _app.CurrentLocation - 1;
@@ -234,6 +236,46 @@ namespace ProbeNpp.AutoCompletion
 			if (!string.IsNullOrEmpty(funcSig)) return funcSig;
 
 			return null;
+		}
+
+		public bool IsAutoCompletionAllowedHere(TextLocation location)
+		{
+			var currentLine = _app.CurrentLine;
+			var lineText = _app.GetLineText(currentLine);
+			var state = currentLine > 1 ? _app.GetLineState(currentLine - 1) : 0;
+
+			var startPos = 0;
+			if ((state & ProbeLexer.State_InsideComment) != 0)
+			{
+				var index = lineText.IndexOf("*/");
+				if (index < 0) return false;
+				startPos = index + 2;
+			}
+
+			if (startPos + 1 > location.CharPosition) return false;
+
+			var parser = new TokenParser.Parser(_app.GetLineText(currentLine));
+			parser.ReturnComments = true;
+			parser.ReturnWhiteSpace = true;
+			if (startPos > 0) parser.SetOffset(startPos);
+
+			while (parser.Read())
+			{
+				if (parser.Position.LinePos > location.CharPosition || parser.EndOfFile)
+				{
+					if (parser.TokenType == TokenParser.TokenType.Comment || parser.TokenType == TokenParser.TokenType.StringLiteral)
+					{
+						return false;
+					}
+					return true;
+				}
+			}
+
+			if (parser.TokenType == TokenParser.TokenType.Comment || parser.TokenType == TokenParser.TokenType.StringLiteral)
+			{
+				return false;
+			}
+			return true;
 		}
 	}
 }
