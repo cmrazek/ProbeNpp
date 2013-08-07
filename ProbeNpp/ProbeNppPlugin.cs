@@ -22,18 +22,19 @@ using NppSharp;
 // 65	Merge File
 // 70	Show File List
 // 75	Show Function List
-// 80	Show Sidebar
 //		--------------------------
 // 85	Find in Probe Files
+// 87	Run
 //		--------------------------
-// 90	Compile
-// 100	Stop Compile
-// 110	Show Compile Panel
+//		Compile
+// 90		Compile
+// 100		Stop Compile
+// 110		Show Compile Panel
 //		--------------------------
-// 120	Run
-//		--------------------------
-// 130	Probe Shortcut
-// 140	Probe Settings
+//      Settings
+// 125		Show Sidebar
+// 130		Probe Shortcut
+// 140		Probe Settings
 
 namespace ProbeNpp
 {
@@ -383,9 +384,10 @@ namespace ProbeNpp
 
 		private const int k_dockWindowId = 6481891;
 
-		[NppDisplayName("Show Sidebar")]
+		[NppDisplayName("Show &Sidebar")]
 		[NppShortcut(true, false, true, Keys.F9)]
-		[NppSortOrder(80)]
+		[NppSortOrder(125)]
+		[NppMenu("&Settings")]
 		public void ShowSidebar()
 		{
 			try
@@ -407,7 +409,7 @@ namespace ProbeNpp
 			}
 		}
 
-		[NppDisplayName("Show &File List")]
+		[NppDisplayName("Sh&ow File List")]
 		[NppShortcut(true, false, true, Keys.F11)]
 		[NppSortOrder(70)]
 		public void ShowSidebarFileList()
@@ -423,7 +425,7 @@ namespace ProbeNpp
 			}
 		}
 
-		[NppDisplayName("Show Function &List")]
+		[NppDisplayName("Show &Function List")]
 		[NppShortcut(true, false, true, Keys.F12)]
 		[NppSortOrder(75)]
 		public void ShowSidebarFunctionList()
@@ -446,9 +448,10 @@ namespace ProbeNpp
 
 		private const int k_compilePanelId = 564489;
 
-		[NppDisplayName("Show Compile Panel")]
+		[NppDisplayName("Show Compile &Panel")]
 		[NppShortcut(true, true, true, Keys.F7)]
 		[NppSortOrder(110)]
+		[NppMenu("&Compile")]
 		public void ShowCompilePanel()
 		{
 			try
@@ -485,6 +488,7 @@ namespace ProbeNpp
 		[NppSortOrder(90)]
 		[NppSeparator]
 		[NppToolbarIcon(Property = "CompileIcon")]
+		[NppMenu("&Compile")]
 		public void Compile()
 		{
 			try
@@ -503,10 +507,11 @@ namespace ProbeNpp
 			get { return IconToBitmap(Res.CompileIcon); }
 		}
 
-		[NppDisplayName("Stop Compile")]
+		[NppDisplayName("&Stop Compile")]
 		[NppShortcut(true, false, true, Keys.F8)]
 		[NppSortOrder(100)]
 		[NppToolbarIcon(Property = "StopCompileIcon")]
+		[NppMenu("&Compile")]
 		public void StopCompile()
 		{
 			try
@@ -570,9 +575,10 @@ namespace ProbeNpp
 		#region Settings
 		private Settings _settings = null;
 
-		[NppDisplayName("Probe Settings")]
+		[NppDisplayName("&Probe Settings")]
 		[NppSortOrder(140)]
 		[NppToolbarIcon(Property = "ShowSettingsIcon")]
+		[NppMenu("&Settings")]
 		public void ShowSettings()
 		{
 			try
@@ -603,10 +609,9 @@ namespace ProbeNpp
 		#endregion
 
 		#region Run
-		[NppDisplayName("Run SAM/CAM")]
+		[NppDisplayName("&Run SAM/CAM")]
 		[NppShortcut(true, false, true, Keys.F5)]
-		[NppSortOrder(120)]
-		[NppSeparator]
+		[NppSortOrder(87)]
 		[NppToolbarIcon(Property = "RunIcon")]
 		public void Run()
 		{
@@ -627,7 +632,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region PST
-		[NppDisplayName("PST Table")]
+		[NppDisplayName("&PST Table")]
 		[NppSortOrder(60)]
 		[NppToolbarIcon(Property = "PstTableIcon")]
 		public void PstTable()
@@ -677,7 +682,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region FEC
-		[NppDisplayName("FEC File")]
+		[NppDisplayName("FEC Fi&le")]
 		[NppSortOrder(50)]
 		[NppSeparator]
 		[NppToolbarIcon(Property = "FecFileIcon")]
@@ -723,7 +728,7 @@ namespace ProbeNpp
 			get { return IconToBitmap(Res.FecIcon); }
 		}
 
-		[NppDisplayName("FEC to Visual C")]
+		[NppDisplayName("FEC to &Visual C")]
 		[NppSortOrder(55)]
 		public void CompileToVisualC()
 		{
@@ -764,10 +769,10 @@ namespace ProbeNpp
 		#endregion
 
 		#region Shortcuts
-		[NppDisplayName("Probe Shortcut")]
+		[NppDisplayName("Pr&obe Shortcut")]
 		[NppShortcut(true, false, false, Keys.Oemcomma)]
 		[NppSortOrder(130)]
-		[NppSeparator]
+		[NppMenu("&Settings")]
 		public void ProbeShortcut()
 		{
 			try
@@ -1121,7 +1126,7 @@ namespace ProbeNpp
 			return new TextLocation(line, 1);
 		}
 
-		[NppDisplayName("Insert &Date")]
+		[NppDisplayName("Insert D&ate")]
 		[NppShortcut(true, false, true, Keys.Y)]
 		[NppSortOrder(30)]
 		[NppToolbarIcon(Property = "InsertDateIcon")]
@@ -1137,7 +1142,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region Merge File
-		[NppDisplayName("Merge File")]
+		[NppDisplayName("&Merge File")]
 		[NppSortOrder(65)]
 		[NppToolbarIcon(Property = "MergeFileIcon")]
 		public void MergeFile()
@@ -1195,7 +1200,7 @@ namespace ProbeNpp
 
 		private const int k_findInProbeFilesPanelId = 14965;
 
-		[NppDisplayName("Find in Probe Files")]
+		[NppDisplayName("F&ind in Probe Files")]
 		[NppSortOrder(85)]
 		[NppSeparator]
 		[NppToolbarIcon(Property = "FindInProbeFilesIcon")]

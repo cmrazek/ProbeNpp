@@ -585,11 +585,14 @@ namespace ProbeNpp
 
 		private void UpdateFunctionLvi(ListViewItem lvi, Function func, Function newFunc)
 		{
-			lvi.Text = func.Signature;
-			lvi.Tag = func;
-			lvi.ImageIndex = 0;
-			func.LVI = lvi;
-			func.Update(newFunc);
+			if (lvi != null && func != null && newFunc != null)
+			{
+				lvi.Text = func.Signature;
+				lvi.Tag = func;
+				lvi.ImageIndex = 0;
+				func.LVI = lvi;
+				func.Update(newFunc);
+			}
 		}
 
 		private void lstFunctions_ItemActivate(object sender, EventArgs e)
