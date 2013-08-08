@@ -472,5 +472,10 @@ namespace ProbeNpp.TokenParser
 		{
 			get { return _linePos; }
 		}
+
+		public NppSharp.TextLocation ToNppSharpTextLocation()
+		{
+			return new NppSharp.TextLocation(_lineNum, _linePos);
+		}
 	}
 }

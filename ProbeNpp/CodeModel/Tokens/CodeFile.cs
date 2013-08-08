@@ -718,7 +718,8 @@ namespace ProbeNpp.CodeModel.Tokens
 			{
 				ch = _source[_pos];
 				MoveNext();
-				if (ch == startCh && lastCh != '\\') return;
+				if (ch == '\\') MoveNext();	// Move past escaped char
+				else if (ch == startCh) return;
 				lastCh = ch;
 			}
 		}

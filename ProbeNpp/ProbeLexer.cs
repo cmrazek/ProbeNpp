@@ -317,7 +317,8 @@ namespace ProbeNpp
 				return;
 			}
 
-			if (ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token))
+			if ((ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token)) &&
+				PeekNextChar(token.Length) == '(')
 			{
 				_line.Style(_functionStyle, token.Length);
 				SetLastToken(State_Token_Function);
@@ -557,6 +558,16 @@ namespace ProbeNpp
 			if (_model == null) _model = ProbeNppPlugin.Instance.CurrentModel;
 			if (_model != null) return _model.DataTypeNames;
 			return new string[0];
+		}
+
+		private char PeekNextChar(int offset)
+		{
+			while (offset + _line.Position < _line.Length)
+			{
+				var ch = _line.PeekChar(offset++);
+				if (!char.IsWhiteSpace(ch)) return ch;
+			}
+			return '\0';
 		}
 	}
 }

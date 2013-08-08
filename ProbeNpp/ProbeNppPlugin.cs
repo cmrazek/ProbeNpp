@@ -58,6 +58,7 @@ namespace ProbeNpp
 		private object _currentFileLock = new object();
 		private BackgroundDeferrer _fileBackground = new BackgroundDeferrer();
 		private AutoCompletion.AutoCompletionManager _autoCompletionManager;
+		private AutoCompletion.SmartIndentManager _smartIndentManager;
 
 		public const string k_appNameIdent = "ProbeNpp";
 
@@ -75,6 +76,7 @@ namespace ProbeNpp
 			Init(NppWindow);
 
 			_autoCompletionManager = new AutoCompletion.AutoCompletionManager(this);
+			_smartIndentManager = new AutoCompletion.SmartIndentManager(this);
 
 			Ready += new NppEventHandler(Plugin_Ready);
 			Shutdown += new NppEventHandler(Plugin_Shutdown);
@@ -268,10 +270,9 @@ namespace ProbeNpp
 		{
 			try
 			{
+				_smartIndentManager.OnCharAdded(e);
 				if (IsProbeLanguage)
 				{
-					if (LanguageName != ProbeSourceLexer.Name) return;
-
 					_autoCompletionManager.OnCharAdded(e);
 				}
 			}

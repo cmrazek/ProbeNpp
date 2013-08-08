@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="AutoCompletion\AutoCompletionManager.cs" />
     <Compile Include="AutoCompletion\FunctionSignatureParser.cs" />
+    <Compile Include="AutoCompletion\SmartIndentManager.cs" />
     <Compile Include="CodeModel\Tracker.cs" />
     <Compile Include="BackgroundDeferrer.cs" />
     <Compile Include="CodeModel\Tokens\CodeFile.cs" />

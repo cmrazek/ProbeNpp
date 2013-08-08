@@ -11,8 +11,9 @@ namespace ProbeNpp.AutoCompletion
 	{
 		private ProbeNppPlugin _app;
 
-		private static readonly Regex _rxAutoCompleteWord = new Regex(@"\b\w+$");
-		private static readonly Regex _rxFuncCall = new Regex(@"\b(\w+)\s*\($");
+		private static readonly Regex _rxAutoCompleteWord = new Regex(@"\b[a-zA-Z_]\w*$");
+		private static readonly Regex _rxFuncCall = new Regex(@"\b([a-zA-Z_]\w*)\s*\($");
+		private static readonly Regex _rxTableField = new Regex(@"\b([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)$");
 
 		public AutoCompletionManager(ProbeNppPlugin app)
 		{
@@ -21,6 +22,7 @@ namespace ProbeNpp.AutoCompletion
 
 		public void OnCharAdded(CharAddedEventArgs e)
 		{
+			if (!_app.Settings.Editor.AutoCompletion) return;
 			if (!IsAutoCompletionAllowedHere(_app.CurrentLocation)) return;
 
 			if (e.Character == '.')
@@ -46,7 +48,14 @@ namespace ProbeNpp.AutoCompletion
 					var lineText = _app.GetText(_app.GetLineStartPos(_app.CurrentLine), _app.CurrentLocation);
 
 					Match match;
-					if ((match = _rxAutoCompleteWord.Match(lineText)).Success)
+					ProbeTable table;
+					if ((match = _rxTableField.Match(lineText)).Success &&
+						(table = _app.Environment.GetTable(match.Groups[1].Value)) != null)
+					{
+						var field = match.Groups[2].Value;
+						_app.ShowAutoCompletion(field.Length, (from f in table.Fields orderby f.Name select f.Name), true);
+					}
+					else if ((match = _rxAutoCompleteWord.Match(lineText)).Success)
 					{
 						var word = match.Value;
 

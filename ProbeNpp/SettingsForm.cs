@@ -61,6 +61,7 @@ namespace ProbeNpp
 
 			// Misc
 			chkShowSidebarOnStartup.Checked = settings.Sidebar.ShowOnStartup;
+			chkAutoCompletion.Checked = settings.Editor.AutoCompletion;
 		}
 
 		private bool SaveSettings()
@@ -88,6 +89,7 @@ namespace ProbeNpp
 
 			// Misc
 			settings.Sidebar.ShowOnStartup = chkShowSidebarOnStartup.Checked;
+			settings.Editor.AutoCompletion = chkAutoCompletion.Checked;
 
 			settings.Save();
 			_plugin.OnSettingsSaved();
@@ -120,6 +122,7 @@ namespace ProbeNpp
 
 			// Misc
 			if (chkShowSidebarOnStartup.Checked != settings.Sidebar.ShowOnStartup) return true;
+			if (chkAutoCompletion.Checked != settings.Editor.AutoCompletion) return true;
 
 			return false;
 		}

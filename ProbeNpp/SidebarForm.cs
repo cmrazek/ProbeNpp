@@ -378,6 +378,8 @@ namespace ProbeNpp
 				if (lstFiles.SelectedItems.Count == 0) return;
 				ProbeFile pf = (ProbeFile)lstFiles.SelectedItems[0].Tag;
 				_plugin.OpenFile(pf.pathName);
+
+				txtFileFilter.Clear();
 			}
 			catch (Exception ex)
 			{
@@ -603,6 +605,8 @@ namespace ProbeNpp
 				ListViewItem lvi = lstFunctions.SelectedItems[0];
 				if (lvi.Tag != null && lvi.Tag.GetType() == typeof(Function))
 				{
+					txtFunctionFilter.Clear();
+
 					Function func = (Function)lvi.Tag;
 					UpdateFunctionList();
 					_plugin.GoToLine(_plugin.LineCount);

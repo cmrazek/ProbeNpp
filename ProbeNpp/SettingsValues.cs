@@ -45,7 +45,7 @@ namespace ProbeNpp
 			public bool InitialsInDiags = true;
 			public bool FileNameInDiags = true;
 			public bool TodoAfterDiags = false;
-            public bool FunctionNameInDiags = true;
+			public bool FunctionNameInDiags = true;
 
 			public bool TagDate = false;
 			public bool MultiLineTagsOnSeparateLines = true;
@@ -82,6 +82,13 @@ namespace ProbeNpp
 			public int FileNameColumnWidth = 0;
 			public int LineNumberColumnWidth = 0;
 			public int LineTextColumnWidth = 0;
+		}
+
+		public EditorGroup Editor = new EditorGroup();
+		public class EditorGroup : SettingsGroup
+		{
+			public bool AutoCompletion = true;
+			public bool SmartIndent = true;
 		}
 	}
 }
