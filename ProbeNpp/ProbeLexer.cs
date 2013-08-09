@@ -224,7 +224,8 @@ namespace ProbeNpp
 						{
 							if (done) return false;
 							if (ch == nextCh && lastCh != '\\') done = true;
-							lastCh = ch;
+							if (ch == '\\' && lastCh == '\\') lastCh = '\0';	// To avoid problems with "\\" where last 2 chars appear to be another escape sequence.
+							else lastCh = ch;
 							return true;
 						});
 					SetLastToken(State_Token_String);

@@ -1295,5 +1295,40 @@ namespace ProbeNpp
 			}
 		}
 		#endregion
+
+
+		#region Debug
+#if DEBUG
+		[NppDisplayName("Show Code Model Tree")]
+		[NppMenu("Debug")]
+		public void ShowModelTree()
+		{
+			try
+			{
+				var file = CurrentFile;
+				if (file != null)
+				{
+					var model = file.Model;
+					if (model != null)
+					{
+						var content = model.DumpTree();
+
+						var fileName = ActiveFileName;
+						if (string.IsNullOrWhiteSpace(fileName)) fileName = "Unnamed";
+						else fileName = Path.GetFileName(fileName);
+
+						var tempFileName = TempManager.GetNewTempFileName(fileName, "xml");
+						System.IO.File.WriteAllText(tempFileName, content);
+						OpenFile(tempFileName);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+#endif
+		#endregion
 	}
 }

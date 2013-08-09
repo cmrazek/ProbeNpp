@@ -761,8 +761,12 @@ namespace ProbeNpp.CodeModel.Tokens
 		#region Debugging
 		public string DumpTree()
 		{
+			var settings = new XmlWriterSettings();
+			settings.Indent = true;
+			settings.OmitXmlDeclaration = true;
+
 			var sb = new StringBuilder();
-			using (var xml = XmlWriter.Create(sb))
+			using (var xml = XmlWriter.Create(sb, settings))
 			{
 				DumpTree(xml);
 			}
