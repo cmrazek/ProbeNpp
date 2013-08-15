@@ -14,6 +14,7 @@ namespace ProbeNpp
 		private const int k_defaultTimeout = 1000;
 
 		public event EventHandler Execute;
+		public event EventHandler Activity;
 
 		public BackgroundDeferrer(int timeout = k_defaultTimeout)
 		{
@@ -28,6 +29,9 @@ namespace ProbeNpp
 		{
 			_timer.Stop();
 			_timer.Start();
+
+			var ev = Activity;
+			if (ev != null) ev(this, new EventArgs());
 		}
 
 		public void Cancel()

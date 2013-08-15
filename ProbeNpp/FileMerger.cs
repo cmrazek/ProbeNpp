@@ -375,5 +375,14 @@ namespace ProbeNpp
 		{
 			get { return _mergedContent; }
 		}
+
+		public IEnumerable<string> FileNames
+		{
+			get
+			{
+				yield return _origFileName;
+				foreach (var fn in _localFileNames) yield return fn;
+			}
+		}
 	}
 }

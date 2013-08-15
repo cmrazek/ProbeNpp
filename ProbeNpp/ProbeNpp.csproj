@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoCompletion\AutoCompletionManager.cs" />
+    <Compile Include="AutoCompletion\FunctionFileScanner.cs" />
     <Compile Include="AutoCompletion\FunctionSignatureParser.cs" />
     <Compile Include="AutoCompletion\SmartIndentManager.cs" />
     <Compile Include="CodeModel\Tracker.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="Function Parser\Function.cs" />
     <Compile Include="Function Parser\FunctionCollection.cs" />
     <Compile Include="Function Parser\FunctionParser.cs" />
+    <Compile Include="LockedValue.cs" />
     <Compile Include="ProbeNppListView.cs">
       <SubType>Component</SubType>
     </Compile>

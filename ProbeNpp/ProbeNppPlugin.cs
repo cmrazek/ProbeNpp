@@ -59,6 +59,7 @@ namespace ProbeNpp
 		private BackgroundDeferrer _fileBackground = new BackgroundDeferrer();
 		private AutoCompletion.AutoCompletionManager _autoCompletionManager;
 		private AutoCompletion.SmartIndentManager _smartIndentManager;
+		private BackgroundDeferrer _fileScannerDefer = new BackgroundDeferrer();
 
 		public const string k_appNameIdent = "ProbeNpp";
 
@@ -90,6 +91,10 @@ namespace ProbeNpp
 			CharAdded += new CharAddedEventHandler(ProbeNppPlugin_CharAdded);
 
 			_fileBackground.Execute += new EventHandler(FileBackground_Execute);
+
+			AutoCompletion.FunctionFileScanner.Initialize();
+			_fileScannerDefer.Execute += new EventHandler(FileScanner_Execute);
+			_fileScannerDefer.Activity += new EventHandler(FileScanner_Activity);
 		}
 
 		private void Plugin_Ready(object sender, EventArgs e)
@@ -138,6 +143,8 @@ namespace ProbeNpp
 		{
 			try
 			{
+				AutoCompletion.FunctionFileScanner.Close();
+
 				if (_compilePanel != null) _compilePanel.OnShutdown();
 				if (_sidebar != null) _sidebar.OnShutdown();
 				_settings.Save();
@@ -181,6 +188,7 @@ namespace ProbeNpp
 			try
 			{
 				OnFileActivated(e.BufferId);
+				_fileScannerDefer.OnActivity();
 			}
 			catch (Exception ex)
 			{
@@ -246,6 +254,8 @@ namespace ProbeNpp
 
 					_fileBackground.OnActivity();
 				}
+
+				_fileScannerDefer.OnActivity();
 			}
 			catch (Exception ex)
 			{
@@ -1296,6 +1306,31 @@ namespace ProbeNpp
 		}
 		#endregion
 
+		#region Function File Scanner
+		void FileScanner_Activity(object sender, EventArgs e)
+		{
+			try
+			{
+				AutoCompletion.FunctionFileScanner.Stop();
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+
+		private void FileScanner_Execute(object sender, EventArgs e)
+		{
+			try
+			{
+				AutoCompletion.FunctionFileScanner.Start();
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+		#endregion
 
 		#region Debug
 #if DEBUG

@@ -220,6 +220,11 @@ namespace ProbeNpp.AutoCompletion
 					list.Add(item);
 				}
 
+				foreach (var item in (from f in FunctionFileScanner.GetFunctionSignatures(startsWith) select f.Name))
+				{
+					list.Add(item);
+				}
+
 				foreach (var item in (from k in _app.DataTypes where k.StartsWith(startsWith) select k))
 				{
 					list.Add(item);

@@ -58,6 +58,10 @@ namespace ProbeNpp
 						}
 					}
 
+					//xml.WriteStartElement("FunctionFiles");
+					//AutoCompletion.FunctionFileScanner.SaveSettings(xml);
+					//xml.WriteEndElement();	// FunctionFiles
+
 					xml.WriteEndElement();	// ProbeNppConfig
 					xml.WriteEndDocument();
 				}
@@ -119,6 +123,12 @@ namespace ProbeNpp
 						LoadGroup(groupElement, fi, (SettingsGroup)fi.GetValue(this));
 					}
 				}
+
+				//foreach (var node in rootNode.SelectSingleNode("FunctionFiles"))
+				//{
+				//    var element = node as XmlElement;
+				//    if (element != null) AutoCompletion.FunctionFileScanner.LoadSettings(element);
+				//}
 			}
 		}
 
