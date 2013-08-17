@@ -57,6 +57,23 @@ namespace ProbeNpp
 				_plugin.Output.WriteLine(OutputStyle.Error, ex.ToString());
 			}
 		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
+				components.Dispose();
+			}
+
+			if (disposing)
+			{
+				if (_warningBrush != null) { _warningBrush.Dispose(); _warningBrush = null; }
+				if (_successBrush != null) { _successBrush.Dispose(); _successBrush = null; }
+				if (_errorBrush != null) { _errorBrush.Dispose(); _errorBrush = null; }
+			}
+
+			base.Dispose(disposing);
+		}
 		#endregion
 
 		#region Compilation
@@ -121,7 +138,7 @@ namespace ProbeNpp
 			try
 			{
 				DateTime startTime = DateTime.Now;
-				WriteLine("Starting compile for application '{0}' at {1}.", _plugin.Environment.CurrentApp, startTime.ToString(k_timeStampFormat));
+				WriteLine("Starting compile for application '{0}' at {1}.", ProbeEnvironment.CurrentApp, startTime.ToString(k_timeStampFormat));
 
 				_numErrors = _numWarnings = 0;
 
@@ -131,7 +148,7 @@ namespace ProbeNpp
 				info.RedirectStandardOutput = true;
 				info.RedirectStandardError = true;
 				info.CreateNoWindow = true;
-				info.WorkingDirectory = _plugin.Environment.ObjectDir;
+				info.WorkingDirectory = ProbeEnvironment.ObjectDir;
 				_proc.StartInfo = info;
 				if (!_proc.Start())
 				{
@@ -185,7 +202,7 @@ namespace ProbeNpp
 				info.RedirectStandardOutput = true;
 				info.RedirectStandardError = true;
 				info.CreateNoWindow = true;
-				info.WorkingDirectory = _plugin.Environment.ObjectDir;
+				info.WorkingDirectory = ProbeEnvironment.ObjectDir;
 				_proc.StartInfo = info;
 				if (!_proc.Start())
 				{

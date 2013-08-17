@@ -49,6 +49,7 @@ namespace ProbeNpp
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
 		private void LoadFields()
 		{
 			try 

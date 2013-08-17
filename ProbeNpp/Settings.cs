@@ -38,33 +38,35 @@ namespace ProbeNpp
 
 		public void Save()
 		{
-			StringBuilder xmlSb = new StringBuilder();
-			using (TextWriter xmlTW = new StringWriter(xmlSb))
+			var xmlSb = new StringBuilder();
+			var xmlTW = new StringWriter(xmlSb);
+			try
 			{
-				XmlWriterSettings xmlSettings = new XmlWriterSettings();
+				var xmlSettings = new XmlWriterSettings();
 				xmlSettings.Indent = true;
 				xmlSettings.CloseOutput = false;
-				using (XmlWriter xml = XmlTextWriter.Create(xmlTW, xmlSettings))
+				using (var xml = XmlTextWriter.Create(xmlTW, xmlSettings))
 				{
+					xmlTW = null;
 					xml.WriteStartDocument();
 					xml.WriteStartElement("ProbeNppConfig");
 
-					foreach (FieldInfo fi in this.GetType().GetFields())
+					foreach (var fi in this.GetType().GetFields())
 					{
 						if (fi.FieldType.IsSubclassOf(typeof(SettingsGroup)))
 						{
-							SettingsGroup groupObj = (SettingsGroup)fi.GetValue(this);
+							var groupObj = (SettingsGroup)fi.GetValue(this);
 							SaveGroup(xml, fi, groupObj);
 						}
 					}
 
-					//xml.WriteStartElement("FunctionFiles");
-					//AutoCompletion.FunctionFileScanner.SaveSettings(xml);
-					//xml.WriteEndElement();	// FunctionFiles
-
 					xml.WriteEndElement();	// ProbeNppConfig
 					xml.WriteEndDocument();
 				}
+			}
+			finally
+			{
+				if (xmlTW != null) { xmlTW.Dispose(); xmlTW = null; }
 			}
 
 			string configFileName = Path.Combine(_plugin.ConfigDir, "ProbeNppConfig.xml");
@@ -123,12 +125,6 @@ namespace ProbeNpp
 						LoadGroup(groupElement, fi, (SettingsGroup)fi.GetValue(this));
 					}
 				}
-
-				//foreach (var node in rootNode.SelectSingleNode("FunctionFiles"))
-				//{
-				//    var element = node as XmlElement;
-				//    if (element != null) AutoCompletion.FunctionFileScanner.LoadSettings(element);
-				//}
 			}
 		}
 
@@ -302,8 +298,5 @@ namespace ProbeNpp
 
 			return val;
 		}
-
-
-		
 	}
 }

@@ -258,7 +258,7 @@ namespace ProbeNpp.CodeModel
 				return file;
 			}
 
-			foreach (var includeDir in ProbeNppPlugin.Instance.Environment.IncludeDirs)
+			foreach (var includeDir in ProbeEnvironment.IncludeDirs)
 			{
 				var pathName = Path.Combine(includeDir, fileName);
 				if (File.Exists(pathName)) file = ProcessIncludeFile(pathName);

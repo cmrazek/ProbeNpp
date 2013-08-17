@@ -40,7 +40,7 @@ namespace ProbeNpp
 {
 	[NppSortOrder(100)]
 	[NppMenu("Pr&obe", InsertBefore="Window")]
-	public class ProbeNppPlugin : NppScript
+	public sealed class ProbeNppPlugin : NppScript, IDisposable
 	{
 		#region Static Instance
 		private static ProbeNppPlugin _instance;
@@ -74,47 +74,10 @@ namespace ProbeNpp
 
 		public ProbeNppPlugin()
 		{
-			Init(NppWindow);
-
-			_autoCompletionManager = new AutoCompletion.AutoCompletionManager(this);
-			_smartIndentManager = new AutoCompletion.SmartIndentManager(this);
-
-			Ready += new NppEventHandler(Plugin_Ready);
-			Shutdown += new NppEventHandler(Plugin_Shutdown);
-			FileOpened += new FileEventHandler(Plugin_FileOpened);
-			FileClosed += new FileEventHandler(Plugin_FileClosed);
-			FileActivated += new FileEventHandler(Plugin_FileActivated);
-			LanguageChanged += new LanguageTypeEventHandler(Plugin_LanguageChanged);
-			SelectionChanged += new NppEventHandler(Plugin_SelectionChanged);
-			Modification += new ModifiedEventHandler(Plugin_Modification);
-
-			CharAdded += new CharAddedEventHandler(ProbeNppPlugin_CharAdded);
-
-			_fileBackground.Execute += new EventHandler(FileBackground_Execute);
-
-			AutoCompletion.FunctionFileScanner.Initialize();
-			_fileScannerDefer.Execute += new EventHandler(FileScanner_Execute);
-			_fileScannerDefer.Activity += new EventHandler(FileScanner_Activity);
-		}
-
-		private void Plugin_Ready(object sender, EventArgs e)
-		{
-			try
-			{
-				if (Settings.Sidebar.ShowOnStartup) ShowSidebar();
-			}
-			catch (Exception ex)
-			{
-				Errors.Show(_nppWindow, ex);
-			}
-		}
-
-		private void Init(NativeWindow nppWindow)
-		{
 			try
 			{
 				_instance = this;
-				_nppWindow = nppWindow;
+				_nppWindow = NppWindow;
 
 				_settings = new Settings(this);
 				try
@@ -126,16 +89,57 @@ namespace ProbeNpp
 					Errors.Show(_nppWindow, ex, "Exception when attempting to load ProbeNpp settings.");
 				}
 
+				ProbeEnvironment.Initialize();
+				ProbeEnvironment.AppChanged += new EventHandler(_env_AppChanged);
+
+				TempManager.Init(Path.Combine(ConfigDir, "Temp"));
+
 				LoadLexerConfig();
 
-				_env = new ProbeEnvironment();
-				_env.AppChanged += new EventHandler(_env_AppChanged);
-				
-				TempManager.Init(Path.Combine(ConfigDir, "Temp"));
+				_autoCompletionManager = new AutoCompletion.AutoCompletionManager(this);
+				_smartIndentManager = new AutoCompletion.SmartIndentManager(this);
+
+				Ready += new NppEventHandler(Plugin_Ready);
+				Shutdown += new NppEventHandler(Plugin_Shutdown);
+				FileOpened += new FileEventHandler(Plugin_FileOpened);
+				FileClosed += new FileEventHandler(Plugin_FileClosed);
+				FileActivated += new FileEventHandler(Plugin_FileActivated);
+				LanguageChanged += new LanguageTypeEventHandler(Plugin_LanguageChanged);
+				SelectionChanged += new NppEventHandler(Plugin_SelectionChanged);
+				Modification += new ModifiedEventHandler(Plugin_Modification);
+
+				CharAdded += new CharAddedEventHandler(ProbeNppPlugin_CharAdded);
+
+				_fileBackground.Execute += new EventHandler(FileBackground_Execute);
+
+				AutoCompletion.FunctionFileScanner.Initialize();
+				_fileScannerDefer.Execute += new EventHandler(FileScanner_Execute);
+				_fileScannerDefer.Activity += new EventHandler(FileScanner_Activity);
 			}
 			catch (Exception ex)
 			{
 				Errors.Show(_nppWindow, ex, "The ProbeNpp plug-in thrown an error while initializing.");
+			}
+		}
+
+		public void Dispose()
+		{
+			if (_sidebar != null) { _sidebar.Dispose(); _sidebar = null; }
+			if (_compilePanel != null) { _compilePanel.Dispose(); _compilePanel = null; }
+			if (_findInProbeFilesPanel != null) { _findInProbeFilesPanel.Dispose(); _findInProbeFilesPanel = null; }
+			if (_fileScannerDefer != null) { _fileScannerDefer.Dispose(); _fileScannerDefer = null; }
+			if (_fileBackground != null) { _fileBackground.Dispose(); _fileBackground = null; }
+		}
+
+		private void Plugin_Ready(object sender, EventArgs e)
+		{
+			try
+			{
+				if (Settings.Sidebar.ShowOnStartup) ShowSidebar();
+			}
+			catch (Exception ex)
+			{
+				Errors.Show(_nppWindow, ex);
 			}
 		}
 
@@ -207,14 +211,14 @@ namespace ProbeNpp
 				{
 					fd = new FileDetails(bufferId);
 					_fileDetails.Add(bufferId, fd);
-					fd.LastProbeApp = _env.CurrentApp;
+					fd.LastProbeApp = ProbeEnvironment.CurrentApp;
 				}
 				CurrentFile = fd;
 				fd.OnActivated();
 
-				if (!string.IsNullOrEmpty(fd.LastProbeApp) && fd.LastProbeApp != _env.CurrentApp)
+				if (!string.IsNullOrEmpty(fd.LastProbeApp) && fd.LastProbeApp != ProbeEnvironment.CurrentApp)
 				{
-					fd.LastProbeApp = _env.CurrentApp;
+					fd.LastProbeApp = ProbeEnvironment.CurrentApp;
 					//RefreshCustomLexers();
 				}
 
@@ -314,17 +318,6 @@ namespace ProbeNpp
 			}
 		}
 
-		private Bitmap IconToBitmap(Icon icon)
-		{
-			var bmp = new Bitmap(icon.Width, icon.Height);
-			using (var g = Graphics.FromImage(bmp))
-			{
-				g.Clear(Color.Transparent);
-				g.DrawIcon(icon, new Rectangle(0, 0, icon.Width, icon.Height));
-			}
-			return bmp;
-		}
-
 		internal FileDetails CurrentFile
 		{
 			get
@@ -361,13 +354,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region Probe Integration
-		private ProbeEnvironment _env = null;
 		private int _probeLanguageId = 0;
-
-		internal ProbeEnvironment Environment
-		{
-			get { return _env; }
-		}
 
 		void _env_AppChanged(object sender, EventArgs e)
 		{
@@ -515,7 +502,7 @@ namespace ProbeNpp
 
 		public Bitmap CompileIcon
 		{
-			get { return IconToBitmap(Res.CompileIcon); }
+			get { return Res.CompileIcon.ToBitmap(); }
 		}
 
 		[NppDisplayName("&Stop Compile")]
@@ -537,7 +524,7 @@ namespace ProbeNpp
 
 		public Bitmap StopCompileIcon
 		{
-			get { return IconToBitmap(Res.StopCompileIcon); }
+			get { return Res.StopCompileIcon.ToBitmap(); }
 		}
 
 		internal void SaveFilesInApp()
@@ -560,7 +547,7 @@ namespace ProbeNpp
 			{
 				try
 				{
-					if (_env.FileExistsInApp(fileName))
+					if (ProbeEnvironment.FileExistsInApp(fileName))
 					{
 						SetActiveFileIndex(view, fileIndex);
 						if (Modified)
@@ -594,8 +581,10 @@ namespace ProbeNpp
 		{
 			try
 			{
-				SettingsForm form = new SettingsForm(this);
-				form.ShowDialog(_nppWindow);
+				using (SettingsForm form = new SettingsForm(this))
+				{
+					form.ShowDialog(_nppWindow);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -605,7 +594,7 @@ namespace ProbeNpp
 
 		public Bitmap ShowSettingsIcon
 		{
-			get { return IconToBitmap(Res.SettingsIcon); }
+			get { return Res.SettingsIcon.ToBitmap(); }
 		}
 
 		internal Settings Settings
@@ -615,7 +604,7 @@ namespace ProbeNpp
 
 		internal void OnSettingsSaved()
 		{
-			_env.OnSettingsSaved();
+			ProbeEnvironment.OnSettingsSaved();
 		}
 		#endregion
 
@@ -628,7 +617,10 @@ namespace ProbeNpp
 		{
 			try
 			{
-				(new RunForm(this)).ShowDialog(_nppWindow);
+				using (var form = new RunForm(this))
+				{
+					form.ShowDialog(_nppWindow);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -638,45 +630,46 @@ namespace ProbeNpp
 
 		public Bitmap RunIcon
 		{
-			get { return IconToBitmap(Res.RunIcon); }
+			get { return Res.RunIcon.ToBitmap(); }
 		}
 		#endregion
 
 		#region PST
-		[NppDisplayName("&PST Table")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands"), NppDisplayName("&PST Table")]
 		[NppSortOrder(60)]
 		[NppToolbarIcon(Property = "PstTableIcon")]
 		public void PstTable()
 		{
 			try
 			{
-				PromptForm dlg = new PromptForm();
-
-				string selected = SelectedText;
-				if (!string.IsNullOrEmpty(selected) && _env.IsProbeTable(selected))
+				using (PromptForm dlg = new PromptForm())
 				{
-					dlg.Value = selected;
-				}
-
-				dlg.Text = "PST Table";
-				dlg.Prompt = "Enter the name of the table to PST:";
-				if (dlg.ShowDialog(_nppWindow) == DialogResult.OK)
-				{
-					string tableName = dlg.Value;
-
-					ProcessRunner pr = new ProcessRunner();
-					StringOutput output = new StringOutput();
-					int exitCode = pr.CaptureProcess("pst.exe", tableName, _env.TempDir, output);
-
-					if (exitCode != 0)
+					string selected = SelectedText;
+					if (!string.IsNullOrEmpty(selected) && ProbeEnvironment.IsProbeTable(selected))
 					{
-						Errors.ShowExtended(_nppWindow, string.Format("PST returned exit code {0}.", exitCode), output.Text);
+						dlg.Value = selected;
 					}
-					else
+
+					dlg.Text = "PST Table";
+					dlg.Prompt = "Enter the name of the table to PST:";
+					if (dlg.ShowDialog(_nppWindow) == DialogResult.OK)
 					{
-						string tempFileName = TempManager.GetNewTempFileName(tableName, ".pst");
-						File.WriteAllText(tempFileName, output.Text);
-						OpenFile(tempFileName);
+						string tableName = dlg.Value;
+
+						ProcessRunner pr = new ProcessRunner();
+						StringOutput output = new StringOutput();
+						int exitCode = pr.CaptureProcess("pst.exe", tableName, ProbeEnvironment.TempDir, output);
+
+						if (exitCode != 0)
+						{
+							Errors.ShowExtended(_nppWindow, string.Format("PST returned exit code {0}.", exitCode), output.Text);
+						}
+						else
+						{
+							string tempFileName = TempManager.GetNewTempFileName(tableName, ".pst");
+							File.WriteAllText(tempFileName, output.Text);
+							OpenFile(tempFileName);
+						}
 					}
 				}
 			}
@@ -688,12 +681,12 @@ namespace ProbeNpp
 
 		public Bitmap PstTableIcon
 		{
-			get { return IconToBitmap(Res.PstIcon); }
+			get { return Res.PstIcon.ToBitmap(); }
 		}
 		#endregion
 
 		#region FEC
-		[NppDisplayName("FEC Fi&le")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands"), NppDisplayName("FEC Fi&le")]
 		[NppSortOrder(50)]
 		[NppSeparator]
 		[NppToolbarIcon(Property = "FecFileIcon")]
@@ -701,7 +694,7 @@ namespace ProbeNpp
 		{
 			try
 			{
-				string baseFileName = Environment.FindBaseFile(ActiveFileName);
+				string baseFileName = ProbeEnvironment.FindBaseFile(ActiveFileName);
 				if (string.IsNullOrEmpty(baseFileName))
 				{
 					MessageBox.Show("Base file could not be found.");
@@ -736,16 +729,16 @@ namespace ProbeNpp
 
 		public Bitmap FecFileIcon
 		{
-			get { return IconToBitmap(Res.FecIcon); }
+			get { return Res.FecIcon.ToBitmap(); }
 		}
 
-		[NppDisplayName("FEC to &Visual C")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands"), NppDisplayName("FEC to &Visual C")]
 		[NppSortOrder(55)]
 		public void CompileToVisualC()
 		{
 			try
 			{
-				string baseFileName = Environment.FindBaseFile(ActiveFileName);
+				string baseFileName = ProbeEnvironment.FindBaseFile(ActiveFileName);
 				if (string.IsNullOrEmpty(baseFileName))
 				{
 					MessageBox.Show("Base file could not be found.");
@@ -788,23 +781,24 @@ namespace ProbeNpp
 		{
 			try
 			{
-				var form = new ShortcutForm();
-
-				form.AddAction(Keys.L, "FEC File", () => { FecFile(); });
-				form.AddAction(Keys.M, "Merge File", () => { MergeFile(); });
-				form.AddAction(Keys.T, "PST Table", () => { PstTable(); });
-				form.AddAction(Keys.F, "Show Functions", () => { ShowSidebarFunctionList(); });
-				form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
-				form.AddAction(Keys.I, "Find in Probe Files", () => { FindInProbeFiles(); });
-				form.AddAction(Keys.C, "Compile", () => { Compile(); });
-				form.AddAction(Keys.H, "Add File Header", () => { AddFileHeader(); });
-				form.AddAction(Keys.D, "Insert Diag", () => { InsertDiag(); });
-				form.AddAction(Keys.S, "Settings", () => { ShowSettings(); });
-
-				if (form.ShowDialog(NppWindow) == DialogResult.OK)
+				using (var form = new ShortcutForm())
 				{
-					var action = form.SelectedAction;
-					if (action != null) action();
+					form.AddAction(Keys.L, "FEC File", () => { FecFile(); });
+					form.AddAction(Keys.M, "Merge File", () => { MergeFile(); });
+					form.AddAction(Keys.T, "PST Table", () => { PstTable(); });
+					form.AddAction(Keys.F, "Show Functions", () => { ShowSidebarFunctionList(); });
+					form.AddAction(Keys.O, "Open Files", () => { ShowSidebarFileList(); });
+					form.AddAction(Keys.I, "Find in Probe Files", () => { FindInProbeFiles(); });
+					form.AddAction(Keys.C, "Compile", () => { Compile(); });
+					form.AddAction(Keys.H, "Add File Header", () => { AddFileHeader(); });
+					form.AddAction(Keys.D, "Insert Diag", () => { InsertDiag(); });
+					form.AddAction(Keys.S, "Settings", () => { ShowSettings(); });
+
+					if (form.ShowDialog(NppWindow) == DialogResult.OK)
+					{
+						var action = form.SelectedAction;
+						if (action != null) action();
+					}
 				}
 			}
 			catch (Exception ex)
@@ -832,7 +826,7 @@ namespace ProbeNpp
 
 		public Bitmap AddFileHeaderIcon
 		{
-			get { return IconToBitmap(Res.AddFileHeaderIcon); }
+			get { return Res.AddFileHeaderIcon.ToBitmap(); }
 		}
 
 		internal void CreateFileHeaderText(string fileName)
@@ -1030,7 +1024,7 @@ namespace ProbeNpp
 
 		public Bitmap InsertDiagIcon
 		{
-			get { return IconToBitmap(Res.DiagIcon); }
+			get { return Res.DiagIcon.ToBitmap(); }
 		}
 
 		[NppDisplayName("&Tag Change")]
@@ -1083,7 +1077,7 @@ namespace ProbeNpp
 
 		public Bitmap TagChangeIcon
 		{
-			get { return IconToBitmap(Res.TagIcon); }
+			get { return Res.TagIcon.ToBitmap(); }
 		}
 
 		private enum TagChangeLine
@@ -1148,7 +1142,7 @@ namespace ProbeNpp
 
 		public Bitmap InsertDateIcon
 		{
-			get { return IconToBitmap(Res.DateIcon); }
+			get { return Res.DateIcon.ToBitmap(); }
 		}
 		#endregion
 
@@ -1162,7 +1156,7 @@ namespace ProbeNpp
 			{
 				var fileName = ActiveFileName;
 
-				var cp = new CodeProcessing.CodeProcessor(_env);
+				var cp = new CodeProcessing.CodeProcessor();
 				cp.ShowMergeComments = true;
 				cp.ProcessFile(fileName);
 
@@ -1200,7 +1194,7 @@ namespace ProbeNpp
 
 		public Bitmap MergeFileIcon
 		{
-			get { return IconToBitmap(Res.MergeIcon); }
+			get { return Res.MergeIcon.ToBitmap(); }
 		}
 		#endregion
 
@@ -1219,40 +1213,40 @@ namespace ProbeNpp
 		{
 			try
 			{
-				var form = new FindInProbeFilesDialog();
-
-				string selected = SelectedText;
-				if (!string.IsNullOrEmpty(selected) && !selected.Contains('\n'))
+				using (var form = new FindInProbeFilesDialog())
 				{
-					form.SearchText = selected;
-				}
-
-				if (form.ShowDialog(NppWindow) == DialogResult.OK)
-				{
-					if (_findInProbeFilesDock != null)
+					string selected = SelectedText;
+					if (!string.IsNullOrEmpty(selected) && !selected.Contains('\n'))
 					{
-						_findInProbeFilesDock.Show();
-					}
-					else
-					{
-						_findInProbeFilesPanel = new FindInProbeFilesPanel();
-						_findInProbeFilesDock = DockWindow(_findInProbeFilesPanel, "Find in Probe Files", DockWindowAlignment.Bottom, k_findInProbeFilesPanelId);
+						form.SearchText = selected;
 					}
 
-					if (_findInProbeFilesThread != null) _findInProbeFilesThread.Kill();
-
-					_findInProbeFilesThread = new FindInProbeFilesThread();
-					_findInProbeFilesThread.Search(new FindInProbeFilesArgs
+					if (form.ShowDialog(NppWindow) == DialogResult.OK)
 					{
-						SearchText = form.SearchText,
-						SearchRegex = form.SearchRegex,
-						Method = form.Method,
-						MatchCase = form.MatchCase,
-						MatchWholeWord = form.MatchWholeWord,
-						ProbeFilesOnly = form.OnlyProbeFiles,
-						Panel = _findInProbeFilesPanel,
-						Probe = Environment
-					});
+						if (_findInProbeFilesDock != null)
+						{
+							_findInProbeFilesDock.Show();
+						}
+						else
+						{
+							_findInProbeFilesPanel = new FindInProbeFilesPanel();
+							_findInProbeFilesDock = DockWindow(_findInProbeFilesPanel, "Find in Probe Files", DockWindowAlignment.Bottom, k_findInProbeFilesPanelId);
+						}
+
+						if (_findInProbeFilesThread != null) _findInProbeFilesThread.Kill();
+
+						_findInProbeFilesThread = new FindInProbeFilesThread();
+						_findInProbeFilesThread.Search(new FindInProbeFilesArgs
+						{
+							SearchText = form.SearchText,
+							SearchRegex = form.SearchRegex,
+							Method = form.Method,
+							MatchCase = form.MatchCase,
+							MatchWholeWord = form.MatchWholeWord,
+							ProbeFilesOnly = form.OnlyProbeFiles,
+							Panel = _findInProbeFilesPanel
+						});
+					}
 				}
 			}
 			catch (Exception ex)
@@ -1263,7 +1257,7 @@ namespace ProbeNpp
 
 		public Bitmap FindInProbeFilesIcon
 		{
-			get { return IconToBitmap(Res.FindIcon); }
+			get { return Res.FindIcon.ToBitmap(); }
 		}
 		#endregion
 
@@ -1311,7 +1305,10 @@ namespace ProbeNpp
 		{
 			try
 			{
-				AutoCompletion.FunctionFileScanner.Stop();
+				if (AutoCompletion.FunctionFileScanner.Instance != null)
+				{
+					AutoCompletion.FunctionFileScanner.Instance.Stop();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -1323,7 +1320,10 @@ namespace ProbeNpp
 		{
 			try
 			{
-				AutoCompletion.FunctionFileScanner.Start();
+				if (AutoCompletion.FunctionFileScanner.Instance != null)
+				{
+					AutoCompletion.FunctionFileScanner.Instance.Start();
+				}
 			}
 			catch (Exception ex)
 			{

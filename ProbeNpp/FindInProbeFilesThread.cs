@@ -19,7 +19,6 @@ namespace ProbeNpp
 		public bool MatchWholeWord { get; set; }
 		public bool ProbeFilesOnly { get; set; }
 		public FindInProbeFilesPanel Panel { get; set; }
-		public ProbeEnvironment Probe { get; set; }
 	}
 
 	internal class FindInProbeFilesMatch
@@ -45,7 +44,6 @@ namespace ProbeNpp
 		private Thread _thread = null;
 		private volatile bool _kill = false;
 		private FindInProbeFilesPanel _panel = null;
-		private ProbeEnvironment _probe = null;
 
 		private string _searchText = string.Empty;
 		private Regex _searchRegex = null;
@@ -65,7 +63,6 @@ namespace ProbeNpp
 			_matchWholeWord = args.MatchWholeWord;
 			_probeFilesOnly = args.ProbeFilesOnly;
 			_panel = args.Panel;
-			_probe = args.Probe;
 
 			_thread = new Thread(new ThreadStart(ThreadProc));
 			_thread.Name = "Find in Probe Files";
@@ -85,8 +82,8 @@ namespace ProbeNpp
 				_panel.Clear();
 				_panel.FindStopped += _panel_FindStopped;
 
-				foreach (var dir in _probe.SourceDirs) SearchDir(dir);
-				foreach (var dir in _probe.IncludeDirs) SearchDir(dir);
+				foreach (var dir in ProbeEnvironment.SourceDirs) SearchDir(dir);
+				foreach (var dir in ProbeEnvironment.IncludeDirs) SearchDir(dir);
 
 				_panel.FindStopped -= _panel_FindStopped;
 				_panel.OnSearchEnded();
@@ -122,7 +119,7 @@ namespace ProbeNpp
 				foreach (var fileName in Directory.GetFiles(dir))
 				{
 					if (_kill) return;
-					if (!_probeFilesOnly || _probe.IsProbeFile(fileName))
+					if (!_probeFilesOnly || ProbeEnvironment.IsProbeFile(fileName))
 					{
 						SearchFile(fileName);
 					}

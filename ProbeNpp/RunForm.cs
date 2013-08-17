@@ -151,7 +151,7 @@ namespace ProbeNpp
 			if (_plugin.Settings.RunSamCam.SetDbDate)
 			{
 				ProcessRunner pr = new ProcessRunner();
-				int exitCode = pr.ExecuteProcess("setdbdat", "today force", _plugin.Environment.TempDir, true);
+				int exitCode = pr.ExecuteProcess("setdbdat", "today force", ProbeEnvironment.TempDir, true);
 				if (exitCode != 0)
 				{
 					Errors.Show(this, "\"setdbdat today force\" returned exit code {0}.\n\n" +
@@ -160,26 +160,28 @@ namespace ProbeNpp
 			}
 
 			StringBuilder args = new StringBuilder();
-			args.Append(string.Format("/N{0}", CleanSamName(string.Concat(_plugin.Environment.CurrentApp, "_", System.Environment.UserName))));
-			args.Append(string.Format(" /p{0}", _plugin.Environment.SamPort));
+			args.Append(string.Format("/N{0}", CleanSamName(string.Concat(ProbeEnvironment.CurrentApp, "_", System.Environment.UserName))));
+			args.Append(string.Format(" /p{0}", ProbeEnvironment.SamPort));
 			args.Append(" /o0");
 			args.Append(string.Format(" /y{0:00}{1:00}", _plugin.Settings.RunSamCam.TransReportTimeout, _plugin.Settings.RunSamCam.TransAbortTimeout));
 			args.Append(string.Format(" /z{0}", _plugin.Settings.RunSamCam.MinChannels));
 			args.Append(string.Format(" /Z{0}", _plugin.Settings.RunSamCam.MaxChannels));
 			if (_plugin.Settings.RunSamCam.Diags) args.Append(" /d2");
 
-			Process proc = new Process();
-			ProcessStartInfo info = new ProcessStartInfo("sam", args.ToString());
-			info.UseShellExecute = false;
-			info.RedirectStandardOutput = false;
-			info.RedirectStandardError = false;
-			info.CreateNoWindow = false;
-			info.WorkingDirectory = _plugin.Environment.ExeDir;
-			proc.StartInfo = info;
-			if (!proc.Start())
+			using (Process proc = new Process())
 			{
-				Errors.Show(this, "Unable to start the SAM.");
-				return false;
+				ProcessStartInfo info = new ProcessStartInfo("sam", args.ToString());
+				info.UseShellExecute = false;
+				info.RedirectStandardOutput = false;
+				info.RedirectStandardError = false;
+				info.CreateNoWindow = false;
+				info.WorkingDirectory = ProbeEnvironment.ExeDir;
+				proc.StartInfo = info;
+				if (!proc.Start())
+				{
+					Errors.Show(this, "Unable to start the SAM.");
+					return false;
+				}
 			}
 
 			if (_plugin.Settings.RunSamCam.LoadSam && !_plugin.Settings.RunSamCam.Diags) RunLoadSam();
@@ -194,18 +196,20 @@ namespace ProbeNpp
 			args.Append(string.Format(" /c{0}", _plugin.Settings.RunSamCam.CamWidth));
 			if (_plugin.Settings.RunSamCam.Diags) args.Append(" /d2");
 
-			Process proc = new Process();
-			ProcessStartInfo info = new ProcessStartInfo("cam", args.ToString());
-			info.UseShellExecute = false;
-			info.RedirectStandardOutput = false;
-			info.RedirectStandardError = false;
-			info.CreateNoWindow = false;
-			info.WorkingDirectory = _plugin.Environment.ExeDir;
-			proc.StartInfo = info;
-			if (!proc.Start())
+			using (Process proc = new Process())
 			{
-				Errors.Show(this, "Unable to start the CAM.");
-				return false;
+				ProcessStartInfo info = new ProcessStartInfo("cam", args.ToString());
+				info.UseShellExecute = false;
+				info.RedirectStandardOutput = false;
+				info.RedirectStandardError = false;
+				info.CreateNoWindow = false;
+				info.WorkingDirectory = ProbeEnvironment.ExeDir;
+				proc.StartInfo = info;
+				if (!proc.Start())
+				{
+					Errors.Show(this, "Unable to start the CAM.");
+					return false;
+				}
 			}
 
 			return true;
@@ -213,20 +217,22 @@ namespace ProbeNpp
 
 		private bool RunLoadSam()
 		{
-			string exeFileName = Path.Combine(Path.Combine(_plugin.Environment.ExeDir, "uattools"), "loadsam.exe");
+			string exeFileName = Path.Combine(Path.Combine(ProbeEnvironment.ExeDir, "uattools"), "loadsam.exe");
 			if (!File.Exists(exeFileName)) return false;
 
 			string args = string.Format("/Nloadsam {0}", _plugin.Settings.RunSamCam.LoadSamTime);
 
-			Process proc = new Process();
-			ProcessStartInfo info = new ProcessStartInfo(exeFileName, args);
-			info.UseShellExecute = false;
-			info.RedirectStandardOutput = false;
-			info.RedirectStandardError = false;
-			info.CreateNoWindow = false;
-			info.WorkingDirectory = Path.GetDirectoryName(exeFileName);
-			proc.StartInfo = info;
-			if (!proc.Start()) return false;
+			using (Process proc = new Process())
+			{
+				ProcessStartInfo info = new ProcessStartInfo(exeFileName, args);
+				info.UseShellExecute = false;
+				info.RedirectStandardOutput = false;
+				info.RedirectStandardError = false;
+				info.CreateNoWindow = false;
+				info.WorkingDirectory = Path.GetDirectoryName(exeFileName);
+				proc.StartInfo = info;
+				if (!proc.Start()) return false;
+			}
 
 			return true;
 		}

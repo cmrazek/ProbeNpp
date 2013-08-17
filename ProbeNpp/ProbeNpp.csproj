@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoCompletion\AutoCompletionManager.cs" />
+    <Compile Include="AutoCompletion\FileSystemWatcherCollection.cs" />
+    <Compile Include="AutoCompletion\FunctionFileApp.cs" />
+    <Compile Include="AutoCompletion\FunctionFileAppCollection.cs" />
     <Compile Include="AutoCompletion\FunctionFileScanner.cs" />
     <Compile Include="AutoCompletion\FunctionSignatureParser.cs" />
     <Compile Include="AutoCompletion\SmartIndentManager.cs" />
@@ -127,7 +130,11 @@
     <Compile Include="Function Parser\Function.cs" />
     <Compile Include="Function Parser\FunctionCollection.cs" />
     <Compile Include="Function Parser\FunctionParser.cs" />
+    <Compile Include="FunctionFileDatabase.cs">
+      <DependentUpon>FunctionFileDatabase.xsd</DependentUpon>
+    </Compile>
     <Compile Include="LockedValue.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="ProbeNppListView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -200,6 +207,9 @@
     <Compile Include="XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FunctionFileDatabase.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Images\Find.png" />
     <None Include="Images\Run.png" />
     <None Include="Images\Compile.png" />

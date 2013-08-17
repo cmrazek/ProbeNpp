@@ -64,7 +64,7 @@ namespace ProbeNpp
 		{
 			fileName = Path.GetFullPath(fileName);
 
-			foreach (var dir in ProbeNppPlugin.Instance.Environment.SourceDirs)
+			foreach (var dir in ProbeEnvironment.SourceDirs)
 			{
 				if (fileName.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
 				{
@@ -74,7 +74,7 @@ namespace ProbeNpp
 				}
 			}
 
-			foreach (var dir in ProbeNppPlugin.Instance.Environment.IncludeDirs)
+			foreach (var dir in ProbeEnvironment.IncludeDirs)
 			{
 				if (fileName.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
 				{
@@ -95,7 +95,7 @@ namespace ProbeNpp
 			if (fileName.EndsWith("&")) fileName = fileName.Substring(0, fileName.Length - 1);
 			if (string.IsNullOrEmpty(fileName)) return;
 
-			foreach (string probeDir in ProbeNppPlugin.Instance.Environment.SourceDirs)
+			foreach (string probeDir in ProbeEnvironment.SourceDirs)
 			{
 				FindFiles_SearchDir(probeDir, fileName);
 				if (!string.IsNullOrEmpty(_origFileName)) break;
@@ -103,7 +103,7 @@ namespace ProbeNpp
 
 			if (string.IsNullOrEmpty(_origFileName))
 			{
-				foreach (string includeDir in ProbeNppPlugin.Instance.Environment.IncludeDirs)
+				foreach (string includeDir in ProbeEnvironment.IncludeDirs)
 				{
 					FindFiles_SearchDir(includeDir, fileName);
 					if (!string.IsNullOrEmpty(_origFileName)) break;

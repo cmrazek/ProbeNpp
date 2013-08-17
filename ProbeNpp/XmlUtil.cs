@@ -16,12 +16,13 @@ namespace ProbeNpp
 			{
 				var sb = new StringBuilder();
 				var xmlSettings = new XmlWriterSettings { OmitXmlDeclaration = true };
-				var xmlWriter = XmlWriter.Create(sb, xmlSettings);
+				using (var xmlWriter = XmlWriter.Create(sb, xmlSettings))
+				{
+					var serializer = new XmlSerializer(obj.GetType());
+					serializer.Serialize(xmlWriter, obj);
 
-				var serializer = new XmlSerializer(obj.GetType());
-				serializer.Serialize(xmlWriter, obj);
-
-				return sb.ToString();
+					return sb.ToString();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -30,21 +31,58 @@ namespace ProbeNpp
 			}
 		}
 
+		public static void SerializeToFile(object obj, string fileName, bool indent)
+		{
+			using (var memStream = new MemoryStream())
+			{
+				var xmlSettings = new XmlWriterSettings();
+				xmlSettings.Indent = indent;
+
+				var xmlWriter = XmlWriter.Create(memStream, xmlSettings);
+				var serializer = new XmlSerializer(obj.GetType());
+				serializer.Serialize(xmlWriter, obj);
+
+				var buf = new byte[memStream.Length];
+				memStream.Seek(0, SeekOrigin.Begin);
+				memStream.Read(buf, 0, (int)memStream.Length);
+
+				File.WriteAllBytes(fileName, buf);
+			}
+		}
+
 		public static T Deserialize<T>(string xml)
 		{
 			try
 			{
 				var stringReader = new StringReader(xml);
-				var xmlReader = XmlReader.Create(stringReader);
-				var serializer = new XmlSerializer(typeof(T));
-				return (T)serializer.Deserialize(xmlReader);
+				try
+				{
+					using (var xmlReader = XmlReader.Create(stringReader))
+					{
+						stringReader = null;
+						var serializer = new XmlSerializer(typeof(T));
+						return (T)serializer.Deserialize(xmlReader);
+					}
+				}
+				finally
+				{
+					if (stringReader != null) stringReader.Dispose();
+				}
 			}
 			catch (Exception ex)
 			{
 				ProbeNppPlugin.Instance.Output.WriteLine(NppSharp.OutputStyle.Error, ex.ToString());
 				return default(T);
 			}
-			
+		}
+
+		public static T DeserializeFromFile<T>(string fileName)
+		{
+			using (var reader = new StreamReader(fileName))
+			{
+				var serializer = new XmlSerializer(typeof(T));
+				return (T)serializer.Deserialize(reader);
+			}
 		}
 	}
 }

@@ -61,6 +61,23 @@ namespace ProbeNpp
 		public void OnShutdown()
 		{
 		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
+				components.Dispose();
+			}
+
+			if (disposing)
+			{
+				if (_argsBrush != null) { _argsBrush.Dispose(); _argsBrush = null; }
+				if (_argsBrushHighlight != null) { _argsBrushHighlight.Dispose(); _argsBrushHighlight = null; }
+				if (_functionListWait != null) { _functionListWait.Dispose(); _functionListWait = null; }
+			}
+
+			base.Dispose(disposing);
+		}
 		#endregion
 
 		#region UI
@@ -152,11 +169,11 @@ namespace ProbeNpp
 
 		private void PopulateAppCombo()
 		{
-			string currentApp = _plugin.Environment.CurrentApp;
+			string currentApp = ProbeEnvironment.CurrentApp;
 			TagString selItem = null;
 
 			cmbApp.Items.Clear();
-			foreach (string appName in _plugin.Environment.AppNames)
+			foreach (string appName in ProbeEnvironment.AppNames)
 			{
 				TagString t;
 				if (string.Equals(appName, currentApp, StringComparison.OrdinalIgnoreCase))
@@ -181,11 +198,11 @@ namespace ProbeNpp
 				TagString ts = (TagString)cmbApp.SelectedItem;
 				if (ts != null)
 				{
-					if (!string.Equals((string)ts.Tag, _plugin.Environment.CurrentApp, StringComparison.OrdinalIgnoreCase))
+					if (!string.Equals((string)ts.Tag, ProbeEnvironment.CurrentApp, StringComparison.OrdinalIgnoreCase))
 					{
 						string newApp = (string)ts.Tag;
-						_plugin.Environment.CurrentApp = newApp;
-						_plugin.Environment.Reload();
+						ProbeEnvironment.CurrentApp = newApp;
+						ProbeEnvironment.Reload();
 						RefreshEnvironment();
 					}
 				}
@@ -201,7 +218,7 @@ namespace ProbeNpp
 		{
 			try
 			{
-				_plugin.Environment.Reload();
+				ProbeEnvironment.Reload();
 				PopulateAppCombo();
 				OnAppChanged();
 			}
@@ -244,7 +261,7 @@ namespace ProbeNpp
 				txtFileFilter.Text = "";
 
 				// Add files in source directories.
-				foreach (string srcDir in _plugin.Environment.SourceDirs)
+				foreach (string srcDir in ProbeEnvironment.SourceDirs)
 				{
 					TreeNode rootNode = new TreeNode(srcDir);
 					rootNode.Tag = new FileTreeNode(false, srcDir);
@@ -253,7 +270,7 @@ namespace ProbeNpp
 				}
 
 				// Add files in include directories.
-				foreach (string includeDir in _plugin.Environment.IncludeDirs)
+				foreach (string includeDir in ProbeEnvironment.IncludeDirs)
 				{
 					TreeNode rootNode = new TreeNode(includeDir);
 					rootNode.Tag = new FileTreeNode(false, includeDir);
@@ -520,32 +537,34 @@ namespace ProbeNpp
 
 		private void OnCreateNewFile(string dir, TreeNode parentNode)
 		{
-			var form = new PromptForm();
-			form.AllowEmpty = false;
-			if (form.ShowDialog() == DialogResult.OK)
+			using (var form = new PromptForm())
 			{
-				var fileName = form.Value;
-				if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+				form.AllowEmpty = false;
+				if (form.ShowDialog() == DialogResult.OK)
 				{
-					Errors.Show(this, "This file name contains invalid characters.");
-				}
-				else
-				{
-					var pathName = Path.Combine(dir, fileName);
-					if (File.Exists(pathName))
+					var fileName = form.Value;
+					if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
 					{
-						Errors.Show(this, "This file already exists.");
+						Errors.Show(this, "This file name contains invalid characters.");
 					}
 					else
 					{
-						using (var stream = File.Create(pathName))
+						var pathName = Path.Combine(dir, fileName);
+						if (File.Exists(pathName))
 						{
+							Errors.Show(this, "This file already exists.");
 						}
-						PopulateFileTree_AddFile(parentNode, pathName);
-						AddProbeFile(pathName);
+						else
+						{
+							using (var stream = File.Create(pathName))
+							{
+							}
+							PopulateFileTree_AddFile(parentNode, pathName);
+							AddProbeFile(pathName);
+						}
+						_plugin.OpenFile(pathName);
+						_plugin.CreateFileHeaderText(pathName);
 					}
-					_plugin.OpenFile(pathName);
-					_plugin.CreateFileHeaderText(pathName);
 				}
 			}
 		}
@@ -858,37 +877,39 @@ namespace ProbeNpp
 				var iconRect = new Rectangle(e.Bounds.Left + k_spacer, e.Bounds.Top + (e.Bounds.Height - k_iconSize) / 2, k_iconSize, k_iconSize);
 				var textRect = new Rectangle(iconRect.Right + k_spacer, e.Bounds.Top, e.Bounds.Right - (iconRect.Right + k_spacer), e.Bounds.Height);
 
-				var sf = new StringFormat();
-				sf.FormatFlags = StringFormatFlags.NoWrap;
-				sf.LineAlignment = StringAlignment.Center;
-
-				e.Graphics.FillRectangle(selected ? SystemBrushes.Highlight : SystemBrushes.Window, textRect);
-				e.Graphics.DrawIcon(Res.FunctionIcon, iconRect);
-
-				if (e.Item.Text.StartsWith(func.Name))
+				using (var sf = new StringFormat())
 				{
-					e.Graphics.DrawString(func.Name, lstFunctions.Font,
-						selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText, textRect, sf);
+					sf.FormatFlags = StringFormatFlags.NoWrap;
+					sf.LineAlignment = StringAlignment.Center;
 
-					if (e.Item.Text.Length > func.Name.Length)
+					e.Graphics.FillRectangle(selected ? SystemBrushes.Highlight : SystemBrushes.Window, textRect);
+					e.Graphics.DrawIcon(Res.FunctionIcon, iconRect);
+
+					if (e.Item.Text.StartsWith(func.Name))
 					{
-						var size = Util.MeasureString(e.Graphics, func.Name, lstFunctions.Font, textRect, sf);
-						var argsRect = new RectangleF(textRect.Left + size.Width, textRect.Top, textRect.Width - size.Width, textRect.Height);
-						if (!argsRect.IsEmpty)
+						e.Graphics.DrawString(func.Name, lstFunctions.Font,
+							selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText, textRect, sf);
+
+						if (e.Item.Text.Length > func.Name.Length)
 						{
-							e.Graphics.DrawString(e.Item.Text.Substring(func.Name.Length), lstFunctions.Font,
-								selected ? _argsBrushHighlight : _argsBrush, argsRect, sf);
+							var size = Util.MeasureString(e.Graphics, func.Name, lstFunctions.Font, textRect, sf);
+							var argsRect = new RectangleF(textRect.Left + size.Width, textRect.Top, textRect.Width - size.Width, textRect.Height);
+							if (!argsRect.IsEmpty)
+							{
+								e.Graphics.DrawString(e.Item.Text.Substring(func.Name.Length), lstFunctions.Font,
+									selected ? _argsBrushHighlight : _argsBrush, argsRect, sf);
+							}
 						}
 					}
-				}
-				else
-				{
-					e.Graphics.DrawString(e.Item.Text, lstFunctions.Font,
-						selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText,
-						textRect, sf);
-				}
+					else
+					{
+						e.Graphics.DrawString(e.Item.Text, lstFunctions.Font,
+							selected ? SystemBrushes.HighlightText : SystemBrushes.WindowText,
+							textRect, sf);
+					}
 
-				e.DrawFocusRectangle(e.Bounds);
+					e.DrawFocusRectangle(e.Bounds);
+				}
 			}
 		}
 
@@ -899,8 +920,17 @@ namespace ProbeNpp
 
 		private void lstFunctions_SystemColorsChanged(object sender, EventArgs e)
 		{
-			_argsBrush = null;
-			_argsBrushHighlight = null;
+			if (_argsBrush != null)
+			{
+				_argsBrush.Dispose();
+				_argsBrush = null;
+			}
+
+			if (_argsBrushHighlight != null)
+			{
+				_argsBrushHighlight.Dispose();
+				_argsBrushHighlight = null;
+			}
 		}
 		#endregion
 

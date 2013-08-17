@@ -4,6 +4,7 @@ using System.Text;
 
 namespace ProbeNpp
 {
+	[Serializable]
 	public class ProbeException : Exception
 	{
 		public ProbeException(string message)

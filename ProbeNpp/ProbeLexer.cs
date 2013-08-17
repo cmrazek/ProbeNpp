@@ -288,8 +288,7 @@ namespace ProbeNpp
 			{
 				if (!string.IsNullOrEmpty(_table))
 				{
-					var env = ProbeNppPlugin.Instance.Environment;
-					var table = env.GetTable(_table);
+					var table = ProbeEnvironment.GetTable(_table);
 					if (table != null && table.IsField(token))
 					{
 						_line.Style(_fieldStyle, token.Length);
@@ -300,8 +299,7 @@ namespace ProbeNpp
 			}
 			else
 			{
-				var env = ProbeNppPlugin.Instance.Environment;
-				if (env.IsProbeTable(token))
+				if (ProbeEnvironment.IsProbeTable(token))
 				{
 					_line.Style(_tableStyle, token.Length);
 					SetLastToken(State_Token_Table);
@@ -318,8 +316,7 @@ namespace ProbeNpp
 				return;
 			}
 
-			if ((ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(token) || GetFunctionList().Contains(token)) &&
-				PeekNextChar(token.Length) == '(')
+			if (IsFunctionName(token) && PeekNextChar(token.Length) == '(')
 			{
 				_line.Style(_functionStyle, token.Length);
 				SetLastToken(State_Token_Function);
@@ -501,10 +498,6 @@ namespace ProbeNpp
 			}
 		}
 
-		/// <summary>
-		/// Consumes the next whitespace on the line.
-		/// </summary>
-		/// <returns>True if whitespace was found, otherwise false.</returns>
 		private bool StyleWhiteSpace()
 		{
 			bool foundWhiteSpace = false;
@@ -569,6 +562,19 @@ namespace ProbeNpp
 				if (!char.IsWhiteSpace(ch)) return ch;
 			}
 			return '\0';
+		}
+
+		private bool IsFunctionName(string name)
+		{
+			if (ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(name)) return true;
+			if (GetFunctionList().Contains(name)) return true;
+
+			if (AutoCompletion.FunctionFileScanner.Instance != null)
+			{
+				if (!string.IsNullOrEmpty(AutoCompletion.FunctionFileScanner.Instance.GetFunctionSignature(name))) return true;
+			}
+
+			return false;
 		}
 	}
 }

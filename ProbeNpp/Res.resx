@@ -145,6 +145,9 @@
   <data name="FolderIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Images\Folder.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="FunctionFileDatabaseFileName" xml:space="preserve">
+    <value>FunctionFiles.xml</value>
+  </data>
   <data name="FunctionIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Images\Function.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

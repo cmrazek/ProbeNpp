@@ -6,7 +6,7 @@ using System.Timers;
 
 namespace ProbeNpp
 {
-	internal class BackgroundDeferrer
+	internal sealed class BackgroundDeferrer : IDisposable
 	{
 		private Timer _timer = null;
 		private int _timeout = k_defaultTimeout;
@@ -43,6 +43,11 @@ namespace ProbeNpp
 		{
 			var ev = Execute;
 			if (ev != null) ev(this, new EventArgs());
+		}
+
+		public void Dispose()
+		{
+			if (_timer != null) { _timer.Dispose(); _timer = null; }
 		}
 	}
 }

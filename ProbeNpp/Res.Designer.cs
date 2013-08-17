@@ -123,6 +123,15 @@ namespace ProbeNpp {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to FunctionFiles.xml.
+        /// </summary>
+        internal static string FunctionFileDatabaseFileName {
+            get {
+                return ResourceManager.GetString("FunctionFileDatabaseFileName", resourceCulture);
+            }
+        }
+        
         internal static System.Drawing.Icon FunctionIcon {
             get {
                 object obj = ResourceManager.GetObject("FunctionIcon", resourceCulture);

@@ -7,14 +7,15 @@ using NppSharp;
 
 namespace ProbeNpp
 {
-	internal class ProbeEnvironment
+	internal static class ProbeEnvironment
 	{
 		#region Events
-		public event EventHandler AppChanged;
+		public static event EventHandler AppChanged;
 		#endregion
 
 		#region Construction
-		public ProbeEnvironment()
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
+		public static void Initialize()
 		{
 			Reload();
 
@@ -29,19 +30,31 @@ namespace ProbeNpp
 			}
 		}
 
-		internal void OnSettingsSaved()
+		internal static void OnSettingsSaved()
 		{
 			_probeExtensions = null;
 		}
 		#endregion
 
 		#region PSelect
-		private string _currentApp = "";
-		private IniFile _nvFile = null;
-		private string _probeIniFileName = "";
-		private FileSystemWatcher _probeIniWatcher = null;
+		private static object _lock = new object();
+		private static string _currentApp;
+		private static IniFile _nvFile;
+		private static string _probeIniFileName;
+		private static FileSystemWatcher _probeIniWatcher;
+		private static string[] _sourceDirs;
+		private static string _objectDir;
+		private static string _exeDir;
+		private static string _tempDir;
+		private static string _reportDir;
+		private static string _dataDir;
+		private static string _logDir;
+		private static string[] _libDirs;
+		private static string[] _includeDirs;
+		private static string[] _appNames;
+		private static int? _samPort;
 		
-		void _probeIniWatcher_Changed(object sender, FileSystemEventArgs e)
+		private static void _probeIniWatcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			try
 			{
@@ -49,7 +62,7 @@ namespace ProbeNpp
 				// Hack - wait a small amount of time before checking.
 				System.Threading.Thread.Sleep(100);
 
-				CheckForAppChanged();
+				OnIniFileChanged();
 			}
 			catch (Exception ex)
 			{
@@ -57,123 +70,291 @@ namespace ProbeNpp
 			}
 		}
 
-		public IEnumerable<string> SourceDirs
+		public static IEnumerable<string> SourceDirs
 		{
 			get
 			{
-				List<string> dirs = new List<string>();
-				foreach (string dir in _nvFile[_currentApp, "ps"].Split(';'))
+				lock (_lock)
 				{
-					string d = dir.Trim();
-					if (!string.IsNullOrEmpty(d)) dirs.Add(d);
+					if (_sourceDirs == null)
+					{
+						var dirs = new List<string>();
+						foreach (var dir in _nvFile[_currentApp, "ps"].Split(';'))
+						{
+							try
+							{
+								if (!string.IsNullOrWhiteSpace(dir)) dirs.Add(Path.GetFullPath(dir.Trim()));
+							}
+							catch (Exception ex)
+							{
+								Log.WriteError(ex);
+							}
+						}
+						_sourceDirs = dirs.ToArray();
+					}
+					return _sourceDirs;
 				}
-				return dirs;
 			}
 		}
 
-		public string ObjectDir
-		{
-			get { return _nvFile[_currentApp, "po"].Trim(); }
-		}
-
-		public string ExeDir
-		{
-			get { return _nvFile[_currentApp, "pe"].Trim(); }
-		}
-
-		public string TempDir
-		{
-			get { return _nvFile[_currentApp, "pt"].Trim(); }
-		}
-
-		public string ReportDir
-		{
-			get { return _nvFile[_currentApp, "pr"].Trim(); }
-		}
-
-		public string DataDir
-		{
-			get { return _nvFile[_currentApp, "pd"].Trim(); }
-		}
-
-		public string LogDir
-		{
-			get { return _nvFile[_currentApp, "px"].Trim(); }
-		}
-
-		public IEnumerable<string> LibDirs
+		public static string ObjectDir
 		{
 			get
 			{
-				List<string> dirs = new List<string>();
-				foreach (string dir in _nvFile[_currentApp, "lib"].Split(';'))
+				lock (_lock)
 				{
-					string d = dir.Trim();
-					if (!string.IsNullOrEmpty(d)) dirs.Add(d);
+					if (_objectDir == null)
+					{
+						try
+						{
+							_objectDir = Path.GetFullPath(_nvFile[_currentApp, "po"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_objectDir = "";
+						}
+					}
+					
+					return _objectDir;
 				}
-				return dirs;
 			}
 		}
 
-		public IEnumerable<string> IncludeDirs
+		public static string ExeDir
 		{
 			get
 			{
-				List<string> dirs = new List<string>();
-				foreach (string dir in _nvFile[_currentApp, "include"].Split(';'))
+				lock (_lock)
 				{
-					string d = dir.Trim();
-					if (!string.IsNullOrEmpty(d)) dirs.Add(d);
+					if (_exeDir == null)
+					{
+						try
+						{
+							_exeDir = Path.GetFullPath(_nvFile[_currentApp, "pe"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_exeDir = "";
+						}
+					}
+					return _exeDir;
 				}
-				return dirs;
 			}
 		}
 
-		public IEnumerable<string> AppNames
-		{
-			get { return _nvFile.SectionNames; }
-		}
-
-		public int SamPort
+		public static string TempDir
 		{
 			get
 			{
-				int port;
-				if (!Int32.TryParse(_nvFile[_currentApp, "dp1"].Trim(), out port)) return 0;
-				return port;
+				lock (_lock)
+				{
+					if (_tempDir == null)
+					{
+						try
+						{
+							_tempDir = Path.GetFullPath(_nvFile[_currentApp, "pt"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_tempDir = "";
+						}
+					}
+					return _tempDir;
+				}
 			}
 		}
 
-		public string CurrentApp
+		public static string ReportDir
 		{
-			get { return _currentApp; }
+			get
+			{
+				lock (_lock)
+				{
+					if (_reportDir == null)
+					{
+						try
+						{
+							_reportDir = Path.GetFullPath(_nvFile[_currentApp, "pr"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_reportDir = "";
+						}
+					}
+					return _reportDir;
+				}
+			}
+		}
+
+		public static string DataDir
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (_dataDir == null)
+					{
+						try
+						{
+							_dataDir = Path.GetFullPath(_nvFile[_currentApp, "pd"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_dataDir = "";
+						}
+					}
+					return _dataDir;
+				}
+			}
+		}
+
+		public static string LogDir
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (_logDir == null)
+					{
+						try
+						{
+							_logDir = Path.GetFullPath(_nvFile[_currentApp, "px"].Trim());
+						}
+						catch (Exception ex)
+						{
+							Log.WriteError(ex);
+							_logDir = "";
+						}
+					}
+					return _logDir;
+				}
+			}
+		}
+
+		public static IEnumerable<string> LibDirs
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (_libDirs == null)
+					{
+						var dirs = new List<string>();
+						foreach (var dir in _nvFile[_currentApp, "lib"].Split(';'))
+						{
+							try
+							{
+								if (!string.IsNullOrWhiteSpace(dir)) dirs.Add(Path.GetFullPath(dir.Trim()));
+							}
+							catch (Exception ex)
+							{
+								Log.WriteError(ex);
+							}
+						}
+						_libDirs = dirs.ToArray();
+					}
+					return _libDirs;
+				}
+			}
+		}
+
+		public static IEnumerable<string> IncludeDirs
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (_includeDirs == null)
+					{
+						var dirs = new List<string>();
+						foreach (string dir in _nvFile[_currentApp, "include"].Split(';'))
+						{
+							try
+							{
+								if (!string.IsNullOrWhiteSpace(dir)) dirs.Add(Path.GetFullPath(dir.Trim()));
+							}
+							catch (Exception ex)
+							{
+								Log.WriteError(ex);
+							}
+						}
+						_includeDirs = dirs.ToArray();
+					}
+					return _includeDirs;
+				}
+			}
+		}
+
+		public static IEnumerable<string> AppNames
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (_appNames == null) _appNames = _nvFile.SectionNames.ToArray();
+					return _appNames;
+				}
+			}
+		}
+
+		public static int SamPort
+		{
+			get
+			{
+				lock (_lock)
+				{
+					if (!_samPort.HasValue)
+					{
+						int port;
+						if (int.TryParse(_nvFile[_currentApp, "dp1"].Trim(), out port)) _samPort = port;
+						else _samPort = 0;
+					}
+					return _samPort.Value;
+				}
+			}
+		}
+
+		public static string CurrentApp
+		{
+			get
+			{
+				lock (_lock)
+				{
+					return string.IsNullOrEmpty(_currentApp) ? string.Empty : _currentApp;
+				}
+			}
 			set
 			{
 				try
 				{
 					if (value != _currentApp)
 					{
-						string exeFileName = LocateFileInPath("ProbeNV.exe");
+						var exeFileName = LocateFileInPath("ProbeNV.exe");
 						if (string.IsNullOrEmpty(exeFileName)) throw new FileNotFoundException("ProbeNV.exe not found.");
 
-						ProcessRunner pr = new ProcessRunner();
-						int exitCode = pr.ExecuteProcess(exeFileName, value, Path.GetDirectoryName(exeFileName), true);
+						var pr = new ProcessRunner();
+						var exitCode = pr.ExecuteProcess(exeFileName, value, Path.GetDirectoryName(exeFileName), true);
 						if (exitCode != 0) throw new ProbeException(string.Format("ProbeNV.exe returned exit code {0}.", exitCode));
 
-						ReloadCurrentApp();
+						Reload();
 
 						EventHandler ev = AppChanged;
-						if (ev != null) ev(this, new EventArgs());
+						if (ev != null) ev(null, new EventArgs());
 					}
 				}
 				catch (Exception ex)
 				{
-					Plugin.Output.WriteLine(OutputStyle.Error, "Error when retrieving current Probe app: {0}", ex);
+					Log.WriteError("Error when retrieving current Probe app: {0}", ex);
 				}
 			}
 		}
 
-		public bool CheckForAppChanged()
+		public static bool OnIniFileChanged()
 		{
 			try
 			{
@@ -187,7 +368,7 @@ namespace ProbeNpp
 						Reload();
 
 						EventHandler ev = AppChanged;
-						if (ev != null) ev(this, new EventArgs());
+						if (ev != null) ev(null, new EventArgs());
 					}
 
 					return true;
@@ -201,48 +382,64 @@ namespace ProbeNpp
 			return false;
 		}
 
-		public void ReloadCurrentApp()
+		public static void Reload()
 		{
-			_probeIniFileName = LocateFileInPath("probe.ini");
-			if (string.IsNullOrEmpty(_probeIniFileName))
+			lock (_lock)
 			{
-				Plugin.Output.WriteLine(OutputStyle.Warning, "probe.ini could not be found.");
-				_currentApp = "";
-			}
-			else
-			{
-				IniFile probeFile = new IniFile(_probeIniFileName);
-				_currentApp = probeFile["Options", "CurrentApp"];
-			}
-		}
+				_sourceDirs = null;
+				_objectDir = null;
+				_exeDir = null;
+				_tempDir = null;
+				_reportDir = null;
+				_dataDir = null;
+				_logDir = null;
+				_libDirs = null;
+				_includeDirs = null;
+				_appNames = null;
+				_samPort = null;
 
-		public void Reload()
-		{
-			ReloadCurrentApp();
+				_probeIniFileName = LocateFileInPath("probe.ini");
+				if (string.IsNullOrEmpty(_probeIniFileName))
+				{
+					Plugin.Output.WriteLine(OutputStyle.Warning, "probe.ini could not be found.");
+					_currentApp = null;
+				}
+				else
+				{
+					IniFile probeFile = new IniFile(_probeIniFileName);
+					_currentApp = probeFile["Options", "CurrentApp"];
+				}
 
-			string nvFileName = LocateFileInPath("probenv.ini");
-			if (string.IsNullOrEmpty(nvFileName))
-			{
-				_nvFile = new IniFile();
-				Plugin.Output.WriteLine(OutputStyle.Warning, "probenv.ini could not be found.");
-			}
-			else
-			{
-				_nvFile = new IniFile(nvFileName);
-			}
+				string nvFileName = LocateFileInPath("probenv.ini");
+				if (string.IsNullOrEmpty(nvFileName))
+				{
+					_nvFile = new IniFile();
+					Plugin.Output.WriteLine(OutputStyle.Warning, "probenv.ini could not be found.");
+				}
+				else
+				{
+					_nvFile = new IniFile(nvFileName);
+				}
 
-			ReloadTableList();
+				ReloadTableList();
+			}
 		}
 		#endregion
 
 		#region Table List
-		private Dictionary<string, ProbeTable> _tables = new Dictionary<string, ProbeTable>();
+		private static Dictionary<string, ProbeTable> _tables = new Dictionary<string, ProbeTable>();
+		private static CodeModel.AutoCompletionItem[] _autoCompletionTables = null;
 
-		private void ReloadTableList()
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
+		private static void ReloadTableList()
 		{
+			// The function that calls this already has _lock locked.
+
 			try
 			{
 				_tables.Clear();
+				_autoCompletionTables = null;
+
 				ProcessRunner pr = new ProcessRunner();
 				CallbackOutput output = new CallbackOutput(GetTableList_Callback);
 				int exitCode = pr.CaptureProcess("ptd.exe", "", TempDir, output);
@@ -253,7 +450,7 @@ namespace ProbeNpp
 			}
 		}
 
-		private void GetTableList_Callback(string line)
+		private static void GetTableList_Callback(string line)
 		{
 			try
 			{
@@ -279,24 +476,35 @@ namespace ProbeNpp
 			}
 		}
 
-		public IEnumerable<ProbeTable> Tables
+		public static IEnumerable<ProbeTable> Tables
 		{
-			get { return _tables.Values; }
+			get
+			{
+				lock (_lock)
+				{
+					return _tables.Values;
+				}
+			}
 		}
 
-		public bool IsProbeTable(string tableName)
+		public static bool IsProbeTable(string tableName)
 		{
-			return _tables.ContainsKey(tableName);
+			lock (_lock)
+			{
+				return _tables.ContainsKey(tableName);
+			}
 		}
 
-		public ProbeTable GetTable(string tableName)
+		public static ProbeTable GetTable(string tableName)
 		{
-			ProbeTable table;
-			return _tables.TryGetValue(tableName, out table) ? table : null;
+			lock (_lock)
+			{
+				ProbeTable table;
+				return _tables.TryGetValue(tableName, out table) ? table : null;
+			}
 		}
 
-		private CodeModel.AutoCompletionItem[] _autoCompletionTables = null;
-		public IEnumerable<CodeModel.AutoCompletionItem> AutoCompletionTables
+		public static IEnumerable<CodeModel.AutoCompletionItem> AutoCompletionTables
 		{
 			get
 			{
@@ -316,7 +524,7 @@ namespace ProbeNpp
 		#endregion
 
 		#region File Paths
-		private string[] _probeExtensions = null;
+		private static string[] _probeExtensions = null;
 
 		public static string LocateFileInPath(string fileName)
 		{
@@ -336,7 +544,7 @@ namespace ProbeNpp
 			return "";
 		}
 
-		public string GetRelativePathName(string pathName)
+		public static string GetRelativePathName(string pathName)
 		{
 			if (string.IsNullOrEmpty(pathName)) return "";
 
@@ -356,7 +564,7 @@ namespace ProbeNpp
 			return "";
 		}
 
-		public string FindBaseFile(string pathName)
+		public static string FindBaseFile(string pathName)
 		{
 			if (string.IsNullOrEmpty(pathName)) return "";
 
@@ -373,7 +581,7 @@ namespace ProbeNpp
 			return "";
 		}
 
-		public IEnumerable<string> FindLocalFiles(string pathName, bool includeBaseFile)
+		public static IEnumerable<string> FindLocalFiles(string pathName, bool includeBaseFile)
 		{
 			List<string> files = new List<string>();
 
@@ -395,18 +603,12 @@ namespace ProbeNpp
 			return files;
 		}
 
-		public bool FileExistsInApp(string pathName)
+		public static bool FileExistsInApp(string pathName)
 		{
 			return !string.IsNullOrEmpty(GetRelativePathName(Path.GetFullPath(pathName)));
 		}
 
-		/// <summary>
-		/// Determines if a file has an extension considered to be a probe file.
-		/// </summary>
-		/// <param name="pathName">The path name of the file to test.</param>
-		/// <returns>True if the file extension appears to be a type containing Probe code or table definition;
-		/// Otherwise false.</returns>
-		public bool IsProbeFile(string pathName)
+		public static bool IsProbeFile(string pathName)
 		{
 			// Populate the probe extension list, if it hasn't been already.
 			if (_probeExtensions == null)

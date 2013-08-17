@@ -33,7 +33,7 @@ namespace ProbeNpp.AutoCompletion
 
 				if (!string.IsNullOrWhiteSpace(word))
 				{
-					var table = _app.Environment.GetTable(word);
+					var table = ProbeEnvironment.GetTable(word);
 					if (table == null) return;
 
 					var fields = table.Fields;
@@ -50,7 +50,7 @@ namespace ProbeNpp.AutoCompletion
 					Match match;
 					ProbeTable table;
 					if ((match = _rxTableField.Match(lineText)).Success &&
-						(table = _app.Environment.GetTable(match.Groups[1].Value)) != null)
+						(table = ProbeEnvironment.GetTable(match.Groups[1].Value)) != null)
 					{
 						var field = match.Groups[2].Value;
 						_app.ShowAutoCompletion(field.Length, (from f in table.Fields orderby f.Name select f.Name), true);
@@ -195,7 +195,7 @@ namespace ProbeNpp.AutoCompletion
 					list.Add(item);
 				}
 
-				foreach (var item in (from t in _app.Environment.AutoCompletionTables where t.Text.StartsWith(startsWith) select t.Text))
+				foreach (var item in (from t in ProbeEnvironment.AutoCompletionTables where t.Text.StartsWith(startsWith) select t.Text))
 				{
 					list.Add(item);
 				}
@@ -220,9 +220,12 @@ namespace ProbeNpp.AutoCompletion
 					list.Add(item);
 				}
 
-				foreach (var item in (from f in FunctionFileScanner.GetFunctionSignatures(startsWith) select f.Name))
+				if (FunctionFileScanner.Instance != null)
 				{
-					list.Add(item);
+					foreach (var item in (from f in FunctionFileScanner.Instance.GetFunctionSignatures(startsWith) select f.Name))
+					{
+						list.Add(item);
+					}
 				}
 
 				foreach (var item in (from k in _app.DataTypes where k.StartsWith(startsWith) select k))
@@ -248,6 +251,12 @@ namespace ProbeNpp.AutoCompletion
 
 			var funcSig = (from f in _app.FunctionSignatures.Keys where f == funcName select _app.FunctionSignatures[f]).FirstOrDefault();
 			if (!string.IsNullOrEmpty(funcSig)) return funcSig;
+
+			if (FunctionFileScanner.Instance != null)
+			{
+				funcSig = FunctionFileScanner.Instance.GetFunctionSignature(funcName);
+				if (!string.IsNullOrEmpty(funcSig)) return funcSig;
+			}
 
 			return null;
 		}

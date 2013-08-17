@@ -12,10 +12,12 @@ namespace ProbeNpp
 		{
 			try
 			{
-				ErrorForm form = new ErrorForm();
-				form.Message = ex.Message;
-				form.Details = ex.ToString();
-				form.ShowDialog(parentWindow);
+				using (ErrorForm form = new ErrorForm())
+				{
+					form.Message = ex.Message;
+					form.Details = ex.ToString();
+					form.ShowDialog(parentWindow);
+				}
 			}
 			catch (Exception)
 			{ }
@@ -25,10 +27,12 @@ namespace ProbeNpp
 		{
 			try
 			{
-				ErrorForm form = new ErrorForm();
-				form.Message = message;
-				form.Details = ex.ToString();
-				form.ShowDialog(parentWindow);
+				using (ErrorForm form = new ErrorForm())
+				{
+					form.Message = message;
+					form.Details = ex.ToString();
+					form.ShowDialog(parentWindow);
+				}
 			}
 			catch (Exception)
 			{ }
@@ -38,9 +42,11 @@ namespace ProbeNpp
 		{
 			try
 			{
-				ErrorForm form = new ErrorForm();
-				form.Message = message;
-				form.ShowDialog(parentWindow);
+				using (ErrorForm form = new ErrorForm())
+				{
+					form.Message = message;
+					form.ShowDialog(parentWindow);
+				}
 			}
 			catch (Exception)
 			{ }
@@ -50,9 +56,11 @@ namespace ProbeNpp
 		{
 			try
 			{
-				ErrorForm form = new ErrorForm();
-				form.Message = string.Format(format, args);
-				form.ShowDialog(parentWindow);
+				using (ErrorForm form = new ErrorForm())
+				{
+					form.Message = string.Format(format, args);
+					form.ShowDialog(parentWindow);
+				}
 			}
 			catch (Exception)
 			{ }
@@ -62,10 +70,12 @@ namespace ProbeNpp
 		{
 			try
 			{
-				ErrorForm form = new ErrorForm();
-				form.Message = message;
-				form.Details = details;
-				form.ShowDialog(parentWindow);
+				using (ErrorForm form = new ErrorForm())
+				{
+					form.Message = message;
+					form.Details = details;
+					form.ShowDialog(parentWindow);
+				}
 			}
 			catch (Exception)
 			{ }

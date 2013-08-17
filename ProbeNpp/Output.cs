@@ -37,33 +37,6 @@ namespace ProbeNpp
 		}
 	}
 
-	/*
-	public class OutputWindowOutput : Output
-	{
-		OutputWindowPane	_ow = null;
-
-		public OutputWindowOutput(string outputWindowTitle)
-		{
-			_ow = Utils.GetOutputWindowPane(outputWindowTitle);
-		}
-
-		public OutputWindowOutput(OutputWindowPane outputWindow)
-		{
-			_ow = outputWindow;
-		}
-
-		public override void Write(string text)
-		{
-			_ow.OutputString(text);
-		}
-
-		public override void WriteLine(string text)
-		{
-			_ow.OutputString(text + "\r\n");
-		}
-	}
-	*/
-
 	public class CallbackOutput : Output
 	{
 		public delegate void OutputCallback(string text);
@@ -105,10 +78,15 @@ namespace ProbeNpp
 
 		public void Dispose()
 		{
-			if (_writer != null)
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
 			{
-				_writer.Close();
-				_writer = null;
+				if (_writer != null) { _writer.Close(); _writer = null; }
 			}
 		}
 

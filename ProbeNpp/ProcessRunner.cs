@@ -1,20 +1,21 @@
 using System;
 using System.Diagnostics;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Permissions;
 using System.Threading;
 
 namespace ProbeNpp
 {
-	public class ProcessRunner
+	internal class ProcessRunner
 	{
 		bool _captureOutput = true;
 		bool _captureError = true;
 		Output _output = null;
-		ArrayList _outputLines = new ArrayList();
+		List<string> _outputLines = new List<string>();
 		ProcessRunnerThread _outputThread = null;
 		ProcessRunnerThread _errorThread = null;
-		Process _proc = null;
 
 		public int CaptureProcess(string fileName, string args, string workingDir, Output output)
 		{
@@ -22,68 +23,89 @@ namespace ProbeNpp
 			return DoCapture(fileName, args, workingDir);
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
 		public int ExecuteProcess(string fileName, string args, string workingDir, bool waitForExit)
 		{
-			Process proc = new Process();
-			ProcessStartInfo info = new ProcessStartInfo(fileName, args);
-			info.UseShellExecute = false;
-			info.RedirectStandardInput = false;
-			info.RedirectStandardOutput = false;
-			info.CreateNoWindow = true;
-			info.WorkingDirectory = workingDir;
-			proc.StartInfo = info;
-			if (!proc.Start()) return 1;
+			using (Process proc = new Process())
+			{
+				ProcessStartInfo info = new ProcessStartInfo(fileName, args);
+				info.UseShellExecute = false;
+				info.RedirectStandardInput = false;
+				info.RedirectStandardOutput = false;
+				info.CreateNoWindow = true;
+				info.WorkingDirectory = workingDir;
+				proc.StartInfo = info;
+				if (!proc.Start()) return 1;
 
-			if (waitForExit)
-			{
-				proc.WaitForExit();
-				return proc.ExitCode;
-			}
-			else
-			{
-				return 0;
+				if (waitForExit)
+				{
+					proc.WaitForExit();
+					return proc.ExitCode;
+				}
+				else
+				{
+					return 0;
+				}
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
 		private int DoCapture(string fileName, string args, string workingDir)
 		{
 			Kill();
 
-			_proc = new Process();
-			ProcessStartInfo info = new ProcessStartInfo(fileName, args);
-			info.UseShellExecute = false;
-			info.RedirectStandardOutput = _captureOutput;
-			info.RedirectStandardError = _captureError;
-			info.CreateNoWindow = true;
-			info.WorkingDirectory = workingDir;
-			_proc.StartInfo = info;
-			if (!_proc.Start()) throw new ProcessRunnerException(string.Format("Failed to start process '{0}'.", fileName));
-
-			lock(_outputLines)
+			using (var proc = new Process())
 			{
-				_outputLines.Clear();
-			}
+				ProcessStartInfo info = new ProcessStartInfo(fileName, args);
+				info.UseShellExecute = false;
+				info.RedirectStandardOutput = _captureOutput;
+				info.RedirectStandardError = _captureError;
+				info.CreateNoWindow = true;
+				info.WorkingDirectory = workingDir;
+				proc.StartInfo = info;
+				if (!proc.Start()) throw new ProcessRunnerException(string.Format("Failed to start process '{0}'.", fileName));
 
-			_outputThread = null;
-			_errorThread = null;
-			if (_captureOutput)
-			{
-				_outputThread = new ProcessRunnerThread(this, false, _proc);
-				_outputThread.Start("StdOut Capture Thread");
-			}
-			if (_captureError)
-			{
-				_errorThread = new ProcessRunnerThread(this, true, _proc);
-				_errorThread.Start("StdErr Capture Thread");
-			}
+				lock (_outputLines)
+				{
+					_outputLines.Clear();
+				}
 
-			string line;
+				_outputThread = null;
+				_errorThread = null;
+				if (_captureOutput)
+				{
+					_outputThread = new ProcessRunnerThread(this, false, proc);
+					_outputThread.Start("StdOut Capture Thread");
+				}
+				if (_captureError)
+				{
+					_errorThread = new ProcessRunnerThread(this, true, proc);
+					_errorThread.Start("StdErr Capture Thread");
+				}
 
-			// Grabs the lines while the process runs.
-			while ((_outputThread != null && _outputThread.IsAlive) ||
-				(_errorThread != null && _errorThread.IsAlive))
-			{
-				lock(_outputLines)
+				string line;
+
+				// Grabs the lines while the process runs.
+				while ((_outputThread != null && _outputThread.IsAlive) ||
+					(_errorThread != null && _errorThread.IsAlive))
+				{
+					lock (_outputLines)
+					{
+						while (_outputLines.Count > 0)
+						{
+							line = (string)_outputLines[0];
+							if (line != null)
+							{
+								if (_output != null) _output.WriteLine(line);
+								_outputLines.RemoveAt(0);
+							}
+						}
+					}
+					System.Threading.Thread.Sleep(100);
+				}
+
+				// Process has finished. Grab the rest of the lines.
+				lock (_outputLines)
 				{
 					while (_outputLines.Count > 0)
 					{
@@ -95,31 +117,15 @@ namespace ProbeNpp
 						}
 					}
 				}
-				System.Threading.Thread.Sleep(100);
-			}
 
-			// Process has finished. Grab the rest of the lines.
-			lock(_outputLines)
-			{
-				while (_outputLines.Count > 0)
+				while (!proc.HasExited)
 				{
-					line = (string)_outputLines[0];
-					if (line != null)
-					{
-						if (_output != null) _output.WriteLine(line);
-						_outputLines.RemoveAt(0);
-					}
+					System.Threading.Thread.Sleep(100);
 				}
-			}
 
-			while (!_proc.HasExited)
-			{
-				System.Threading.Thread.Sleep(100);
+				int exitCode = proc.ExitCode;
+				return exitCode;
 			}
-
-			int exitCode = _proc.ExitCode;
-			_proc = null;
-			return exitCode;
 		}
 
 		void OutputLine(string line)
@@ -163,12 +169,6 @@ namespace ProbeNpp
 			{
 				if (_errorThread.IsAlive) _errorThread.Abort();
 				_errorThread = null;
-			}
-
-			if (_proc != null)
-			{
-				if (!_proc.HasExited) _proc.Kill();
-				_proc = null;
 			}
 		}
 
@@ -237,6 +237,7 @@ namespace ProbeNpp
 		#endregion
 	}
 
+	[Serializable]
 	public class ProcessRunnerException : Exception
 	{
 		public ProcessRunnerException(string message)

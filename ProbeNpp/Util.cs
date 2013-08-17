@@ -62,5 +62,17 @@ namespace ProbeNpp
 				(int)(((a.G / 255.0f) * minusRatio + (b.G / 255.0f) * ratio) * 255.0f),
 				(int)(((a.B / 255.0f) * minusRatio + (b.B / 255.0f) * ratio) * 255.0f));
 		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
+		public static Bitmap ToBitmap(this Icon icon)
+		{
+			var bmp = new Bitmap(icon.Width, icon.Height);
+			using (var g = Graphics.FromImage(bmp))
+			{
+				g.Clear(Color.Transparent);
+				g.DrawIcon(icon, new Rectangle(0, 0, icon.Width, icon.Height));
+			}
+			return bmp;
+		}
 	}
 }

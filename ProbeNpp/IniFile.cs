@@ -26,6 +26,8 @@ namespace ProbeNpp
 
 		public IniFile(string fileName)
 		{
+			if (string.IsNullOrEmpty(fileName)) throw new InvalidOperationException("INI file name is blank.");
+
 			_fileName = fileName;
 			Load();
 		}
@@ -36,7 +38,6 @@ namespace ProbeNpp
 			_sectionNames.Clear();
 			if (string.IsNullOrEmpty(_fileName)) return;
 
-			//Log.Write("Loading INI file '{0}'.", _fileName);
 			using (StreamReader sr = new StreamReader(_fileName))
 			{
 				IniSection curSection = null;
@@ -50,7 +51,6 @@ namespace ProbeNpp
 					if (match.Success)
 					{
 						string sectionName = match.Groups[1].Value;
-						//Log.Write("Found section '{0}'.", sectionName);
 						if (!_sections.TryGetValue(sectionName.ToLower(), out curSection))
 						{
 							curSection = new IniSection();
@@ -60,25 +60,24 @@ namespace ProbeNpp
 					}
 					else if (curSection != null && (match = _rxValue.Match(line)).Success)
 					{
-						//Log.Write("Found key '{0}' with value '{1}'.", match.Groups[1].Value, match.Groups[2].Value);
 						curSection.values[match.Groups[1].Value.ToLower()] = match.Groups[2].Value;
 					}
 				}
 			}
-
-			//Log.Write("Finished loading INI file.");
 		}
 
 		public string this[string sectionName, string keyName]
 		{
 			get
 			{
+				if (string.IsNullOrEmpty(sectionName)) return string.Empty;
+
 				IniSection section;
-				if (!_sections.TryGetValue(sectionName.ToLower(), out section)) return "";
+				if (!_sections.TryGetValue(sectionName.ToLower(), out section)) return string.Empty;
 
 				string val;
 				if (section.values.TryGetValue(keyName.ToLower(), out val)) return val;
-				return "";
+				return string.Empty;
 			}
 		}
 

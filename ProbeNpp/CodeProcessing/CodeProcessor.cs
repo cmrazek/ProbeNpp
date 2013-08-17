@@ -9,7 +9,6 @@ namespace ProbeNpp.CodeProcessing
 {
 	internal class CodeProcessor
 	{
-		private ProbeEnvironment _env = null;
 		private string _fileName = string.Empty;
 		private List<CodeFile> _files = new List<CodeFile>();
 		private List<CodeLine> _lines = new List<CodeLine>();
@@ -28,11 +27,8 @@ namespace ProbeNpp.CodeProcessing
 			Insert
 		}
 
-		public CodeProcessor(ProbeEnvironment probeEnv)
-		{
-			if (probeEnv == null) throw new ArgumentNullException("probeEnv");
-			_env = probeEnv;
-		}
+		public CodeProcessor()
+		{ }
 
 		public void ProcessFile(string fileName)
 		{
@@ -42,7 +38,7 @@ namespace ProbeNpp.CodeProcessing
 			_lines.Clear();
 			_replace.Clear();
 
-			var mergeFileNames = _env.FindLocalFiles(fileName, true).ToArray();
+			var mergeFileNames = ProbeEnvironment.FindLocalFiles(fileName, true).ToArray();
 			if (mergeFileNames.Length == 0)
 			{
 				_errors.Add(new CodeError(null, "No files found."));
