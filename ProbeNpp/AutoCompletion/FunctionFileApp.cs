@@ -16,24 +16,37 @@ namespace ProbeNpp.AutoCompletion
 
 		public FunctionFileApp(FunctionFileScanner scanner, string name)
 		{
+			if (scanner == null) throw new ArgumentNullException("scanner");
+			if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
 			_scanner = scanner;
 			_name = name;
 		}
 
 		public FunctionFileApp(FunctionFileScanner scanner, ProbeNpp.FunctionFileDatabase.Application_t dbApp)
 		{
+			if (scanner == null) throw new ArgumentNullException("scanner");
+			if (dbApp == null) throw new ArgumentNullException("dbApp");
+
+			_scanner = scanner;
 			_name = dbApp.name;
 
-			foreach (var func in dbApp.function)
+			if (dbApp.function != null)
 			{
-				if (string.IsNullOrWhiteSpace(func.name) || string.IsNullOrWhiteSpace(func.signature)) continue;
-				_functions[func.name] = func.signature;
+				foreach (var func in dbApp.function)
+				{
+					if (func == null || string.IsNullOrWhiteSpace(func.name) || string.IsNullOrWhiteSpace(func.signature)) continue;
+					_functions[func.name] = func.signature;
+				}
 			}
 
-			foreach (var file in dbApp.file)
+			if (dbApp.file != null)
 			{
-				if (string.IsNullOrWhiteSpace(file.fileName)) continue;
-				_fileDates[file.fileName] = file.modified;
+				foreach (var file in dbApp.file)
+				{
+					if (file == null || string.IsNullOrWhiteSpace(file.fileName)) continue;
+					_fileDates[file.fileName] = file.modified;
+				}
 			}
 		}
 
@@ -89,25 +102,46 @@ namespace ProbeNpp.AutoCompletion
 
 		private void fsw_Changed(object sender, FileSystemEventArgs e)
 		{
-			if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+			try
 			{
-				_scanner.EnqueueFile(e.FullPath);
+				if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+				{
+					_scanner.EnqueueFile(e.FullPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.WriteError(ex);
 			}
 		}
 
 		private void fsw_Created(object sender, FileSystemEventArgs e)
 		{
-			if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+			try
 			{
-				_scanner.EnqueueFile(e.FullPath);
+				if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+				{
+					_scanner.EnqueueFile(e.FullPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.WriteError(ex);
 			}
 		}
 
 		private void fsw_Renamed(object sender, RenamedEventArgs e)
 		{
-			if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+			try
 			{
-				_scanner.EnqueueFile(e.FullPath);
+				if (FunctionFileScanner.FunctionFilePattern.IsMatch(e.FullPath))
+				{
+					_scanner.EnqueueFile(e.FullPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.WriteError(ex);
 			}
 		}
 

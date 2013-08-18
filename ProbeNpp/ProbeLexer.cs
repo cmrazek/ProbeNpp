@@ -569,10 +569,8 @@ namespace ProbeNpp
 			if (ProbeNppPlugin.Instance.FunctionSignatures.Keys.Contains(name)) return true;
 			if (GetFunctionList().Contains(name)) return true;
 
-			if (AutoCompletion.FunctionFileScanner.Instance != null)
-			{
-				if (!string.IsNullOrEmpty(AutoCompletion.FunctionFileScanner.Instance.GetFunctionSignature(name))) return true;
-			}
+			var funcScanner = ProbeNppPlugin.Instance.FunctionFileScanner;
+			if (funcScanner != null && !string.IsNullOrEmpty(funcScanner.GetFunctionSignature(name))) return true;
 
 			return false;
 		}

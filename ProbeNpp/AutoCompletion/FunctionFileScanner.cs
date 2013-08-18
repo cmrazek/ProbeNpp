@@ -12,8 +12,6 @@ namespace ProbeNpp.AutoCompletion
 {
 	internal class FunctionFileScanner : IDisposable
 	{
-		public static FunctionFileScanner Instance;
-
 		private Thread _thread;
 		private EventWaitHandle _kill = new EventWaitHandle(false, EventResetMode.ManualReset);
 		private LockedValue<bool> _running = new LockedValue<bool>(false);
@@ -37,11 +35,6 @@ namespace ProbeNpp.AutoCompletion
 			public bool root;
 		}
 
-		public static void Initialize()
-		{
-			Instance = new FunctionFileScanner();
-		}
-
 		public FunctionFileScanner()
 		{
 			LoadSettings();
@@ -54,17 +47,18 @@ namespace ProbeNpp.AutoCompletion
 			ProbeEnvironment.AppChanged += new EventHandler(ProbeEnvironment_AppChanged);
 		}
 
-		public void Dispose()
+		public void OnShutdown()
 		{
-			if (_apps != null) { _apps.Dispose(); _apps = null; }
-			if (_kill != null) { _kill.Dispose(); _kill = null; }
+			SaveSettings();
+			Kill();
 		}
 
-		public static void Close()
+		public void Dispose()
 		{
-			Instance.SaveSettings();
-			Instance.Kill();
-			Instance = null;
+			Kill();
+
+			if (_apps != null) { _apps.Dispose(); _apps = null; }
+			if (_kill != null) { _kill.Dispose(); _kill = null; }
 		}
 
 		private void ProbeEnvironment_AppChanged(object sender, EventArgs e)
@@ -86,7 +80,11 @@ namespace ProbeNpp.AutoCompletion
 
 		private void Kill()
 		{
-			_kill.Set();
+			if (_thread != null)
+			{
+				_kill.Set();
+				_thread.Join();
+			}
 		}
 
 		private void ThreadProc()

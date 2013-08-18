@@ -74,7 +74,7 @@ namespace ProbeNpp
 		public class FindInProbeFilesGroup : SettingsGroup
 		{
 			public string MRU = string.Empty;
-			public FindInProbeFilesMethod Method = FindInProbeFilesMethod.Normal;
+			public FindInProbeFiles.FindMethod Method = ProbeNpp.FindInProbeFiles.FindMethod.Normal;
 			public bool MatchCase = false;
 			public bool MatchWholeWord = false;
 			public bool OnlyProbeFiles = true;
@@ -82,6 +82,9 @@ namespace ProbeNpp
 			public int FileNameColumnWidth = 0;
 			public int LineNumberColumnWidth = 0;
 			public int LineTextColumnWidth = 0;
+
+			public string IncludeExtensions = "";
+			public string ExcludeExtensions = "";
 		}
 
 		public EditorGroup Editor = new EditorGroup();

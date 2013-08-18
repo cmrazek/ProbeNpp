@@ -1,24 +1,11 @@
-﻿namespace ProbeNpp
+﻿namespace ProbeNpp.FindInProbeFiles
 {
-	partial class FindInProbeFilesDialog
+	partial class FindDialog
 	{
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
 		private System.ComponentModel.IContainer components = null;
-
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
 
 		#region Windows Form Designer generated code
 
@@ -37,6 +24,10 @@
 			this.chkMatchCase = new System.Windows.Forms.CheckBox();
 			this.chkMatchWholeWord = new System.Windows.Forms.CheckBox();
 			this.chkOnlyProbeFiles = new System.Windows.Forms.CheckBox();
+			this.txtIncludeExtensions = new System.Windows.Forms.TextBox();
+			this.txtExcludeExtensions = new System.Windows.Forms.TextBox();
+			this.lblIncludeExtensions = new System.Windows.Forms.Label();
+			this.lblExcludeExtensions = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -50,8 +41,8 @@
 			// 
 			// cmbSearchText
 			// 
-			this.cmbSearchText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.cmbSearchText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.cmbSearchText.FormattingEnabled = true;
 			this.cmbSearchText.Location = new System.Drawing.Point(74, 12);
 			this.cmbSearchText.Name = "cmbSearchText";
@@ -82,10 +73,10 @@
 			// btnOk
 			// 
 			this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnOk.Location = new System.Drawing.Point(174, 141);
+			this.btnOk.Location = new System.Drawing.Point(174, 199);
 			this.btnOk.Name = "btnOk";
 			this.btnOk.Size = new System.Drawing.Size(75, 23);
-			this.btnOk.TabIndex = 7;
+			this.btnOk.TabIndex = 11;
 			this.btnOk.Text = "&OK";
 			this.btnOk.UseVisualStyleBackColor = true;
 			this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
@@ -94,10 +85,10 @@
 			// 
 			this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.btnCancel.Location = new System.Drawing.Point(255, 141);
+			this.btnCancel.Location = new System.Drawing.Point(255, 199);
 			this.btnCancel.Name = "btnCancel";
 			this.btnCancel.Size = new System.Drawing.Size(75, 23);
-			this.btnCancel.TabIndex = 8;
+			this.btnCancel.TabIndex = 12;
 			this.btnCancel.Text = "Cancel";
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -132,13 +123,53 @@
 			this.chkOnlyProbeFiles.Text = "Only Search Probe Files";
 			this.chkOnlyProbeFiles.UseVisualStyleBackColor = true;
 			// 
-			// FindInProbeFilesDialog
+			// txtIncludeExtensions
+			// 
+			this.txtIncludeExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.txtIncludeExtensions.Location = new System.Drawing.Point(120, 136);
+			this.txtIncludeExtensions.Name = "txtIncludeExtensions";
+			this.txtIncludeExtensions.Size = new System.Drawing.Size(210, 20);
+			this.txtIncludeExtensions.TabIndex = 8;
+			// 
+			// txtExcludeExtensions
+			// 
+			this.txtExcludeExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.txtExcludeExtensions.Location = new System.Drawing.Point(120, 162);
+			this.txtExcludeExtensions.Name = "txtExcludeExtensions";
+			this.txtExcludeExtensions.Size = new System.Drawing.Size(210, 20);
+			this.txtExcludeExtensions.TabIndex = 10;
+			// 
+			// lblIncludeExtensions
+			// 
+			this.lblIncludeExtensions.AutoSize = true;
+			this.lblIncludeExtensions.Location = new System.Drawing.Point(12, 139);
+			this.lblIncludeExtensions.Name = "lblIncludeExtensions";
+			this.lblIncludeExtensions.Size = new System.Drawing.Size(99, 13);
+			this.lblIncludeExtensions.TabIndex = 7;
+			this.lblIncludeExtensions.Text = "Include Extensions:";
+			// 
+			// lblExcludeExtensions
+			// 
+			this.lblExcludeExtensions.AutoSize = true;
+			this.lblExcludeExtensions.Location = new System.Drawing.Point(12, 165);
+			this.lblExcludeExtensions.Name = "lblExcludeExtensions";
+			this.lblExcludeExtensions.Size = new System.Drawing.Size(102, 13);
+			this.lblExcludeExtensions.TabIndex = 9;
+			this.lblExcludeExtensions.Text = "Exclude Extensions:";
+			// 
+			// FindDialog
 			// 
 			this.AcceptButton = this.btnOk;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(342, 172);
+			this.ClientSize = new System.Drawing.Size(342, 234);
+			this.Controls.Add(this.lblExcludeExtensions);
+			this.Controls.Add(this.lblIncludeExtensions);
+			this.Controls.Add(this.txtExcludeExtensions);
+			this.Controls.Add(this.txtIncludeExtensions);
 			this.Controls.Add(this.chkOnlyProbeFiles);
 			this.Controls.Add(this.chkMatchWholeWord);
 			this.Controls.Add(this.chkMatchCase);
@@ -148,9 +179,9 @@
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.cmbSearchText);
 			this.Controls.Add(this.label1);
-			this.MaximumSize = new System.Drawing.Size(32767, 210);
-			this.MinimumSize = new System.Drawing.Size(350, 210);
-			this.Name = "FindInProbeFilesDialog";
+			this.MaximumSize = new System.Drawing.Size(32767, 268);
+			this.MinimumSize = new System.Drawing.Size(350, 268);
+			this.Name = "FindDialog";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Find in Probe Files";
 			this.Load += new System.EventHandler(this.FindInProbeFilesDialog_Load);
@@ -170,5 +201,9 @@
 		private System.Windows.Forms.CheckBox chkMatchCase;
 		private System.Windows.Forms.CheckBox chkMatchWholeWord;
 		private System.Windows.Forms.CheckBox chkOnlyProbeFiles;
+		private System.Windows.Forms.TextBox txtIncludeExtensions;
+		private System.Windows.Forms.TextBox txtExcludeExtensions;
+		private System.Windows.Forms.Label lblIncludeExtensions;
+		private System.Windows.Forms.Label lblExcludeExtensions;
 	}
 }

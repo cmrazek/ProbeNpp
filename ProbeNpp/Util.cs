@@ -74,5 +74,38 @@ namespace ProbeNpp
 			}
 			return bmp;
 		}
+
+		public static Font GetMonospaceFont(float size)
+		{
+			var preferredFonts = new string[] { "Courier", "Courier New", "Lucida Console", "Consolas" };
+
+			FontFamily bestFF = null;
+			int bestRank = -1;
+
+			foreach (var ff in FontFamily.Families)
+			{
+				int rank = -1;
+				for (int i = 0, ii = preferredFonts.Length; i < ii; i++)
+				{
+					if (string.Equals(preferredFonts[i], ff.Name, StringComparison.InvariantCultureIgnoreCase))
+					{
+						rank = i;
+						break;
+					}
+				}
+
+				if (rank != -1)
+				{
+					if (rank > bestRank)
+					{
+						bestFF = ff;
+						bestRank = rank;
+					}
+				}
+			}
+
+			if (bestRank == -1) return new Font(FontFamily.GenericMonospace, size);
+			else return new Font(bestFF, size);
+		}
 	}
 }

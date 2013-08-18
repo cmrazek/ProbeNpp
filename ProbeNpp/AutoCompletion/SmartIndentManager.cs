@@ -9,11 +9,8 @@ namespace ProbeNpp.AutoCompletion
 {
 	internal class SmartIndentManager
 	{
-		private ProbeNppPlugin _app;
-
-		public SmartIndentManager(ProbeNppPlugin app)
+		public SmartIndentManager()
 		{
-			_app = app;
 		}
 
 		public void OnCharAdded(CharAddedEventArgs e)
@@ -87,11 +84,12 @@ namespace ProbeNpp.AutoCompletion
 
 		private TextLocation GetIndentLocation(int lineNum)
 		{
-			var loc = _app.GetLineStartPos(lineNum);
+			var app = ProbeNppPlugin.Instance;
+			var loc = app.GetLineStartPos(lineNum);
 
-			while (loc < _app.End)
+			while (loc < app.End)
 			{
-				var str = _app.GetText(loc, 1);
+				var str = app.GetText(loc, 1);
 				if (str.Length == 1 && char.IsWhiteSpace(str[0])) loc++;
 				else break;
 			}
@@ -101,7 +99,8 @@ namespace ProbeNpp.AutoCompletion
 
 		private bool TryFindOpeningBrace(TextLocation closeBraceLoc, out TextLocation openBraceLoc)
 		{
-			var source = _app.GetText(_app.Start, _app.CurrentLocation);
+			var app = ProbeNppPlugin.Instance;
+			var source = app.GetText(app.Start, app.CurrentLocation);
 			var sourceLength = source.Length;
 
 			var parser = new TokenParser.Parser(source);

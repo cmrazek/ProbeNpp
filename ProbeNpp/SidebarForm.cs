@@ -395,8 +395,6 @@ namespace ProbeNpp
 				if (lstFiles.SelectedItems.Count == 0) return;
 				ProbeFile pf = (ProbeFile)lstFiles.SelectedItems[0].Tag;
 				_plugin.OpenFile(pf.pathName);
-
-				txtFileFilter.Clear();
 			}
 			catch (Exception ex)
 			{

@@ -8,53 +8,26 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace ProbeNpp
+namespace ProbeNpp.FindInProbeFiles
 {
-	internal class FindInProbeFilesArgs
-	{
-		public string SearchText { get; set; }
-		public Regex SearchRegex { get; set; }
-		public FindInProbeFilesMethod Method { get; set; }
-		public bool MatchCase { get; set; }
-		public bool MatchWholeWord { get; set; }
-		public bool ProbeFilesOnly { get; set; }
-		public FindInProbeFilesPanel Panel { get; set; }
-	}
-
-	internal class FindInProbeFilesMatch
-	{
-		public string FileName { get; set; }
-		public int LineNumber { get; set; }
-		public string LineText { get; set; }
-	}
-
-	public enum FindInProbeFilesMethod
-	{
-		Normal,
-
-		[Description("Regular Expression")]
-		RegularExpression,
-
-		[Description("Code Friendly")]
-		CodeFriendly
-	}
-
-	internal class FindInProbeFilesThread
+	internal class FindThread
 	{
 		private Thread _thread = null;
 		private volatile bool _kill = false;
-		private FindInProbeFilesPanel _panel = null;
+		private ResultsPanel _panel = null;
 
 		private string _searchText = string.Empty;
 		private Regex _searchRegex = null;
-		private FindInProbeFilesMethod _method = FindInProbeFilesMethod.Normal;
+		private FindMethod _method = FindMethod.Normal;
 		private bool _matchCase = false;
 		private bool _matchWholeWord = false;
 		private bool _probeFilesOnly = false;
+		private FilePatternFilter _includeFilter;
+		private FilePatternFilter _excludeFilter;
 
 		private const int k_maxFileSize = 1024 * 1024 * 10;	// 10 MB
 
-		public void Search(FindInProbeFilesArgs args)
+		public void Search(FindArgs args)
 		{
 			_searchText = args.SearchText;
 			_searchRegex = args.SearchRegex;
@@ -63,6 +36,8 @@ namespace ProbeNpp
 			_matchWholeWord = args.MatchWholeWord;
 			_probeFilesOnly = args.ProbeFilesOnly;
 			_panel = args.Panel;
+			_includeFilter = new FilePatternFilter(args.IncludeExtensions);
+			_excludeFilter = new FilePatternFilter(args.ExcludeExtensions);
 
 			_thread = new Thread(new ThreadStart(ThreadProc));
 			_thread.Name = "Find in Probe Files";
@@ -119,10 +94,11 @@ namespace ProbeNpp
 				foreach (var fileName in Directory.GetFiles(dir))
 				{
 					if (_kill) return;
-					if (!_probeFilesOnly || ProbeEnvironment.IsProbeFile(fileName))
-					{
-						SearchFile(fileName);
-					}
+					if (_probeFilesOnly && !ProbeEnvironment.IsProbeFile(fileName)) continue;
+					if (!_includeFilter.IsMatch(fileName)) continue;
+					if (_excludeFilter.IsMatch(fileName)) continue;
+
+					SearchFile(fileName);
 				}
 
 				foreach (var subDir in Directory.GetDirectories(dir))
@@ -165,26 +141,24 @@ namespace ProbeNpp
 			}
 		}
 
-		private void AddMatch(string fileName, string content, int index)
+		private void AddMatch(string fileName, string content, int index, int length)
 		{
-			var lineText = string.Empty;
-			var lineNumber = GetLineNumber(content, index, out lineText);
-			_panel.AddMatch(new FindInProbeFilesMatch
-			{
-				FileName = fileName,
-				LineNumber = lineNumber,
-				LineText = lineText
-			});
+			string lineText;
+			int startIndex;
+			var lineNumber = GetLineNumber(content, index, out lineText, out startIndex);
+			_panel.AddMatch(new FindMatch(fileName, lineNumber, lineText, startIndex, length));
 		}
 
-		private int GetLineNumber(string content, int index, out string lineText)
+		private int GetLineNumber(string content, int index, out string lineText, out int startIndex)
 		{
 			var lineNumber = 1;
 			var pos = 0;
 			var len = content.Length;
 			var lineStart = 0;
 
-			while (pos < len && pos < index)
+			if (index > len) index = len;
+
+			while (pos < index)
 			{
 				if (content[pos] == '\n')
 				{
@@ -205,6 +179,8 @@ namespace ProbeNpp
 				lineText = content.Substring(lineStart, nextLineStart - lineStart);
 			}
 
+			startIndex = pos - lineStart;
+
 			return lineNumber;
 		}
 
@@ -221,7 +197,7 @@ namespace ProbeNpp
 
 				if (_matchWholeWord == false || CheckMatchWord(fileContent, index, _searchText.Length))
 				{
-					AddMatch(fileName, fileContent, index);
+					AddMatch(fileName, fileContent, index, _searchText.Length);
 					pos = index + _searchText.Length;
 				}
 				else
@@ -242,7 +218,7 @@ namespace ProbeNpp
 			{
 				if (_matchWholeWord == false || CheckMatchWord(fileContent, match.Index, match.Length))
 				{
-					AddMatch(fileName, fileContent, match.Index);
+					AddMatch(fileName, fileContent, match.Index, match.Length);
 				}
 			}
 		}

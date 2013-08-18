@@ -8,7 +8,6 @@ namespace ProbeNpp.AutoCompletion
 {
 	internal class FunctionSignatureParser
 	{
-		private ProbeNppPlugin _app;
 		private StringBuilder _source = new StringBuilder();
 		private string _funcName = "";
 		private int _commaCount = 0;
@@ -20,18 +19,17 @@ namespace ProbeNpp.AutoCompletion
 			BadSyntax
 		}
 
-		public FunctionSignatureParser(ProbeNppPlugin app)
-		{
-			_app = app;
-		}
+		public FunctionSignatureParser()
+		{ }
 
 		public bool GetFuncSigName(TextLocation currLoc)
 		{
 			_source.Clear();
 
+			var app = ProbeNppPlugin.Instance;
 			var lineNum = currLoc.Line;
-			var lineText = _app.GetText(_app.GetLineStartPos(currLoc.Line), currLoc);
-			_source.Append(RemoveComments(lineText, _app.GetLineState(lineNum)));
+			var lineText = app.GetText(app.GetLineStartPos(currLoc.Line), currLoc);
+			_source.Append(RemoveComments(lineText, app.GetLineState(lineNum)));
 
 			while (true)
 			{
@@ -44,7 +42,7 @@ namespace ProbeNpp.AutoCompletion
 					default:	// ParseState.NotEnoughSource:
 						lineNum--;
 						if (lineNum < 1) return false;
-						_source.AppendLine(RemoveComments(_app.GetLineText(lineNum), _app.GetLineState(lineNum)));
+						_source.AppendLine(RemoveComments(app.GetLineText(lineNum), app.GetLineState(lineNum)));
 						break;
 				}
 			}

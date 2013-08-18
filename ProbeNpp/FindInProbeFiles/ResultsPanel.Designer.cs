@@ -1,24 +1,11 @@
-﻿namespace ProbeNpp
+﻿namespace ProbeNpp.FindInProbeFiles
 {
-	partial class FindInProbeFilesPanel
+	partial class ResultsPanel
 	{
 		/// <summary> 
 		/// Required designer variable.
 		/// </summary>
 		private System.ComponentModel.IContainer components = null;
-
-		/// <summary> 
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
 
 		#region Component Designer generated code
 
@@ -50,11 +37,15 @@
 			this.lstMatches.HideSelection = false;
 			this.lstMatches.Location = new System.Drawing.Point(0, 0);
 			this.lstMatches.Name = "lstMatches";
+			this.lstMatches.OwnerDraw = true;
 			this.lstMatches.Size = new System.Drawing.Size(542, 137);
 			this.lstMatches.TabIndex = 0;
 			this.lstMatches.UseCompatibleStateImageBehavior = false;
 			this.lstMatches.View = System.Windows.Forms.View.Details;
 			this.lstMatches.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.lstMatches_ColumnWidthChanged);
+			this.lstMatches.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.lstMatches_DrawColumnHeader);
+			this.lstMatches.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.lstMatches_DrawItem);
+			this.lstMatches.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.lstMatches_DrawSubItem);
 			this.lstMatches.ItemActivate += new System.EventHandler(this.lstMatches_ItemActivate);
 			// 
 			// colFileName
@@ -68,6 +59,7 @@
 			// 
 			// colContext
 			// 
+			this.colContext.Tag = "context";
 			this.colContext.Width = 300;
 			// 
 			// progWorking
@@ -95,13 +87,13 @@
 			this.ciStopFind.Text = "&Stop";
 			this.ciStopFind.Click += new System.EventHandler(this.ciStopFind_Click);
 			// 
-			// FindInProbeFilesPanel
+			// ResultsPanel
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Controls.Add(this.progWorking);
 			this.Controls.Add(this.lstMatches);
-			this.Name = "FindInProbeFilesPanel";
+			this.Name = "ResultsPanel";
 			this.Size = new System.Drawing.Size(542, 137);
 			this.Load += new System.EventHandler(this.FindInProbeFilesPanel_Load);
 			this.cmProgress.ResumeLayout(false);

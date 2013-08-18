@@ -110,22 +110,26 @@
     <Compile Include="CompileRef.cs" />
     <Compile Include="EnumUtil.cs" />
     <Compile Include="Errors.cs" />
+    <Compile Include="FilePatternFilter.cs" />
     <Compile Include="FileDetails.cs" />
     <Compile Include="FileMergeException.cs" />
     <Compile Include="FileMerger.cs" />
-    <Compile Include="FindInProbeFilesDialog.cs">
+    <Compile Include="FindInProbeFiles\FindArgs.cs" />
+    <Compile Include="FindInProbeFiles\FindDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FindInProbeFilesDialog.Designer.cs">
-      <DependentUpon>FindInProbeFilesDialog.cs</DependentUpon>
+    <Compile Include="FindInProbeFiles\FindDialog.Designer.cs">
+      <DependentUpon>FindDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="FindInProbeFilesPanel.cs">
+    <Compile Include="FindInProbeFiles\FindMethod.cs" />
+    <Compile Include="FindInProbeFiles\FindMatch.cs" />
+    <Compile Include="FindInProbeFiles\ResultsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="FindInProbeFilesPanel.Designer.cs">
-      <DependentUpon>FindInProbeFilesPanel.cs</DependentUpon>
+    <Compile Include="FindInProbeFiles\ResultsPanel.Designer.cs">
+      <DependentUpon>ResultsPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="FindInProbeFilesThread.cs" />
+    <Compile Include="FindInProbeFiles\FindThread.cs" />
     <Compile Include="Function Parser\CodeStringBuilder.cs" />
     <Compile Include="Function Parser\Function.cs" />
     <Compile Include="Function Parser\FunctionCollection.cs" />
@@ -250,11 +254,11 @@
     <EmbeddedResource Include="CompilePanel.resx">
       <DependentUpon>CompilePanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FindInProbeFilesDialog.resx">
-      <DependentUpon>FindInProbeFilesDialog.cs</DependentUpon>
+    <EmbeddedResource Include="FindInProbeFiles\FindDialog.resx">
+      <DependentUpon>FindDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FindInProbeFilesPanel.resx">
-      <DependentUpon>FindInProbeFilesPanel.cs</DependentUpon>
+    <EmbeddedResource Include="FindInProbeFiles\ResultsPanel.resx">
+      <DependentUpon>ResultsPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OutputPanel.resx">
       <DependentUpon>OutputPanel.cs</DependentUpon>

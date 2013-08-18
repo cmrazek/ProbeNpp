@@ -9,27 +9,26 @@ namespace ProbeNpp.AutoCompletion
 {
 	internal class AutoCompletionManager
 	{
-		private ProbeNppPlugin _app;
-
 		private static readonly Regex _rxAutoCompleteWord = new Regex(@"\b[a-zA-Z_]\w*$");
 		private static readonly Regex _rxFuncCall = new Regex(@"\b([a-zA-Z_]\w*)\s*\($");
 		private static readonly Regex _rxTableField = new Regex(@"\b([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)$");
 
-		public AutoCompletionManager(ProbeNppPlugin app)
+		public AutoCompletionManager()
 		{
-			_app = app;
 		}
 
 		public void OnCharAdded(CharAddedEventArgs e)
 		{
-			if (!_app.Settings.Editor.AutoCompletion) return;
-			if (!IsAutoCompletionAllowedHere(_app.CurrentLocation)) return;
+			var app = ProbeNppPlugin.Instance;
+
+			if (!app.Settings.Editor.AutoCompletion) return;
+			if (!IsAutoCompletionAllowedHere(app.CurrentLocation)) return;
 
 			if (e.Character == '.')
 			{
-				var wordEnd = _app.CurrentLocation - 1;
-				var wordStart = _app.GetWordStartPos(wordEnd, false);
-				var word = _app.GetText(wordStart, wordEnd);
+				var wordEnd = app.CurrentLocation - 1;
+				var wordStart = app.GetWordStartPos(wordEnd, false);
+				var word = app.GetText(wordStart, wordEnd);
 
 				if (!string.IsNullOrWhiteSpace(word))
 				{
@@ -38,14 +37,14 @@ namespace ProbeNpp.AutoCompletion
 
 					var fields = table.Fields;
 					if (!fields.Any()) return;
-					_app.ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
+					app.ShowAutoCompletion(0, (from f in fields orderby f.Name.ToLower() select f.Name), true);
 				}
 			}
 			else if (char.IsLetterOrDigit(e.Character))
 			{
-				if (!_app.AutoCompletionIsActive)
+				if (!app.AutoCompletionIsActive)
 				{
-					var lineText = _app.GetText(_app.GetLineStartPos(_app.CurrentLine), _app.CurrentLocation);
+					var lineText = app.GetText(app.GetLineStartPos(app.CurrentLine), app.CurrentLocation);
 
 					Match match;
 					ProbeTable table;
@@ -53,25 +52,25 @@ namespace ProbeNpp.AutoCompletion
 						(table = ProbeEnvironment.GetTable(match.Groups[1].Value)) != null)
 					{
 						var field = match.Groups[2].Value;
-						_app.ShowAutoCompletion(field.Length, (from f in table.Fields orderby f.Name select f.Name), true);
+						app.ShowAutoCompletion(field.Length, (from f in table.Fields orderby f.Name select f.Name), true);
 					}
 					else if ((match = _rxAutoCompleteWord.Match(lineText)).Success)
 					{
 						var word = match.Value;
 
-						var model = _app.CurrentModel;
+						var model = app.CurrentModel;
 						if (model != null)
 						{
-							_app.ShowAutoCompletion(word.Length, GetSoloAutoCompletionItems(_app.CurrentLocation, word));
+							app.ShowAutoCompletion(word.Length, GetSoloAutoCompletionItems(app.CurrentLocation, word));
 						}
 					}
 				}
 			}
 			else if (e.Character == '(')
 			{
-				if (!_app.FunctionSignatureIsActive)
+				if (!app.FunctionSignatureIsActive)
 				{
-					var lineText = _app.GetText(_app.GetLineStartPos(_app.CurrentLine), _app.CurrentLocation);
+					var lineText = app.GetText(app.GetLineStartPos(app.CurrentLine), app.CurrentLocation);
 
 					Match match;
 					if ((match = _rxFuncCall.Match(lineText)).Success)
@@ -79,17 +78,17 @@ namespace ProbeNpp.AutoCompletion
 						var funcName = match.Groups[1].Value;
 
 						var entered = match.Length - (match.Groups[1].Index - match.Index);
-						var callTipPos = new TextLocation(_app.CurrentLine, _app.CurrentLocation.CharPosition - entered);
+						var callTipPos = new TextLocation(app.CurrentLine, app.CurrentLocation.CharPosition - entered);
 
 						var funcSig = GetFunctionSignature(funcName);
 						if (!string.IsNullOrEmpty(funcSig))
 						{
-							_app.ShowFunctionSignature(callTipPos, funcSig);
+							app.ShowFunctionSignature(callTipPos, funcSig);
 
 							int highlightStart, highlightLength;
 							if (GetFunctionSignatureHighlightRange(funcSig, 0, out highlightStart, out highlightLength))
 							{
-								_app.SetFunctionSignatureHighlight(highlightStart, highlightLength);
+								app.SetFunctionSignatureHighlight(highlightStart, highlightLength);
 							}
 						}
 					}
@@ -97,25 +96,25 @@ namespace ProbeNpp.AutoCompletion
 			}
 			else if (e.Character == ',')
 			{
-				var sigParser = new FunctionSignatureParser(_app);
-				if (sigParser.GetFuncSigName(_app.CurrentLocation))
+				var sigParser = new FunctionSignatureParser();
+				if (sigParser.GetFuncSigName(app.CurrentLocation))
 				{
 					var funcSig = GetFunctionSignature(sigParser.FunctionName);
 					if (!string.IsNullOrEmpty(funcSig))
 					{
-						_app.ShowFunctionSignature(_app.CurrentLocation, funcSig);
+						app.ShowFunctionSignature(app.CurrentLocation, funcSig);
 
 						int highlightStart, highlightLength;
 						if (GetFunctionSignatureHighlightRange(funcSig, sigParser.CommaCount, out highlightStart, out highlightLength))
 						{
-							_app.SetFunctionSignatureHighlight(highlightStart, highlightLength);
+							app.SetFunctionSignatureHighlight(highlightStart, highlightLength);
 						}
 					}
 				}
 			}
 			else if (e.Character == ')')
 			{
-				if (_app.FunctionSignatureIsActive) _app.CancelFunctionSignature();
+				if (app.FunctionSignatureIsActive) app.CancelFunctionSignature();
 			}
 		}
 
@@ -181,7 +180,9 @@ namespace ProbeNpp.AutoCompletion
 
 		private IEnumerable<string> GetSoloAutoCompletionItems(TextLocation location, string startsWith)
 		{
-			var model = _app.CurrentModel;
+			var app = ProbeNppPlugin.Instance;
+
+			var model = app.CurrentModel;
 			if (model != null)
 			{
 				var list = new SortedSet<string>();
@@ -200,35 +201,36 @@ namespace ProbeNpp.AutoCompletion
 					list.Add(item);
 				}
 
-				if (_app.LanguageName == Res.ProbeSourceLanguageName)
+				if (app.LanguageName == Res.ProbeSourceLanguageName)
 				{
-					foreach (var item in (from k in _app.SourceKeywords where k.StartsWith(startsWith) select k))
+					foreach (var item in (from k in app.SourceKeywords where k.StartsWith(startsWith) select k))
 					{
 						list.Add(item);
 					}
 				}
-				else if (_app.LanguageName == Res.ProbeDictLanguageName)
+				else if (app.LanguageName == Res.ProbeDictLanguageName)
 				{
-					foreach (var item in (from k in _app.DictKeywords where k.StartsWith(startsWith) select k))
+					foreach (var item in (from k in app.DictKeywords where k.StartsWith(startsWith) select k))
 					{
 						list.Add(item);
 					}
 				}
 
-				foreach (var item in (from f in _app.FunctionSignatures.Keys where f.StartsWith(startsWith) select f))
+				foreach (var item in (from f in app.FunctionSignatures.Keys where f.StartsWith(startsWith) select f))
 				{
 					list.Add(item);
 				}
 
-				if (FunctionFileScanner.Instance != null)
+				var funcScanner = app.FunctionFileScanner;
+				if (funcScanner != null)
 				{
-					foreach (var item in (from f in FunctionFileScanner.Instance.GetFunctionSignatures(startsWith) select f.Name))
+					foreach (var item in (from f in funcScanner.GetFunctionSignatures(startsWith) select f.Name))
 					{
 						list.Add(item);
 					}
 				}
 
-				foreach (var item in (from k in _app.DataTypes where k.StartsWith(startsWith) select k))
+				foreach (var item in (from k in app.DataTypes where k.StartsWith(startsWith) select k))
 				{
 					list.Add(item);
 				}
@@ -242,19 +244,22 @@ namespace ProbeNpp.AutoCompletion
 
 		private string GetFunctionSignature(string funcName)
 		{
-			var model = _app.CurrentModel;
+			var app = ProbeNppPlugin.Instance;
+
+			var model = app.CurrentModel;
 			if (model != null)
 			{
 				var func = (from f in model.FunctionSignatures where f.Name == funcName select f).FirstOrDefault();
 				if (func != null) return func.Signature;
 			}
 
-			var funcSig = (from f in _app.FunctionSignatures.Keys where f == funcName select _app.FunctionSignatures[f]).FirstOrDefault();
+			var funcSig = (from f in app.FunctionSignatures.Keys where f == funcName select app.FunctionSignatures[f]).FirstOrDefault();
 			if (!string.IsNullOrEmpty(funcSig)) return funcSig;
 
-			if (FunctionFileScanner.Instance != null)
+			var funcScanner = app.FunctionFileScanner;
+			if (funcScanner != null)
 			{
-				funcSig = FunctionFileScanner.Instance.GetFunctionSignature(funcName);
+				funcSig = funcScanner.GetFunctionSignature(funcName);
 				if (!string.IsNullOrEmpty(funcSig)) return funcSig;
 			}
 
@@ -263,9 +268,10 @@ namespace ProbeNpp.AutoCompletion
 
 		public bool IsAutoCompletionAllowedHere(TextLocation location)
 		{
-			var currentLine = _app.CurrentLine;
-			var lineText = _app.GetLineText(currentLine);
-			var state = currentLine > 1 ? _app.GetLineState(currentLine - 1) : 0;
+			var app = ProbeNppPlugin.Instance;
+			var currentLine = app.CurrentLine;
+			var lineText = app.GetLineText(currentLine);
+			var state = currentLine > 1 ? app.GetLineState(currentLine - 1) : 0;
 
 			var startPos = 0;
 			if ((state & ProbeLexer.State_InsideComment) != 0)
@@ -277,7 +283,7 @@ namespace ProbeNpp.AutoCompletion
 
 			if (startPos + 1 > location.CharPosition) return false;
 
-			var parser = new TokenParser.Parser(_app.GetLineText(currentLine));
+			var parser = new TokenParser.Parser(app.GetLineText(currentLine));
 			parser.ReturnComments = true;
 			parser.ReturnWhiteSpace = true;
 			if (startPos > 0) parser.SetOffset(startPos);

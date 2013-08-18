@@ -9,22 +9,36 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 
-namespace ProbeNpp
+namespace ProbeNpp.FindInProbeFiles
 {
-	internal partial class FindInProbeFilesDialog : Form
+	internal partial class FindDialog : Form
 	{
 		private string _searchText = string.Empty;
-		private FindInProbeFilesMethod _method = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method;
+		private FindMethod _method = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method;
 		private bool _matchCase = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.MatchCase;
 		private bool _matchWholeWord = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.MatchWholeWord;
 		private bool _onlyProbeFiles = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.OnlyProbeFiles;
 		private Regex _regex = null;
+		private string _includeExtensions = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.IncludeExtensions;
+		private string _excludeExtensions = ProbeNppPlugin.Instance.Settings.FindInProbeFiles.ExcludeExtensions;
 
 		private const int k_maxMru = 10;
 
-		public FindInProbeFilesDialog()
+		public FindDialog()
 		{
 			InitializeComponent();
+
+			if (string.IsNullOrWhiteSpace(_includeExtensions)) _includeExtensions = "*";
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
+				components.Dispose();
+			}
+
+			base.Dispose(disposing);
 		}
 
 		private void FindInProbeFilesDialog_Load(object sender, EventArgs e)
@@ -33,10 +47,12 @@ namespace ProbeNpp
 			{
 				foreach (var mru in LoadMru()) cmbSearchText.Items.Add(mru);
 				cmbSearchText.Text = _searchText;
-				cmbMethod.InitForEnum<FindInProbeFilesMethod>(ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method);
+				cmbMethod.InitForEnum<FindMethod>(ProbeNppPlugin.Instance.Settings.FindInProbeFiles.Method);
 				chkMatchCase.Checked = _matchCase;
 				chkMatchWholeWord.Checked = _matchWholeWord;
 				chkOnlyProbeFiles.Checked = _onlyProbeFiles;
+				txtIncludeExtensions.Text = _includeExtensions;
+				txtExcludeExtensions.Text = _excludeExtensions;
 
 				EnableControls();
 			}
@@ -78,14 +94,16 @@ namespace ProbeNpp
 				_searchText = cmbSearchText.Text;
 				if (string.IsNullOrEmpty(_searchText)) return;
 
-				_method = cmbMethod.GetEnumValue<FindInProbeFilesMethod>();
+				_method = cmbMethod.GetEnumValue<FindMethod>();
 				_matchCase = chkMatchCase.Checked;
 				_matchWholeWord = chkMatchWholeWord.Checked;
 				_onlyProbeFiles = chkOnlyProbeFiles.Checked;
+				_includeExtensions = string.IsNullOrWhiteSpace(txtIncludeExtensions.Text) ? "*" : txtIncludeExtensions.Text;
+				_excludeExtensions = txtExcludeExtensions.Text;
 
 				switch (_method)
 				{
-					case FindInProbeFilesMethod.RegularExpression:
+					case FindMethod.RegularExpression:
 						try
 						{
 							_regex = new Regex(_searchText, chkMatchCase.Checked ? RegexOptions.None : RegexOptions.IgnoreCase);
@@ -97,7 +115,7 @@ namespace ProbeNpp
 							return;
 						}
 						break;
-					case FindInProbeFilesMethod.CodeFriendly:
+					case FindMethod.CodeFriendly:
 						_regex = GenerateCodeFriendlyRegex();
 						break;
 					default:
@@ -117,6 +135,8 @@ namespace ProbeNpp
 				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.MatchCase = _matchCase;
 				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.MatchWholeWord = _matchWholeWord;
 				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.OnlyProbeFiles = _onlyProbeFiles;
+				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.IncludeExtensions = _includeExtensions;
+				ProbeNppPlugin.Instance.Settings.FindInProbeFiles.ExcludeExtensions = _excludeExtensions;
 
 				DialogResult = DialogResult.OK;
 				Close();
@@ -183,29 +203,20 @@ namespace ProbeNpp
 			set { _searchText = value; }
 		}
 
-		public Regex SearchRegex
+		public FindArgs CreateFindArgs(ResultsPanel panel)
 		{
-			get { return _regex; }
-		}
-
-		public FindInProbeFilesMethod Method
-		{
-			get { return _method; }
-		}
-
-		public bool MatchCase
-		{
-			get { return _matchCase; }
-		}
-
-		public bool MatchWholeWord
-		{
-			get { return _matchWholeWord; }
-		}
-
-		public bool OnlyProbeFiles
-		{
-			get { return _onlyProbeFiles; }
+			return new FindInProbeFiles.FindArgs
+			{
+				SearchText = _searchText,
+				SearchRegex = _regex,
+				Method = _method,
+				MatchCase = _matchCase,
+				MatchWholeWord = _matchWholeWord,
+				ProbeFilesOnly = _onlyProbeFiles,
+				IncludeExtensions = _includeExtensions,
+				ExcludeExtensions = _excludeExtensions,
+				Panel = panel
+			};
 		}
 		#endregion
 

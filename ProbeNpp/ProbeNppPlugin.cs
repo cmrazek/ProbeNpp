@@ -40,7 +40,7 @@ namespace ProbeNpp
 {
 	[NppSortOrder(100)]
 	[NppMenu("Pr&obe", InsertBefore="Window")]
-	public sealed class ProbeNppPlugin : NppScript, IDisposable
+	public sealed class ProbeNppPlugin : NppScript
 	{
 		#region Static Instance
 		private static ProbeNppPlugin _instance;
@@ -59,6 +59,7 @@ namespace ProbeNpp
 		private BackgroundDeferrer _fileBackground = new BackgroundDeferrer();
 		private AutoCompletion.AutoCompletionManager _autoCompletionManager;
 		private AutoCompletion.SmartIndentManager _smartIndentManager;
+		private AutoCompletion.FunctionFileScanner _functionFileScanner;
 		private BackgroundDeferrer _fileScannerDefer = new BackgroundDeferrer();
 
 		public const string k_appNameIdent = "ProbeNpp";
@@ -96,8 +97,8 @@ namespace ProbeNpp
 
 				LoadLexerConfig();
 
-				_autoCompletionManager = new AutoCompletion.AutoCompletionManager(this);
-				_smartIndentManager = new AutoCompletion.SmartIndentManager(this);
+				_autoCompletionManager = new AutoCompletion.AutoCompletionManager();
+				_smartIndentManager = new AutoCompletion.SmartIndentManager();
 
 				Ready += new NppEventHandler(Plugin_Ready);
 				Shutdown += new NppEventHandler(Plugin_Shutdown);
@@ -112,7 +113,7 @@ namespace ProbeNpp
 
 				_fileBackground.Execute += new EventHandler(FileBackground_Execute);
 
-				AutoCompletion.FunctionFileScanner.Initialize();
+				_functionFileScanner = new AutoCompletion.FunctionFileScanner();
 				_fileScannerDefer.Execute += new EventHandler(FileScanner_Execute);
 				_fileScannerDefer.Activity += new EventHandler(FileScanner_Activity);
 			}
@@ -120,15 +121,6 @@ namespace ProbeNpp
 			{
 				Errors.Show(_nppWindow, ex, "The ProbeNpp plug-in thrown an error while initializing.");
 			}
-		}
-
-		public void Dispose()
-		{
-			if (_sidebar != null) { _sidebar.Dispose(); _sidebar = null; }
-			if (_compilePanel != null) { _compilePanel.Dispose(); _compilePanel = null; }
-			if (_findInProbeFilesPanel != null) { _findInProbeFilesPanel.Dispose(); _findInProbeFilesPanel = null; }
-			if (_fileScannerDefer != null) { _fileScannerDefer.Dispose(); _fileScannerDefer = null; }
-			if (_fileBackground != null) { _fileBackground.Dispose(); _fileBackground = null; }
 		}
 
 		private void Plugin_Ready(object sender, EventArgs e)
@@ -147,11 +139,13 @@ namespace ProbeNpp
 		{
 			try
 			{
-				AutoCompletion.FunctionFileScanner.Close();
-
+				_settings.Save();
+				if (_functionFileScanner != null) _functionFileScanner.OnShutdown();
 				if (_compilePanel != null) _compilePanel.OnShutdown();
 				if (_sidebar != null) _sidebar.OnShutdown();
-				_settings.Save();
+				if (_findInProbeFilesPanel != null) { _findInProbeFilesPanel.Dispose(); _findInProbeFilesPanel = null; }
+				if (_fileScannerDefer != null) { _fileScannerDefer.Dispose(); _fileScannerDefer = null; }
+				if (_fileBackground != null) { _fileBackground.Dispose(); _fileBackground = null; }
 			}
 			catch (Exception ex)
 			{
@@ -1199,9 +1193,9 @@ namespace ProbeNpp
 		#endregion
 
 		#region Find in Probe Files
-		FindInProbeFilesPanel _findInProbeFilesPanel = null;
+		FindInProbeFiles.ResultsPanel _findInProbeFilesPanel = null;
 		IDockWindow _findInProbeFilesDock = null;
-		FindInProbeFilesThread _findInProbeFilesThread = null;
+		FindInProbeFiles.FindThread _findInProbeFilesThread = null;
 
 		private const int k_findInProbeFilesPanelId = 14965;
 
@@ -1213,7 +1207,7 @@ namespace ProbeNpp
 		{
 			try
 			{
-				using (var form = new FindInProbeFilesDialog())
+				using (var form = new FindInProbeFiles.FindDialog())
 				{
 					string selected = SelectedText;
 					if (!string.IsNullOrEmpty(selected) && !selected.Contains('\n'))
@@ -1229,23 +1223,14 @@ namespace ProbeNpp
 						}
 						else
 						{
-							_findInProbeFilesPanel = new FindInProbeFilesPanel();
+							_findInProbeFilesPanel = new FindInProbeFiles.ResultsPanel();
 							_findInProbeFilesDock = DockWindow(_findInProbeFilesPanel, "Find in Probe Files", DockWindowAlignment.Bottom, k_findInProbeFilesPanelId);
 						}
 
 						if (_findInProbeFilesThread != null) _findInProbeFilesThread.Kill();
 
-						_findInProbeFilesThread = new FindInProbeFilesThread();
-						_findInProbeFilesThread.Search(new FindInProbeFilesArgs
-						{
-							SearchText = form.SearchText,
-							SearchRegex = form.SearchRegex,
-							Method = form.Method,
-							MatchCase = form.MatchCase,
-							MatchWholeWord = form.MatchWholeWord,
-							ProbeFilesOnly = form.OnlyProbeFiles,
-							Panel = _findInProbeFilesPanel
-						});
+						_findInProbeFilesThread = new FindInProbeFiles.FindThread();
+						_findInProbeFilesThread.Search(form.CreateFindArgs(_findInProbeFilesPanel));
 					}
 				}
 			}
@@ -1301,13 +1286,13 @@ namespace ProbeNpp
 		#endregion
 
 		#region Function File Scanner
-		void FileScanner_Activity(object sender, EventArgs e)
+		private void FileScanner_Activity(object sender, EventArgs e)
 		{
 			try
 			{
-				if (AutoCompletion.FunctionFileScanner.Instance != null)
+				if (_functionFileScanner != null)
 				{
-					AutoCompletion.FunctionFileScanner.Instance.Stop();
+					_functionFileScanner.Stop();
 				}
 			}
 			catch (Exception ex)
@@ -1320,15 +1305,20 @@ namespace ProbeNpp
 		{
 			try
 			{
-				if (AutoCompletion.FunctionFileScanner.Instance != null)
+				if (_functionFileScanner != null)
 				{
-					AutoCompletion.FunctionFileScanner.Instance.Start();
+					_functionFileScanner.Start();
 				}
 			}
 			catch (Exception ex)
 			{
 				Output.WriteLine(OutputStyle.Error, ex.ToString());
 			}
+		}
+
+		internal AutoCompletion.FunctionFileScanner FunctionFileScanner
+		{
+			get { return _functionFileScanner; }
 		}
 		#endregion
 
@@ -1361,6 +1351,18 @@ namespace ProbeNpp
 			catch (Exception ex)
 			{
 				Output.WriteLine(OutputStyle.Error, ex.ToString());
+			}
+		}
+
+		public void TestError()
+		{
+			try
+			{
+				throw new InvalidOperationException("This is a test exception.");
+			}
+			catch (Exception ex)
+			{
+				ShowError(ex);
 			}
 		}
 #endif
