@@ -105,6 +105,7 @@ namespace ProbeNpp
 				FileOpened += new FileEventHandler(Plugin_FileOpened);
 				FileClosed += new FileEventHandler(Plugin_FileClosed);
 				FileActivated += new FileEventHandler(Plugin_FileActivated);
+				FileSaved += new FileEventHandler(ProbeNppPlugin_FileSaved);
 				LanguageChanged += new LanguageTypeEventHandler(Plugin_LanguageChanged);
 				SelectionChanged += new NppEventHandler(Plugin_SelectionChanged);
 				Modification += new ModifiedEventHandler(Plugin_Modification);
@@ -343,6 +344,21 @@ namespace ProbeNpp
 			{
 				var langName = LanguageName;
 				return langName == Res.ProbeSourceLanguageName || langName == Res.ProbeDictLanguageName;
+			}
+		}
+
+		void ProbeNppPlugin_FileSaved(object sender, FileEventArgs e)
+		{
+			try
+			{
+				if (!string.IsNullOrWhiteSpace(e.FileName))
+				{
+					CodeModel.CodeModel.OnFileSaved(e.FileName);
+				}
+			}
+			catch (Exception ex)
+			{
+				Output.WriteLine(OutputStyle.Error, ex.ToString());
 			}
 		}
 		#endregion

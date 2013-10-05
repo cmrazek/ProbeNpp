@@ -163,6 +163,15 @@ namespace ProbeNpp.AutoCompletion
 			}
 		}
 
+		public void RemoveFunctionIgnoreCase(string name)
+		{
+			lock (_functions)
+			{
+				var names = (from f in _functions.Keys where string.Equals(f, name, StringComparison.OrdinalIgnoreCase) select f).ToArray();
+				foreach (var funcName in names) _functions.Remove(funcName);
+			}
+		}
+
 		public void UpdateFile(string fileName, DateTime modified)
 		{
 			lock (_fileDates)

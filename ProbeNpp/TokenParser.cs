@@ -402,6 +402,19 @@ namespace ProbeNpp.TokenParser
 			return true;
 		}
 
+		public bool Peek(out Position tokenEndPos)
+		{
+			var pos = Position;
+			if (!Read())
+			{
+				tokenEndPos = Position;
+				return false;
+			}
+			tokenEndPos = Position;
+			Position = pos;
+			return true;
+		}
+
 		public void ResetPosition()
 		{
 			_pos = 0;

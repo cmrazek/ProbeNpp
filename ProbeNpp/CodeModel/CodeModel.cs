@@ -50,48 +50,6 @@ namespace ProbeNpp.CodeModel
 		}
 		#endregion
 
-		//#region Brace matching and outlining
-		//public IEnumerable<Microsoft.VisualStudio.TextManager.Interop.TextSpan> BraceMatching(int lineNum, int linePos)
-		//{
-		//    var pos = _file.FindPosition(lineNum, linePos);
-		//    var token = _file.FindTokenOfType(pos, typeof(IBraceMatchingToken));
-		//    if (token == null) token = _file.FindNearbyTokenOfType(pos, typeof(IBraceMatchingToken));
-		//    if (token != null && typeof(IBraceMatchingToken).IsAssignableFrom(token.GetType()))
-		//    {
-		//        var bm = token as IBraceMatchingToken;
-		//        return (from t in bm.BraceMatchingTokens select t.Span.ToVsTextSpan());
-		//    }
-		//    else
-		//    {
-		//        return new Microsoft.VisualStudio.TextManager.Interop.TextSpan[0];
-		//    }
-		//}
-
-		//public IEnumerable<Span> FindMatchingBraces(int offset)
-		//{
-		//    var pos = _file.FindPosition(offset);
-		//    var token = _file.FindTokenOfType(pos, typeof(IBraceMatchingToken));
-		//    if (token == null) token = _file.FindNearbyTokenOfType(pos, typeof(IBraceMatchingToken));
-		//    if (token != null && typeof(IBraceMatchingToken).IsAssignableFrom(token.GetType()))
-		//    {
-		//        var bm = token as IBraceMatchingToken;
-		//        return (from t in bm.BraceMatchingTokens select t.Span).ToArray();
-		//    }
-		//    else
-		//    {
-		//        return new Span[0];
-		//    }
-		//}
-
-		//public IEnumerable<Span> HiddenRegions
-		//{
-		//    get
-		//    {
-		//        return _file.HiddenRegions;
-		//    }
-		//}
-		//#endregion
-
 		#region Util functions
 		public Position GetPosition(int lineNum, int linePos)
 		{
@@ -306,6 +264,35 @@ namespace ProbeNpp.CodeModel
 			foreach (var incl in file.IncludeFiles)
 			{
 				AddIncludeFile(incl.SourceFileName, incl.FileName, incl.SearchFileDir);
+			}
+		}
+
+		public static void OnFileSaved(string fileName)
+		{
+			// Purge all include files that have this file name, so they get reloaded when the next code model is built.
+
+			var fileTitle = Path.GetFileNameWithoutExtension(fileName);
+			var fileExt = Path.GetExtension(fileName);
+			if (fileExt.EndsWith("&")) fileExt = fileExt.Substring(0, fileExt.Length - 1);
+
+			var removeList = new List<string>();
+
+			lock (_cachedIncludeFiles)
+			{
+				foreach (var key in _cachedIncludeFiles.Keys)
+				{
+					var index = key.IndexOf('>');
+					var cachedFileName = index >= 0 ? key.Substring(index + 1) : key;
+					if (cachedFileName.EndsWith("&")) cachedFileName = cachedFileName.Substring(0, cachedFileName.Length - 1);
+
+					if (string.Equals(Path.GetFileNameWithoutExtension(cachedFileName), fileTitle, StringComparison.OrdinalIgnoreCase) &&
+						string.Equals(Path.GetExtension(cachedFileName), fileExt, StringComparison.OrdinalIgnoreCase))
+					{
+						removeList.Add(key);
+					}
+				}
+
+				foreach (var rem in removeList) _cachedIncludeFiles.Remove(rem);
 			}
 		}
 		#endregion

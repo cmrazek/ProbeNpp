@@ -12,7 +12,7 @@ namespace ProbeNpp
 	{
 		private List<string> _lines;
 		private string _origFileName = "";
-		private List<string> _localFileNames;
+		private List<string> _localFileNames = new List<string>();
 		private string _currentLocalFileName = "";
 		private int _currentLocalLine = 0;
 		private MergeMode _mode = MergeMode.Normal;
@@ -40,7 +40,7 @@ namespace ProbeNpp
 		{
 			// locate all needed copies of files
 			_origFileName = "";
-			_localFileNames = new List<string>();
+			_localFileNames.Clear();
 			_showMergeComments = showMergeComments;
 
 			if (Path.IsPathRooted(fileName)) fileName = UnrootFileName(fileName);
@@ -98,18 +98,16 @@ namespace ProbeNpp
 			foreach (string probeDir in ProbeEnvironment.SourceDirs)
 			{
 				FindFiles_SearchDir(probeDir, fileName);
-				if (!string.IsNullOrEmpty(_origFileName)) break;
 			}
 
 			if (string.IsNullOrEmpty(_origFileName))
 			{
+				_localFileNames.Clear();
 				foreach (string includeDir in ProbeEnvironment.IncludeDirs)
 				{
 					FindFiles_SearchDir(includeDir, fileName);
-					if (!string.IsNullOrEmpty(_origFileName)) break;
 				}
 			}
-
 		}
 
 		private void FindFiles_SearchDir(string dir, string fileName)

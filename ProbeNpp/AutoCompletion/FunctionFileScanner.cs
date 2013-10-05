@@ -172,17 +172,27 @@ namespace ProbeNpp.AutoCompletion
 
 				if (modified == DateTime.MinValue || Math.Abs(File.GetLastWriteTime(fileName).Subtract(modified).TotalSeconds) >= 1.0)
 				{
+					Log.WriteDiag("Processing function file: {0}", fileName);
+
 					var merger = new FileMerger();
 					merger.MergeFile(fileName, false);
 
 					var fileTitle = Path.GetFileNameWithoutExtension(fileName);
 
 					var model = new CodeModel.CodeModel(merger.MergedContent, fileName);
-					foreach (var func in (from f in model.FunctionSignatures
-										  where string.Equals(f.Name, fileTitle, StringComparison.OrdinalIgnoreCase)
-										  select f))
+					var funcs = (from f in model.FunctionSignatures
+								 where string.Equals(f.Name, fileTitle, StringComparison.OrdinalIgnoreCase)
+								 select f).ToArray();
+					if (funcs.Length > 0)
 					{
-						app.AddFunction(func.Name, func.Signature);
+						foreach (var func in funcs)
+						{
+							app.AddFunction(func.Name, func.Signature);
+						}
+					}
+					else
+					{
+						app.RemoveFunctionIgnoreCase(fileTitle);
 					}
 
 					foreach (var fn in merger.FileNames)
@@ -191,9 +201,15 @@ namespace ProbeNpp.AutoCompletion
 					}
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Log.WriteError(ex, "Exception when scanning function file '{0}'.", fileName);
+				try
+				{
+					// Don't show the error because this is just a non-critical background thread.
+					if (File.Exists(fileName)) app.UpdateFile(fileName, File.GetLastWriteTime(fileName));
+				}
+				catch (Exception)
+				{ }
 			}
 		}
 

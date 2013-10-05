@@ -25,6 +25,8 @@
 	<FunctionSignature Name="diag">void diag(expressions ...)</FunctionSignature>
   <FunctionSignature Name="gofield">void gofield(TableName.ColumnName)</FunctionSignature>
   <FunctionSignature Name="makestring">char(255) makestring(expressions ...)</FunctionSignature>
+  <FunctionSignature Name="oldvalue">oldvalue(TableName.ColumnName)</FunctionSignature>
   <FunctionSignature Name="qcolsend">void qcolsend(TableName.ColumnName ...)</FunctionSignature>
   <FunctionSignature Name="SetMessage">int SetMessage(MessageControlString, expressions ...)</FunctionSignature>
+  <FunctionSignature Name="STRINGIZE">STRINGIZE(x)</FunctionSignature>
 </ProbeNpp>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define DISABLE
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,57 +12,60 @@ namespace ProbeNpp.AutoCompletion
 	internal class SmartIndentManager
 	{
 		public SmartIndentManager()
-		{
-		}
+		{ }
 
 		public void OnCharAdded(CharAddedEventArgs e)
 		{
-			//if (!_app.Settings.Editor.SmartIndent) return;
+#if !DISABLE
+			var app = ProbeNppPlugin.Instance;
 
-			//if (e.Character == '\n')
-			//{
-			//    var curLine = _app.CurrentLine;
-			//    var curPos = _app.CurrentLocation;
-			//    var prevLineText = curLine > 1 ? _app.GetLineText(curLine - 1) : "";
-			//    if (_app.IsProbeLanguage)
-			//    {
-			//        if (IndentNextLine(prevLineText))
-			//        {
-			//            var indent = GetIndentText(prevLineText, "\t");
-			//            _app.SetSelection(_app.GetLineStartPos(curLine), curPos);
-			//            _app.Insert(indent);
-			//        }
-			//        else
-			//        {
-			//            var indent = GetIndentText(prevLineText);
-			//            _app.SetSelection(_app.GetLineStartPos(curLine), curPos);
-			//            _app.Insert(indent);
-			//        }
-			//    }
-			//    else
-			//    {
-			//        var indent = GetIndentText(prevLineText);
-			//        _app.SetSelection(_app.GetLineStartPos(curLine), curPos);
-			//        _app.Insert(indent);
-			//    }
-			//}
-			//else if (e.Character == '}' && _app.IsProbeLanguage)
-			//{
-			//    var curLoc = _app.CurrentLocation;
-			//    var curLine = _app.CurrentLine;
-			//    if (_app.GetText(_app.GetLineStartPos(curLoc.Line), curLoc).TrimStart() == "}")
-			//    {
-			//        TextLocation openLoc;
-			//        if (TryFindOpeningBrace(curLoc, out openLoc))
-			//        {
-			//            var openIndent = _app.GetText(_app.GetLineStartPos(openLoc.Line), GetIndentLocation(openLoc.Line));
-			//            _app.SetSelection(_app.GetLineStartPos(curLine), GetIndentLocation(curLine));
-			//            _app.Insert(openIndent);
-			//            curLoc = _app.CurrentLocation + 1;
-			//            _app.SetSelection(curLoc, curLoc);
-			//        }
-			//    }
-			//}
+			if (!app.Settings.Editor.SmartIndent) return;
+
+			if (e.Character == '\n')
+			{
+				var curLine = app.CurrentLine;
+				var curPos = app.CurrentLocation;
+				var prevLineText = curLine > 1 ? app.GetLineText(curLine - 1) : "";
+				if (app.IsProbeLanguage)
+				{
+					if (IndentNextLine(prevLineText))
+					{
+						var indent = GetIndentText(prevLineText, "\t");
+						app.SetSelection(app.GetLineStartPos(curLine), curPos);
+						app.Insert(indent);
+					}
+					else
+					{
+						var indent = GetIndentText(prevLineText);
+						app.SetSelection(app.GetLineStartPos(curLine), curPos);
+						app.Insert(indent);
+					}
+				}
+				else
+				{
+					var indent = GetIndentText(prevLineText);
+					app.SetSelection(app.GetLineStartPos(curLine), curPos);
+					app.Insert(indent);
+				}
+			}
+			else if (e.Character == '}' && app.IsProbeLanguage)
+			{
+				var curLoc = app.CurrentLocation;
+				var curLine = app.CurrentLine;
+				if (app.GetText(app.GetLineStartPos(curLoc.Line), curLoc).TrimStart() == "}")
+				{
+					TextLocation openLoc;
+					if (TryFindOpeningBrace(curLoc, out openLoc))
+					{
+						var openIndent = app.GetText(app.GetLineStartPos(openLoc.Line), GetIndentLocation(openLoc.Line));
+						app.SetSelection(app.GetLineStartPos(curLine), GetIndentLocation(curLine));
+						app.Insert(openIndent);
+						curLoc = app.CurrentLocation + 1;
+						app.SetSelection(curLoc, curLoc);
+					}
+				}
+			}
+#endif
 		}
 
 		public void OnModification(ModifiedEventArgs e)
@@ -102,6 +107,8 @@ namespace ProbeNpp.AutoCompletion
 			var app = ProbeNppPlugin.Instance;
 			var source = app.GetText(app.Start, app.CurrentLocation);
 			var sourceLength = source.Length;
+			var found = false;
+			var openLoc = closeBraceLoc;
 
 			var parser = new TokenParser.Parser(source);
 			while (parser.ReadNestable())
@@ -110,13 +117,21 @@ namespace ProbeNpp.AutoCompletion
 					parser.TokenText.EndsWith("}") &&
 					parser.Position.Offset == sourceLength)
 				{
-					openBraceLoc = parser.TokenStartPostion.ToNppSharpTextLocation();
-					return true;
+					openLoc = parser.TokenStartPostion.ToNppSharpTextLocation();
+					found = true;
 				}
 			}
 
-			openBraceLoc = closeBraceLoc;
-			return false;
+			if (found)
+			{
+				openBraceLoc = openLoc;
+				return true;
+			}
+			else
+			{
+				openBraceLoc = closeBraceLoc;
+				return false;
+			}
 		}
 
 		private bool IndentNextLine(string lineText)

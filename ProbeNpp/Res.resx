@@ -158,7 +158,7 @@
     <value>alternate bool char currency date enum int LEADINGZEROS like local_currency long longform nowarn numeric proto shortform string time unsigned void</value>
   </data>
   <data name="ProbeDictKeywords" xml:space="preserve">
-    <value>after asc before button by comment col create desc display endgroup form group index many nopick on one order prompt relationship row snapshot table to unique updates zoom</value>
+    <value>after asc before button by comment col create desc display endgroup form group index many modal nopick on one order prompt relationship row snapshot table to unique updates zoom</value>
   </data>
   <data name="ProbeDictLanguageName" xml:space="preserve">
     <value>Probe Table</value>
@@ -170,7 +170,7 @@
     <value>(){}|+-*/%?:&lt;&gt;=!.,&amp;</value>
   </data>
   <data name="ProbeSourceKeywords" xml:space="preserve">
-    <value>after all and asc before break button by comment case col colff cols continue default desc each else extern extract for format from group header if of or order outfile permanent prompt return row rows select static switch where while widthof</value>
+    <value>after all and asc before break button by comment case col colff cols continue default desc each else extern extract for format from group header height if of or order outfile permanent prompt return row rows select static switch where while width widthof</value>
   </data>
   <data name="ProbeSourceLanguageName" xml:space="preserve">
     <value>Probe Source</value>
