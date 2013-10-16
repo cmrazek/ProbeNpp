@@ -523,6 +523,50 @@ namespace ProbeNpp
 		}
 		#endregion
 
+		#region RelInds
+		private static HashSet<string> _relInds = null;
+		private static object _relIndsLock = new object();
+
+		public static void RefreshRelInds()
+		{
+			lock (_relIndsLock)
+			{
+				_relInds = null;
+			}
+		}
+
+		public static bool IsRelInd(string name)
+		{
+			bool reload;
+			lock (_relIndsLock)
+			{
+				reload = _relInds == null;
+			}
+
+			if (reload)
+			{
+				var relInds = new HashSet<string>();
+				foreach (var table in Tables)
+				{
+					foreach (var relInd in table.RelInds) relInds.Add(relInd);
+				}
+
+				lock (_relIndsLock)
+				{
+					_relInds = relInds;
+					return _relInds.Contains(name);
+				}
+			}
+			else
+			{
+				lock (_relIndsLock)
+				{
+					return _relInds.Contains(name);
+				}
+			}
+		}
+		#endregion
+
 		#region File Paths
 		private static string[] _probeExtensions = null;
 

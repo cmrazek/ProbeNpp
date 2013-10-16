@@ -1370,15 +1370,31 @@ namespace ProbeNpp
 			}
 		}
 
-		public void TestError()
+		public void TestPst()
 		{
-			try
+			var dlg = new PromptForm();
+			dlg.Prompt = "Table name:";
+			if (dlg.ShowDialog(NppWindow) == DialogResult.OK)
 			{
-				throw new InvalidOperationException("This is a test exception.");
-			}
-			catch (Exception ex)
-			{
-				ShowError(ex);
+				MenuCommand(NppSharp.MenuCommand.FileNew);
+
+				var parser = new PstParser();
+				parser.Process(dlg.Value);
+
+				foreach (var table in parser.Tables)
+				{
+					Insert("Table: " + table.Name + "\r\n");
+					foreach (var field in table.Fields) Insert("  - " + field.Name + "\r\n");
+				}
+
+				if (parser.RelInds.Any())
+				{
+					Insert("RelInds:\r\n");
+					foreach (var relind in parser.RelInds) Insert("  - " + relind.Name + "\r\n");
+				}
+
+				Insert("\r\n\r\n");
+				Insert(parser.Source);
 			}
 		}
 #endif

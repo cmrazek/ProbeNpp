@@ -299,7 +299,7 @@ namespace ProbeNpp
 			}
 			else
 			{
-				if (ProbeEnvironment.IsProbeTable(token))
+				if (ProbeEnvironment.IsProbeTable(token) || ProbeEnvironment.IsRelInd(token))
 				{
 					_line.Style(_tableStyle, token.Length);
 					SetLastToken(State_Token_Table);

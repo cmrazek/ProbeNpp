@@ -142,6 +142,7 @@
     <Compile Include="ProbeNppListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ProbeRelInd.cs" />
     <Compile Include="PstParser.cs" />
     <Compile Include="TokenParser.cs" />
     <Compile Include="IniFile.cs" />

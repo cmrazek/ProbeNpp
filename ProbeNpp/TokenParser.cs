@@ -443,6 +443,45 @@ namespace ProbeNpp.TokenParser
 				_linePos++;
 			}
 		}
+
+		public static string StringLiteralToString(string str)
+		{
+			if (str.StartsWith("\"") || str.StartsWith("\'")) str = str.Substring(1);
+			if (str.EndsWith("\"") || str.EndsWith("\'")) str = str.Substring(0, str.Length - 1);
+
+			var sb = new StringBuilder(str.Length);
+			for (int i = 0; i < str.Length; i++)
+			{
+				if (str[i] == '\\' && i + 1 < str.Length)
+				{
+					i++;
+					switch (str[i])
+					{
+						case 'n':
+							sb.Append('\n');
+							break;
+						case 'r':
+							sb.Append('\r');
+							break;
+						case 't':
+							sb.Append('\t');
+							break;
+						default:
+							sb.Append(str[i]);
+							break;
+					}
+				}
+				else sb.Append(str[i]);
+			}
+
+			return sb.ToString();
+		}
+
+		public string Source
+		{
+			get { return _source; }
+			set { SetSource(value); }
+		}
 	}
 
 	internal enum TokenType
