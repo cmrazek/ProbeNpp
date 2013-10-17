@@ -1370,33 +1370,43 @@ namespace ProbeNpp
 			}
 		}
 
-		public void TestPst()
-		{
-			var dlg = new PromptForm();
-			dlg.Prompt = "Table name:";
-			if (dlg.ShowDialog(NppWindow) == DialogResult.OK)
-			{
-				MenuCommand(NppSharp.MenuCommand.FileNew);
+		//public void TestPst()
+		//{
+		//    var dlg = new PromptForm();
+		//    dlg.Prompt = "Table name:";
+		//    if (dlg.ShowDialog(NppWindow) == DialogResult.OK)
+		//    {
+		//        MenuCommand(NppSharp.MenuCommand.FileNew);
 
-				var parser = new PstParser();
-				parser.Process(dlg.Value);
+		//        var parser = new PstParser();
+		//        parser.Process(dlg.Value);
 
-				foreach (var table in parser.Tables)
-				{
-					Insert("Table: " + table.Name + "\r\n");
-					foreach (var field in table.Fields) Insert("  - " + field.Name + "\r\n");
-				}
+		//        foreach (var table in parser.Tables)
+		//        {
+		//            Insert("Table: " + table.Name + "\r\n");
+		//            foreach (var field in table.Fields) Insert("  - " + field.Name + "\r\n");
+		//        }
 
-				if (parser.RelInds.Any())
-				{
-					Insert("RelInds:\r\n");
-					foreach (var relind in parser.RelInds) Insert("  - " + relind.Name + "\r\n");
-				}
+		//        if (parser.RelInds.Any())
+		//        {
+		//            Insert("RelInds:\r\n");
+		//            foreach (var relind in parser.RelInds) Insert("  - " + relind.Name + "\r\n");
+		//        }
 
-				Insert("\r\n\r\n");
-				Insert(parser.Source);
-			}
-		}
+		//        Insert("\r\n\r\n");
+		//        Insert(parser.Source);
+		//    }
+		//}
+
+		//public void TestPstEveryTable()
+		//{
+		//    foreach (var table in ProbeEnvironment.Tables)
+		//    {
+		//        ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.NotImportant, "PST-ing table: {0}", table.Name);
+		//        var parser = new PstParser();
+		//        parser.Process(table.Name);
+		//    }
+		//}
 #endif
 		#endregion
 	}

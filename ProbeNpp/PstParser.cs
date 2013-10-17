@@ -54,6 +54,7 @@ namespace ProbeNpp
 					if (ReadCreateTable()) { }
 					else if (ReadCreateIndex()) { }
 					else if (ReadCreateRelationship()) { }
+					else if (ReadCreateTimeRelationship()) { }
 					else
 					{
 						ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.Warning, "Unknown token '{0}' in PST output for table '{1}'.", _parser.TokenText, tableName);
@@ -509,6 +510,16 @@ namespace ProbeNpp
 							}
 						}
 						break;
+
+					case "graphic":
+						{
+							// graphic rows columns bytes
+
+							if (!_parser.Read() || _parser.TokenType != TokenType.Number) throw new ProbeException("Expected rows after 'graphic'.");
+							if (!_parser.Read() || _parser.TokenType != TokenType.Number) throw new ProbeException("Expected columns after 'graphic'.");
+							if (!_parser.Read() || _parser.TokenType != TokenType.Number) throw new ProbeException("Expected bytes after 'graphic'.");
+						}
+						break;
 				}
 
 				return ret = sb.ToString();
@@ -595,16 +606,16 @@ namespace ProbeNpp
 				string relComment = "";
 				if (_parser.Peek(out pos) && _parser.TokenText == "prompt")
 				{
-					relPrompt = Parser.StringLiteralToString(_parser.TokenText);
 					_parser.Position = pos;
 					if (!_parser.Read() || _parser.TokenType != TokenType.StringLiteral) throw new ProbeException("Expected string literal after 'prompt'.");
+					relPrompt = Parser.StringLiteralToString(_parser.TokenText);
 				}
 
 				if (_parser.Peek(out pos) && _parser.TokenText == "comment")
 				{
-					relComment = Parser.StringLiteralToString(_parser.TokenText);
 					_parser.Position = pos;
 					if (!_parser.Read() || _parser.TokenType != TokenType.StringLiteral) throw new ProbeException("Expected string literal after 'comment'.");
+					relComment = Parser.StringLiteralToString(_parser.TokenText);
 				}
 
 				if (!_parser.Read() || (_parser.TokenText != "one" && _parser.TokenText != "many")) throw new ProbeException("Expected 'one' or 'many' after relationship number.");
@@ -622,21 +633,11 @@ namespace ProbeNpp
 						_parser.Position = pos;
 					}
 
-					var needDelim = false;
 					while (true)
 					{
 						if (!_parser.Read()) throw new ProbeException("Unexpected end of file in relationship column list.");
 						if (_parser.TokenText == "(") break;
-						if (needDelim)
-						{
-							if (_parser.TokenText != ",") throw new ProbeException("Expected comma delimiter in relationship column list.");
-							needDelim = false;
-						}
-						else
-						{
-							if (_parser.TokenType != TokenType.Word) throw new ProbeException("Expected column name in relationship column list.");
-							needDelim = true;
-						}
+						if (_parser.TokenType != TokenType.Word) throw new ProbeException("Expected column name in relationship column list.");
 					}
 				}
 				else
@@ -654,6 +655,71 @@ namespace ProbeNpp
 			catch (ProbeException ex)
 			{
 				ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.Warning, string.Format("Exception when processing 'create relationship' for table '{0}': {1}", _tableName, ex.ToString()));
+				return ret = false;
+			}
+			finally
+			{
+				if (!ret) _parser.Position = startPos;
+			}
+		}
+
+		private bool ReadCreateTimeRelationship()
+		{
+			var startPos = _parser.Position;
+			var ret = false;
+			try
+			{
+				Position pos;
+
+				if (!_parser.Read() || _parser.TokenText != "time") return false;
+				if (!_parser.Read() || _parser.TokenText != "relationship") return false;
+
+				if (!_parser.Read() || _parser.TokenType != TokenType.Word) throw new ProbeException("Expected time relationship name.");
+				var relName = _parser.TokenText;
+
+				if (!_parser.Read() || _parser.TokenType != TokenType.Number) throw new ProbeException("Expected time relationship number.");
+
+				if (_parser.Peek(out pos) && _parser.TokenText == "prompt")
+				{
+					_parser.Position = pos;
+					if (!_parser.Read() || _parser.TokenType != TokenType.StringLiteral) throw new ProbeException("Expected string literal after 'prompt'.");
+				}
+
+				if (_parser.Peek(out pos) && _parser.TokenText == "comment")
+				{
+					_parser.Position = pos;
+					if (!_parser.Read() || _parser.TokenType != TokenType.StringLiteral) throw new ProbeException("Expected string literal after 'comment'.");
+				}
+
+				if (!_parser.Read() || _parser.TokenType != TokenType.Word) throw new ProbeException("Expected time relationship master table name.");
+				if (!_parser.Read() || _parser.TokenText != "to") throw new ProbeException("Expected 'to' after time relationship master table.");
+				if (!_parser.Read() || _parser.TokenType != TokenType.Word) throw new ProbeException("Expected time relationship transactions table name.");
+
+				if (_parser.Peek(out pos) && _parser.TokenText == "order")
+				{
+					_parser.Position = pos;
+					if (!_parser.Read() || _parser.TokenText != "by") throw new ProbeException("Expected 'by' after 'order'.");
+
+					while (true)
+					{
+						if (!_parser.Read()) throw new ProbeException("Unexpected end of file in time relationship order by list.");
+						if (_parser.TokenText == "(") break;
+						if (_parser.TokenType != TokenType.Word) throw new ProbeException("Expected column name in time relationship order by list.");
+					}
+				}
+				else
+				{
+					if (!_parser.Read() || _parser.TokenText != "(") throw new ProbeException("Expected '(' after time relationship.");
+				}
+
+				if (!_parser.Read() || _parser.TokenText != ")") throw new ProbeException("Expected ')' at end of time relationship.");
+
+				_relInds.Add(new ProbeRelInd { Name = relName });
+				return ret = true;
+			}
+			catch (ProbeException ex)
+			{
+				ProbeNppPlugin.Instance.Output.WriteLine(OutputStyle.Warning, string.Format("Exception when processing 'create time relationship' for table '{0}': {1}", _tableName, ex.ToString()));
 				return ret = false;
 			}
 			finally
