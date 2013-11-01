@@ -106,6 +106,7 @@ namespace ProbeNpp
 			try
 			{
 				lstFunctions.Items.Clear();
+				_functionListWait.Cancel();
 			}
 			catch (Exception ex)
 			{

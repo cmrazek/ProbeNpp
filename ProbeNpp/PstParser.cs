@@ -356,29 +356,37 @@ namespace ProbeNpp
 						{
 							// enum [proto [nowarn]] { item[, ...] }
 
-							if (!_parser.Read()) return null;
+							if (!_parser.Read()) throw new ProbeException("Unexpected end of file in enum.");
 
 							if (_parser.TokenText == "proto")
 							{
 								sb.Append(" ");
 								sb.Append(_parser.TokenText);
-								if (!_parser.Read()) return null;
-								if (_parser.TokenText == "nowarn")
-								{
-									sb.Append(" ");
-									sb.Append(_parser.TokenText);
-									if (!_parser.Read()) return null;
-								}
+								if (!_parser.Read()) throw new ProbeException("Unexpected end of file in enum.");
 							}
 
-							if (_parser.TokenText != "{") return null;
+							if (_parser.TokenText == "required")
+							{
+								sb.Append(" ");
+								sb.Append(_parser.TokenText);
+								if (!_parser.Read()) throw new ProbeException("Unexpected end of file in enum.");
+							}
+
+							if (_parser.TokenText == "nowarn")
+							{
+								sb.Append(" ");
+								sb.Append(_parser.TokenText);
+								if (!_parser.Read()) throw new ProbeException("Unexpected end of file in enum.");
+							}
+
+							if (_parser.TokenText != "{") throw new ProbeException("Expected '{' after enum.");
 							sb.Append(" ");
 							sb.Append("{");
 
 							var needDelim = false;
 							while (true)
 							{
-								if (!_parser.Read()) return null;
+								if (!_parser.Read()) throw new ProbeException("Unexpected end of file in enum list.");
 								if (_parser.TokenText == "}")
 								{
 									sb.Append(" }");
@@ -387,16 +395,13 @@ namespace ProbeNpp
 
 								if (needDelim)
 								{
-									if (_parser.TokenText != ",") return null;
+									if (_parser.TokenText != ",") throw new ProbeException("Expected ',' in enum list.");
 									sb.Append(",");
 									needDelim = false;
 								}
 								else
 								{
-									if (_parser.TokenType != TokenType.StringLiteral && _parser.TokenType != TokenType.Word)
-									{
-										return null;
-									}
+									if (_parser.TokenType != TokenType.StringLiteral && _parser.TokenType != TokenType.Word) throw new ProbeException("Expected identifier or string literal in enum list.");
 									sb.Append(" ");
 									sb.Append(_parser.TokenText);
 									needDelim = true;

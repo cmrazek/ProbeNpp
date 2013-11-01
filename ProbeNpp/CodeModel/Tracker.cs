@@ -55,24 +55,30 @@ namespace ProbeNpp
 				else if (edit.endLoc.Line < point.Line)
 				{
 					// Occurred on a line prior to this one.
-					if (edit.insert) point.Line -= edit.endLoc.Line - edit.startLoc.Line;
-					else point.Line += edit.endLoc.Line - edit.startLoc.Line;
+					var line = point.Line;
+					if (edit.insert) line -= edit.endLoc.Line - edit.startLoc.Line;
+					else line += edit.endLoc.Line - edit.startLoc.Line;
+					point.Line = line <= 0 ? 1 : line;
 					continue;
 				}
 				else if (edit.endLoc < point)
 				{
 					// Edit affects this line, but before the point.
 
+					var line = point.Line;
+					var charPos = point.CharPosition;
 					if (edit.insert)
 					{
-						point.Line -= edit.endLoc.Line - edit.startLoc.Line;
-						point.CharPosition = point.CharPosition - (edit.endLoc.CharPosition - 1) + (edit.startLoc.CharPosition - 1);
+						line -= edit.endLoc.Line - edit.startLoc.Line;
+						charPos = point.CharPosition - (edit.endLoc.CharPosition - 1) + (edit.startLoc.CharPosition - 1);
 					}
 					else // delete
 					{
-						point.Line += edit.endLoc.Line - edit.startLoc.Line;
-						point.CharPosition = point.CharPosition + (edit.endLoc.CharPosition - 1) - (edit.startLoc.CharPosition - 1);
+						line += edit.endLoc.Line - edit.startLoc.Line;
+						charPos = point.CharPosition + (edit.endLoc.CharPosition - 1) - (edit.startLoc.CharPosition - 1);
 					}
+					point.Line = line <= 0 ? 1 : line;
+					point.CharPosition = charPos <= 0 ? 1 : charPos;
 				}
 				else
 				{
