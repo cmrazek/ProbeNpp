@@ -79,7 +79,7 @@ namespace ProbeNpp
 					if (_sourceDirs == null)
 					{
 						var dirs = new List<string>();
-						foreach (var dir in _nvFile[_currentApp, "ps"].Split(';'))
+						foreach (var dir in Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "ps"]).Split(';'))
 						{
 							try
 							{
@@ -107,7 +107,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_objectDir = Path.GetFullPath(_nvFile[_currentApp, "po"].Trim());
+							_objectDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "po"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -131,7 +131,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_exeDir = Path.GetFullPath(_nvFile[_currentApp, "pe"].Trim());
+							_exeDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "pe"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -154,7 +154,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_tempDir = Path.GetFullPath(_nvFile[_currentApp, "pt"].Trim());
+							_tempDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "pt"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -177,7 +177,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_reportDir = Path.GetFullPath(_nvFile[_currentApp, "pr"].Trim());
+							_reportDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "pr"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -200,7 +200,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_dataDir = Path.GetFullPath(_nvFile[_currentApp, "pd"].Trim());
+							_dataDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "pd"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -223,7 +223,7 @@ namespace ProbeNpp
 					{
 						try
 						{
-							_logDir = Path.GetFullPath(_nvFile[_currentApp, "px"].Trim());
+							_logDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "px"]).Trim());
 						}
 						catch (Exception ex)
 						{
@@ -245,7 +245,7 @@ namespace ProbeNpp
 					if (_libDirs == null)
 					{
 						var dirs = new List<string>();
-						foreach (var dir in _nvFile[_currentApp, "lib"].Split(';'))
+						foreach (var dir in Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "lib"]).Split(';'))
 						{
 							try
 							{
@@ -272,7 +272,7 @@ namespace ProbeNpp
 					if (_includeDirs == null)
 					{
 						var dirs = new List<string>();
-						foreach (string dir in _nvFile[_currentApp, "include"].Split(';'))
+						foreach (string dir in Environment.ExpandEnvironmentVariables(_nvFile[_currentApp, "include"]).Split(';'))
 						{
 							try
 							{

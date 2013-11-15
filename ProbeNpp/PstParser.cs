@@ -107,8 +107,6 @@ namespace ProbeNpp
 			var ret = false;
 			try
 			{
-				string str;
-
 				if (!_parser.Read() || _parser.TokenText != "table") return false;
 
 				// Table name
