@@ -172,8 +172,6 @@ namespace ProbeNpp.AutoCompletion
 
 				if (modified == DateTime.MinValue || Math.Abs(File.GetLastWriteTime(fileName).Subtract(modified).TotalSeconds) >= 1.0)
 				{
-					Log.WriteDiag("Processing function file: {0}", fileName);
-
 					var merger = new FileMerger();
 					merger.MergeFile(fileName, false);
 

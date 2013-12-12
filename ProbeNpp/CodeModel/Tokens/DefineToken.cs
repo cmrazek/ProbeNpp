@@ -59,6 +59,10 @@ namespace ProbeNpp.CodeModel.Tokens
 
             var resetPos = scope.File.Position;
 
+			// Check for line break before next token.
+			if (!scope.File.SkipWhiteSpaceAndComments() || scope.File.Position.LineNum != lineNum)
+				return new DefineToken(parent, scope, tokens, nameToken, null, bodyTokens);
+
             // Arguments
             BracketsToken argsToken = null;
             token = scope.File.ParseToken(parent, defineScope);
@@ -73,6 +77,11 @@ namespace ProbeNpp.CodeModel.Tokens
                 argsToken = token as BracketsToken;
                 tokens.Add(argsToken);
                 resetPos = scope.File.Position;
+
+				// Check for line break before next token.
+				if (!scope.File.SkipWhiteSpaceAndComments() || scope.File.Position.LineNum != lineNum)
+					return new DefineToken(parent, scope, tokens, nameToken, argsToken, bodyTokens);
+
                 token = scope.File.ParseToken(parent, defineScope);
                 if (token == null || token.Span.Start.LineNum != lineNum)
                 {
@@ -109,7 +118,7 @@ namespace ProbeNpp.CodeModel.Tokens
                 var pos = scope.File.Position;
                 if (pos.LineNum != lineNum) break;
 
-                token = scope.File.ParseToken(parent, defineScope);
+                token = scope.File.ParseSingleToken(parent, defineScope);
                 if (token == null || token.Span.Start.LineNum != lineNum)
                 {
                     scope.File.Position = pos;

@@ -64,7 +64,7 @@ namespace ProbeNpp
 
 		// Styles used by this lexer.
 		LexerStyle _defaultStyle = new LexerStyle("Default");
-		LexerStyle _commentStyle = new LexerStyle("Comments", Color.Green, FontStyle.Italic);
+		LexerStyle _commentStyle = new LexerStyle("Comments", Color.Green);
 		LexerStyle _numberStyle = new LexerStyle("Numbers", Color.DarkRed);
 		LexerStyle _stringStyle = new LexerStyle("Strings", Color.DarkRed);
 		LexerStyle _operatorStyle = new LexerStyle("Operators", Color.DimGray);

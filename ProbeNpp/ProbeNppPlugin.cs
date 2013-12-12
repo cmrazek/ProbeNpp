@@ -1409,6 +1409,12 @@ namespace ProbeNpp
 				parser.Process(table.Name);
 			}
 		}
+
+		[NppMenu("Debug")]
+		public void CodeModelTest()
+		{
+			var model = new CodeModel.CodeModel(GetText(Start, End), ActiveFileName);
+		}
 #endif
 		#endregion
 	}
