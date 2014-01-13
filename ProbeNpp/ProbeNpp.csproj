@@ -114,6 +114,7 @@
     <Compile Include="FileDetails.cs" />
     <Compile Include="FileMergeException.cs" />
     <Compile Include="FileMerger.cs" />
+    <Compile Include="FileUtil.cs" />
     <Compile Include="FindInProbeFiles\FindArgs.cs" />
     <Compile Include="FindInProbeFiles\FindDialog.cs">
       <SubType>Form</SubType>

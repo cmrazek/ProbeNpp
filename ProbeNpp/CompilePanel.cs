@@ -142,6 +142,17 @@ namespace ProbeNpp
 
 				_numErrors = _numWarnings = 0;
 
+				var workingDir = ProbeEnvironment.ObjectDir;
+				if (string.IsNullOrWhiteSpace(workingDir))
+				{
+					WriteLine("Probe object directory not configured.");
+					return;
+				}
+				else if (!Directory.Exists(workingDir))
+				{
+					FileUtil.CreateDirectoryRecursive(workingDir);
+				}
+
 				_proc = new Process();
 				ProcessStartInfo info = new ProcessStartInfo("pc.bat", "/w");
 				info.UseShellExecute = false;
